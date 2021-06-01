@@ -1,0 +1,287 @@
+<div class="row layout-top-spacing">    
+<div class="col-sm-12">    
+@include('common.alerts')  
+@include('common.messages')  
+<div class="widget-content-area">
+<div class="widget-one">
+    <h3 class="text-center"><b>Arqueo de Caja</b></h3>
+    @can('HabilitarCaja_index')
+    <div class="row">
+        <div class="col-sm-12 col-md-2 col-lg-2">
+            Elige Fecha
+            <div class="form-group">
+                <input wire:model.lazy="fecha" type="text" class="form-control flatpickr flatpickr-input active"
+                placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}">
+            </div>
+        </div>
+        <div class="col-sm-12 col md-3 col-lg-3">
+            <div class="form-group">Elige Operador
+                <select wire:model="user" class="form-control">
+                    <option value="todos">Todos</option>
+                    @foreach($users as $u)
+                        <option value="{{$u->id}}">{{$u->apellido}} {{$u->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-4 col-lg-4">                   
+            @if($factPendiente == 1)
+            <button onclick="cerrarCaja()" class="btn btn-dark btn-block mt-4" disabled>Cerrar Caja</button> 
+            @else        
+            <button onclick="cerrarCaja()" class="btn btn-dark btn-block mt-4" enabled>Cerrar Caja</button>                   
+            @endif
+        </div>
+    </div>
+    @else
+    <div class="row mb-4">
+        <div class="col-12">
+           @if($caja_abierta > 0)
+           <h6><b>Fecha/Hora Inicio: </b> {{$fecha_inicio->format('d-m-Y')}} - {{$fecha_inicio->format('H:i')}} hs.</h6>
+           @endif
+        </div>
+    </div> 
+    @endcan
+    <!-- <hr> -->
+    <div class="row">
+        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+            <div class="color-box">
+                <span onclick="openModal(1)" class="cl-example text-center" style="background-color: #394BA1; font-size: 3rem;color: white;cursor:pointer">#</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Caja Inicial</h1>
+                    <span>$ {{number_format($cajaInicial,2,',','.')}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+            <div class="color-box mb-1">
+                <span onclick="openModal(2)" class="cl-example text-center" style="background-color: #8dbf42; font-size: 3rem;color: white;cursor:pointer">+</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Ventas Contado</h1>
+                    <span>$ {{number_format($ventas,2,',','.')}}</span>
+                </div>
+            </div>
+            <div class="color-box mb-1">
+                <span onclick="openModal(3)" class="cl-example text-center" style="background-color: #8dbf42; font-size: 3rem;color: white;cursor:pointer">+</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Cobros Cta Cte</h1>
+                    <span>$ {{number_format($cobrosCtaCte,2,',','.')}}</span>
+                </div>
+            </div>
+            <div class="color-box">
+                <span onclick="openModal(4)" class="cl-example text-center" style="background-color: #8dbf42; font-size: 3rem;color: white;cursor:pointer">+</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Otros Ingresos</h1>
+                    <span>$ {{number_format($otrosIngresos,2,',','.')}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+            <div class="color-box">
+                <span onclick="openModal(5)" class="cl-example text-center" style="background-color: #F2351F; font-size: 3rem;color: white;cursor:pointer">-</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Egresos</h1>
+                    <span>$ {{number_format($egresos,2,',','.')}}</span>
+                </div>
+            </div>   
+        </div>
+        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+            <div class="color-box">
+                <span onclick="openModal(6)" class="cl-example text-center" style="background-color: #394BA1; font-size: 3rem;color: white;cursor:pointer">#</span>
+                <div class="cl-info">
+                    <h1 class="cl-title">Caja Final</h1>
+                       <span>$ {{number_format($cajaFinal,2,',','.')}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@include('livewire.cortes.modal')
+<input type="hidden" id="caja_abierta" wire:model="caja_abierta">    
+<input type="hidden" id="id" value="0">	
+@can('ArqueoDeCajaDeOtros_index')
+<input type="hidden" id="verArqueoDeOtros" value="1">	
+<input id="user" wire:model="user">
+<input id="user" wire:model="nro_arqueo">
+@else
+<input type="hidden" id="verArqueoDeOtros" value="0">
+@endif	
+
+</div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+
+<script type="text/javascript">
+ 	function Confirm(id)
+    {
+       let me = this
+       swal({
+        title: 'CONFIRMAR',
+        text: '¿DESEAS ELIMINAR EL REGISTRO?',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        closeOnConfirm: false
+        },
+		function() {
+			window.livewire.emit('deleteRow', id)    
+			toastr.success('info', 'Registro eliminado con éxito')
+			swal.close()   
+        })
+    }   
+    function cerrarCaja()
+    {
+    	Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Deseas cerrar esta Caja? No podrás deshacer esta acción...',
+    		icon: 'warning',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					Swal.fire(
+						'Caja Cerrada!',
+						'El Cierre se efectuó correctamente...',
+						'success'
+					);
+					window.livewire.emit('cerrarCaja')
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire(
+					'Cancelado',
+					'El cierre no se concretó...',
+					'error'
+				)
+            }
+		})	
+	}	 
+    function edit(row)
+    {
+        var info = JSON.parse(row)
+        $('#id').val(info.id)
+        $('#importe').val(info.importe)
+        $('.modal-title').text('Editar Caja')
+    }
+    function openModal(id)
+    {
+        if(id == 1){
+            $('#id').show()
+            $('#importe').show()
+            $('#labelImporte').show()
+            $('#btnGuardar').hide()            
+            $('#id').val(0)
+            $('#importe').val('')
+            $('#modalCajaInicial').show()
+            $('#modalVentas').hide()
+            $('#modalCobros').hide()
+            $('#modalIngresos').hide()
+            $('#modalEgresos').hide()           
+            $('#modalCajaFinal').hide()           
+            $('.modal-title').text('Caja Inicial')
+        }else if(id == 2){
+            $('#id').hide()
+            $('#importe').hide()
+            $('#labelImporte').hide()
+            $('#btnGuardar').hide() 
+            $('#modalCajaInicial').hide()
+            $('#modalVentas').show()
+            $('#modalCobros').hide()
+            $('#modalIngresos').hide()
+            $('#modalEgresos').hide()
+            $('#modalCajaFinal').hide() 
+            $('.modal-title').text('Listado de Ventas Diarias')
+        }else if(id == 3){
+            $('#id').hide()
+            $('#importe').hide()
+            $('#labelImporte').hide()
+            $('#btnGuardar').hide() 
+            $('#modalCajaInicial').hide()
+            $('#modalVentas').hide()
+            $('#modalCobros').show()
+            $('#modalIngresos').hide()
+            $('#modalEgresos').hide()
+            $('#modalCajaFinal').hide() 
+            $('.modal-title').text('Listado de Cobros de Cuenta Corriente')
+        }else if(id == 4){
+            $('#id').hide()
+            $('#importe').hide()
+            $('#labelImporte').hide()
+            $('#btnGuardar').hide() 
+            $('#modalCajaInicial').hide()
+            $('#modalVentas').hide()
+            $('#modalCobros').hide()
+            $('#modalIngresos').show()
+            $('#modalEgresos').hide()
+            $('#modalCajaFinal').hide() 
+            $('.modal-title').text('Listado de Otros Ingresos')
+        }else if(id == 5){
+            $('#id').hide()
+            $('#importe').hide()
+            $('#labelImporte').hide()
+            $('#btnGuardar').hide() 
+            $('#modalCajaInicial').hide()
+            $('#modalVentas').hide()
+            $('#modalCobros').hide()
+            $('#modalIngresos').hide()
+            $('#modalEgresos').show()
+            $('#modalCajaFinal').hide() 
+            $('.modal-title').text('Listado de Egresos')
+        }else{
+            $('#id').hide()
+            $('#importe').hide()
+            $('#labelImporte').hide()
+            $('#btnGuardar').hide() 
+            $('#modalCajaInicial').hide()
+            $('#modalVentas').hide()
+            $('#modalCobros').hide()
+            $('#modalIngresos').hide()
+            $('#modalEgresos').hide()
+            $('#modalCajaFinal').show() 
+            $('.modal-title').text('Caja Final')
+        }
+        $('#modalCajaRep').modal('show')
+    }
+    function save()
+    {
+        if($.trim($('#importe').val()) == '')
+        {
+            toastr.error('Ingresa un importe válido')
+            return;
+        }
+        var data = JSON.stringify({
+            'id'        : $('#id').val(),
+            'importe'   : $('#importe').val()            
+        });
+        window.livewire.emit('grabarCajaModal', data)
+    } 
+    // $(document).ready(function() {
+    //     $('[id="fecha"]').change(function() {
+    //         var data =  $('#fecha').val();         
+    //         $('#fechaConsulta').text(data);
+    //         window.livewire.emit('cambiarFecha', data);
+    //     });
+    //     if($('#caja_abierta').val() == 0){
+    // });
+    window.onload = function() {
+        if($('#caja_abierta').val() == 0){   //hacer ver historial
+            swal({
+                title: 'Oops',
+                text: 'Para ver tu Arqueo de Caja, primero deben habilitarte una.',
+                type: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Aceptar',
+                closeOnConfirm: false
+            },
+            function() {  
+                window.location.href="{{ url('home') }}";
+                swal.close()   
+            });
+        }  
+    }
+</script>
