@@ -112,12 +112,12 @@ class AbonadosController extends Component
         $this->selected_id = $id;
 
         $record = UsuarioComercioPlanes::join('usuario_comercio as uc', 'uc.id', 'usuariocomercio_planes.usuariocomercio_id')
-        ->join('users as u', 'u.id', 'uc.usuario_id')
-        ->join('comercios as c', 'c.id', 'uc.comercio_id')
-        ->join('planes as p', 'p.id', 'usuariocomercio_planes.plan_id')
-        ->select('usuariocomercio_planes.*', 'u.name', 'u.apellido', 'u.email', 'u.telefono1', 
-                 'c.nombre as nombrecomercio', 'p.descripcion')
-        ->where('usuariocomercio_planes.id', $id)->get();
+            ->join('users as u', 'u.id', 'uc.usuario_id')
+            ->join('comercios as c', 'c.id', 'uc.comercio_id')
+            ->join('planes as p', 'p.id', 'usuariocomercio_planes.plan_id')
+            ->select('usuariocomercio_planes.*', 'u.name', 'u.apellido', 'u.email', 'u.telefono1', 
+                    'c.nombre as nombrecomercio', 'p.descripcion')
+            ->where('usuariocomercio_planes.id', $id)->get();
       
         $this->usuarioComercioId = $record[0]->usuariocomercio_id;
         $this->nombre = $record[0]->apellido . ', ' . $record[0]->name;
