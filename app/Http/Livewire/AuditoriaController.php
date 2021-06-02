@@ -3,9 +3,9 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use\App\Models\Auditoria;
-use\App\Models\User;
-use\App\Models\Gasto;
+use App\Models\Auditoria;
+use App\Models\User;
+use App\Models\Gasto;
 use DB;
 
 class AuditoriaController extends Component
