@@ -203,7 +203,7 @@ class RegisterController extends Controller
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
                 
-            //$this->sendEmail($user, $this->comercio);
+            $this->sendEmail($user, $this->comercio);
             DB::commit();
             return $user;
         }catch (\Exception $e){
