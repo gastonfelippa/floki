@@ -8,7 +8,7 @@ use App\Models\OtroIngreso;
 use App\Models\Gasto;
 use App\Models\Auditoria;
 use App\Models\CajaUsuario;
-use\Carbon\Carbon;
+use Carbon\Carbon;
 use DB;
 
 class MovimientosDeCajaController extends Component

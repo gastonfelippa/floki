@@ -3,9 +3,9 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use\App\Models\Factura;
-use\App\Models\Ctacte;
-use\App\Models\User;
+use App\Models\Factura;
+use App\Models\Ctacte;
+use App\Models\User;
 use DB;
 
 class FacturasACobrarController extends Component

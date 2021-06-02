@@ -3,8 +3,8 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use\App\Models\Factura;
-use\Carbon\Carbon;
+use App\Models\Factura;
+use Carbon\Carbon;
 use DB;
 
 class VentaDiariaController extends Component
