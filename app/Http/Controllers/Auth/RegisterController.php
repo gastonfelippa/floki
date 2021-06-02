@@ -203,9 +203,9 @@ class RegisterController extends Controller
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
                 
-            $this->sendEmail($user, $this->comercio);
             DB::commit();
             return $user;
+            $this->sendEmail($user, $this->comercio);
         }catch (\Exception $e){
             DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos  
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
