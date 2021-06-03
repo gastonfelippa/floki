@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Cliente;
 use App\Models\Ctacte;
+use App\Models\CajaUsuario;
 use App\Models\Detfactura;
 use App\Models\Factura;
 use App\Models\Producto;
