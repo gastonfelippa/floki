@@ -125,7 +125,7 @@ class ViandasController extends Component
             DB::commit();
             session()->flash('message', 'Facturas de Viandas creadas exitosamente!!');
             return;
-        }catch (Exception $e){
+        }catch (\Exception $e){
             DB::rollback();    
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! Las Facturas no se grabaron...');
             return;          

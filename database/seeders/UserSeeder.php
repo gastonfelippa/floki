@@ -173,9 +173,9 @@ class UserSeeder extends Seeder
             'apellido'=> 'Felippa', 
             'sexo' => '2',
             'username' => 'admin@floki',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('12345678'),
-            'pass' => '12345678',
+            'email' => 'floki.adm@gmail.com',
+            'password' => bcrypt('123floki'),
+            'pass' => '123floki',
             'abonado' => 'Admin'
         ]);     
 

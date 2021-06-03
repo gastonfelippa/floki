@@ -31,8 +31,6 @@ class RegistrarseMailable extends Mailable
 
         $this->$contraseña =$contraseña;
 
-        dd($this->contraseña);
-
     }
 
     /**

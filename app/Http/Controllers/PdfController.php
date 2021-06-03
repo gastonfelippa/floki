@@ -206,7 +206,6 @@ class PdfController extends Controller
                     }                        
                 }
             }
-            //dd($sumaFacturas,$sumaRecibos);
             // calculo el total para cada cliente
             $i->importe = $sumaFacturas - $sumaRecibos;
             //solo calculo el importe del total gral si se están mostrando todos los clientes
