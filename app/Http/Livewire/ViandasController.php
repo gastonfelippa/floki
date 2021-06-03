@@ -16,7 +16,7 @@ use DB;
 class ViandasController extends Component
 {
 
-    public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
+    public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir', $estado_entrega = '0';
     public $numero, $cliente_id, $importe, $factura_id, $producto_id, $cantidad, $precio;
 
     public function render()
@@ -104,10 +104,13 @@ class ViandasController extends Component
                         'numero' => $numFactura,
                         'cliente_id' => $i->cliente_id,
                         'repartidor_id' => 1,
+                        'user_id' => auth()->user()->id,
                         'importe' => $i->importe,
                         'estado' => 'ctacte',
-                        'user_id' => auth()->user()->id,
-                        'comercio_id' => $this->comercioId
+                        'estado_pago'    => '0',
+                        'estado_entrega' => $this->estado_entrega,
+                        'comercio_id' => $this->comercioId,
+                        'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
                         'factura_id' => $factura->id,

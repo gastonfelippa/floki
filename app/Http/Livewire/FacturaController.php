@@ -63,7 +63,7 @@ class FacturaController extends Component
             ->where('users.apellido', 'Salón')
             ->where('r.comercio_id', $this->comercioId)
             ->select('users.id')->get();
-//dd($this->salon[0]->id);
+
         if(strlen($this->barcode) > 0) $this->buscarProducto($this->barcode); 
         else $this->precio = '';
         
