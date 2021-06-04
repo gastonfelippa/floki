@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 // use Livewire\Component;
 use App\Models\Factura;
 use App\Models\Cliente;
-use App\Models\CtaCte;
+use App\Models\Ctacte;
 use App\Models\Recibo;
 use App\Models\Producto;
 use App\Models\Detfactura;

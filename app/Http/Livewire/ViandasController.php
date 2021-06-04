@@ -25,15 +25,6 @@ class ViandasController extends Component
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
-        //vemos si tenemos una caja habilitada con nuestro user_id
-        // $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
-        //     ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();
-        // $this->caja_abierta = $caja_abierta->count();
-        // if($caja_abierta->count() > 0){
-        //     $this->nro_arqueo = $caja_abierta[0]->id;  //este es el nro_arqueo del cajero, pero puede cambiar por el del delivery
-        //     $this->fecha_inicio = $caja_abierta[0]->created_at;  
-        // }
-
         $productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         $repartidores = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
             ->join('roles as r', 'r.id', 'mhr.role_id')
@@ -96,17 +87,19 @@ class ViandasController extends Component
                          'p.precio_venta', DB::RAW("'' as importe"))->get(); 
             foreach ($info as $i){
                 $i->importe=$i->cantidad * $i->precio_venta;
-            }
-      // if($this->empleado == 'Elegir'){   ///modificar el nro_arqueo
-                    //     $this->empleado = null;  
-                    // }else{            //si es delivery, cambiamos el nro_arqueo
-                    //     $this->estado_entrega = 1;    
-                    $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
-                    ->where('caja_usuarios.estado', '1')->get();
-                if($nroArqueo->count() > 0){
-                    $this->nro_arqueo = $nroArqueo[0]->id;  //este es el nro_arqueo del repartidor
-                }  
-           // } 
+            } 
+
+
+//////////////MOSTRAR SOLO LOS REPARTIDORES CON CAJA ABIERTA////////////////////////////
+
+
+
+            //busco el nro_arqueo del repartidor
+            $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
+                ->where('caja_usuarios.estado', '1')->get();
+            if($nroArqueo->count() > 0){
+                $this->nro_arqueo = $nroArqueo[0]->id;  
+            }         
            
             foreach($info as $i){
                 if (in_array($i->cliente_id, $data)) {
