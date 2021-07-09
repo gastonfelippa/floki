@@ -6,7 +6,7 @@
         <div class="col-sm-6 col-lg-4">
             <h1 class="text-center mb-4" style="color:white"><b>FlokI2</b></h1>
             <div class="card">
-                <div class="card-header">Ingreso</div>
+                <div class="card-header">Ingreso2</div>
                 <div class="card-body px-4">
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
