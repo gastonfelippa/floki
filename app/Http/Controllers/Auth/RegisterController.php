@@ -264,7 +264,9 @@ class RegisterController extends Controller
         $objDemo->demo_two = '';
         $objDemo->sender = 'El equipo de FlokI';
         $objDemo->receiver = $user->name;
+
+        $email = 'admin@floki.com';
  
-        Mail::to(env('MAIL_FROM_ADDRESS'))->send(new NuevoAbonado($user, $comercio));
+        Mail::to(env('floki.adm@gmail.com'))->send(new NuevoAbonado($user, $comercio));
     }
 }

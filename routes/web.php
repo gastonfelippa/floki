@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Mail;
 Route::get('/', function () {
     return view('auth.login');
 });
-Route::get('email', function() {
-    return new \App\Mail\WelcomeUser('Carina');
-});
+// Route::get('email', function() {
+//     return new \App\Mail\WelcomeUser('Carina');
+// });
 
 //Auth::routes();
 Auth::routes(['verify' => true]);
