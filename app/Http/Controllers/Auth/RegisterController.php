@@ -248,11 +248,11 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-         
+            $this->sendEmail($user, $this->comercio);
             DB::commit();
             
             return $user;
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos  
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
