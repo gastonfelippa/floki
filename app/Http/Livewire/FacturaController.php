@@ -13,7 +13,6 @@ use App\Models\Categoria;
 use App\Models\Ctacte;
 use App\Models\CajaUsuario;
 use App\Models\User;
-use Carbon\Carbon;
 use DB;
 
 class FacturaController extends Component
@@ -21,13 +20,15 @@ class FacturaController extends Component
 	//properties
     public $cantidad = 1, $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos;
     public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $barcode, $salon =null;
-    public $clientes, $empleados, $productos, $dejar_pendiente;
-    public $selected_id = null, $search, $numFactura;
+    public $clientes, $empleados, $productos;
+    public $selected_id = null, $search, $numFactura, $action = 1;
     public $facturas,  $total, $importe, $totalAgrabar, $delivery = 0;  
     public $grabar_encabezado = true, $modificar, $codigo;
-    public $comercioId, $factura_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
+    public $comercioId, $arqueoGralId, $factura_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
+    public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
+    public $estadoAqueoGral, $forzar_arqueo = 0;
 	
 	public function render()
 	{
@@ -36,15 +37,23 @@ class FacturaController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
+        $this->estadoAqueoGral = session('estadoArqueoGral');      
+        if($this->estadoAqueoGral == 'pendiente') $this->forzar_arqueo = 1;
+
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
             ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();
         $this->caja_abierta = $caja_abierta->count();
         if($caja_abierta->count() > 0){
             $this->nro_arqueo = $caja_abierta[0]->id;  //este es el nro_arqueo del cajero, pero puede cambiar por el del delivery
-            $this->fecha_inicio = $caja_abierta[0]->created_at;  
-        }
-        
+            $this->fecha_inicio = $caja_abierta[0]->created_at;
+            //busca si hay que hacer el arqueo gral.
+            $this->arqueoGralId = session('idArqueoGral');
+            if($this->arqueoGralId == 0){  //debe hacer el arqueo gral.
+                return view('arqueodecaja');
+            }
+        }        
+
         $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         $this->clientes = Cliente::select()->where('comercio_id', $this->comercioId)->orderBy('apellido', 'asc')->get();
         $this->categorias = Categoria::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
@@ -56,12 +65,12 @@ class FacturaController extends Component
             ->where('r.comercio_id', $this->comercioId)
             ->where('cu.estado', '1')
             ->select('users.id', 'users.name', 'users.apellido')->get();
+      
         //capturo el id del repartidor Salón 
-        $this->salon = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
-            ->join('roles as r', 'r.id', 'mhr.role_id')
+        $this->salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('users.name', '...')
             ->where('users.apellido', 'Salón')
-            ->where('r.comercio_id', $this->comercioId)
+            ->where('uc.comercio_id', $this->comercioId)
             ->select('users.id')->get();
 
         if(strlen($this->barcode) > 0) $this->buscarProducto($this->barcode); 
@@ -207,11 +216,14 @@ class FacturaController extends Component
     }
     
     protected $listeners = [
-        'modCliRep' => 'modCliRep',
-        'deleteRow' => 'destroy',
-        'factura_contado' => 'factura_contado',
-        'factura_ctacte' => 'factura_ctacte',      
-        'anularFactura' => 'anularFactura'      
+        'modCliRep'         => 'modCliRep',
+        'deleteRow'         => 'destroy',
+        'factura_contado'   => 'factura_contado',
+        'factura_ctacte'    => 'factura_ctacte',      
+        'anularFactura'     => 'anularFactura',
+        'elegirFormaDePago' => 'elegirFormaDePago',
+        'enviarDatosPago'   => 'enviarDatosPago',
+        'dejar_pendiente'   => 'dejar_pendiente' 
     ];
 
 	public function buscarArticulo($id)
@@ -231,6 +243,10 @@ class FacturaController extends Component
             session()->flash('msg-error', 'El Código no existe...');
         } 
     }
+    public function doAction($action)
+    {
+        $this->action = $action;
+    }
 
     public function resetInput()
     {
@@ -243,8 +259,13 @@ class FacturaController extends Component
         $this->search ='';
         $this->estado_entrega = 0;
         $this->salon = null;
+        $this->f_de_pago = null;
+        $this->nro_comp_pago = null;
+        $this->mercadopago = null;
+        $this->comentarioPago = '';
+        $this->forzar_arqueo = 0;
     }
-
+    
     public function resetInputTodos()
     {
         $this->cantidad = 1;
@@ -274,7 +295,6 @@ class FacturaController extends Component
 
         $this->action = 2;
     }
-
     public function StoreOrUpdate($id)
     {
         if($id != '0'){
@@ -304,6 +324,7 @@ class FacturaController extends Component
                     'precio' => $this->precio
                 ]); 
             }else {
+                
                 if($this->cliente == 'Elegir') $this->cliente = null; else $this->delivery = 1;
                 if($this->empleado == 'Elegir'){
                     $this->empleado = null;  
@@ -363,19 +384,28 @@ class FacturaController extends Component
         }     
         $this->resetInput(); 
         return;          
-    }
-    
+    }    
     public function factura_contado()
     {
-        $record = Factura::find($this->factura_id);
-        $record->update([
-            'estado' => 'contado',
-            'estado_pago' => '1',
-            'importe' => $this->total
-        ]);              
+        DB::begintransaction();                         //iniciar transacción para grabar
+        try{
+            $record = Factura::find($this->factura_id);
+            $record->update([
+                'estado' => 'contado',
+                'estado_pago' => '1',
+                'importe' => $this->total,
+                'forma_de_pago' => $this->f_de_pago,
+                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                'mercadopago'   => $this->mercadopago,
+                'comentario'    => $this->comentarioPago
+            ]);
+            DB::commit();
+        }catch (\Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }              
         $this->resetInputTodos();
     }
-
     public function factura_ctacte($cliId)
     {
         $info = json_decode($cliId);
@@ -393,6 +423,10 @@ class FacturaController extends Component
                 'cliente_id' => $this->clienteId,
                 'factura_id' => $this->factura_id
             ]);
+            $record = Cliente::find($this->clienteId); //marca que el cliente tiene un saldo en ctacte
+            $record->update([
+                'saldo' => '1'
+            ]);
             session()->flash('msg-ok', 'La Factura fué enviada a Cuenta Corriente...');
             DB::commit();               
         }catch (Exception $e){
@@ -401,8 +435,7 @@ class FacturaController extends Component
         }
         $this->resetInputTodos();
         return;
-    }
-        
+    }        
     public function dejar_pendiente()
     {
         $record = Factura::find($this->factura_id);
@@ -413,37 +446,28 @@ class FacturaController extends Component
         session()->flash('message', 'Factura Pendiente'); 
         $this->resetInputTodos();
     }
-
     public function modCliRep($data)
     {
         $info = json_decode($data);
-
-//si el repartidor es el Salon, el nro_arqueo debe ser el de la caja que está facturando
-//luego hay que ver como visualizar estas facturas pendientes para cobrarlas
-
+        $repartidor='';
+        //si el repartidor es el Salon, el nro_arqueo debe ser el de la caja que está facturando
         if($info->empleado_id == "Salon"){
-            $repartidor = $this->salon[0]->id;       
+            $repartidor = $this->salon[0]->id; 
             $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
                 ->where('caja_usuarios.estado', '1')->get();
-            $this->nro_arqueo = $caja_abierta[0]->id;  //este es el nro_arqueo del delivery  
+            $this->nro_arqueo = $caja_abierta[0]->id;  //este es el nro_arqueo de la Caja que facturó  
         }else{       //sino debemos buscar el nro_arqueo del delivery
             $repartidor = $info->empleado_id;
-            $dataRep = User::find($repartidor);        
+            $dataRep = User::find($repartidor);
+            $this->apeNomRep = $dataRep->apellido . ' ' . $dataRep->name;        
             $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', $dataRep->id)
                 ->where('caja_usuarios.estado', '1')->get();
             $this->nro_arqueo = $caja_abierta[0]->id;             
         } 
         $dataCli = Cliente::find($info->cliente_id);
+       // dd($repartidor);
+        $dataRep = User::find($repartidor);
 
-        $dataRep = User::find($repartidor);        
-        // $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', $dataRep->id)
-        //     ->where('caja_usuarios.estado', '1')->get();
-        // if($caja_abierta->count() > 0){
-        //     $this->nro_arqueo = $caja_abierta[0]->id;  //este es el nro_arqueo del delivery
-        // }else{
-        //     session()->flash('message', 'El Repartidor elegido no tiene una Caja abierta...');
-        //     return;
-        // }
         if($this->inicio_factura) {
             $this->mostrar_datos = 1;
             $this->apeNomCli = $dataCli->apellido . ' ' . $dataCli->nombre;
@@ -466,8 +490,7 @@ class FacturaController extends Component
         }
         session()->flash('message', 'Encabezado Modificado...');
     }
-
-    public function destroy($id) //eliminar / delete / remove
+    public function destroy($id) //elimina item
     {
         if ($id) {
             DB::begintransaction();
@@ -518,5 +541,19 @@ class FacturaController extends Component
             $this->resetInput();
             return;
         }
+    }
+    public function elegirFormaDePago()
+    {
+        if($this->clienteId != ''){
+            $cli = Cliente::where('id', $this->clienteId)->get();
+            $this->nomCli = $cli[0]->apellido . ' ' . $cli[0]->nombre;
+        }
+        $this->f_de_pago = '1';        
+        $this->doAction(2);
+    }
+    public function enviarDatosPago($tipo,$nro)
+    {
+        $this->f_de_pago = $tipo;
+        $this->nro_comp_pago = $nro;
     }
 }

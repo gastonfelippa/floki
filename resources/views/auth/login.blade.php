@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-sm-6 col-lg-4">
-            <h1 class="text-center mb-4" style="color:black"><b>Floki</b></h1>
+            <h1 class="text-center mb-4" style="color:white"><b>FlokI</b></h1>
             <div class="card">
                 <div class="card-header">Ingreso</div>
                 <div class="card-body px-4">

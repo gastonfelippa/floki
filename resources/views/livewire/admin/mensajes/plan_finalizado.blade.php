@@ -2,7 +2,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid" style="color:#fff">
     <div class="row justify-content-center">
         <h3 class="mt-5 text-center col-sm-12 col-md-8">ATENCIÓN!!!<br>TU SISTEMA ESTÁ SUSPENDIDO MOMENTÁNEAMENTE 
             PORQUE TU SUSCRIPCIÓN NO HA SIDO RENOVADA</h3>

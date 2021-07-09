@@ -4,6 +4,34 @@
 			<div class="widget-one">
                 <div class="row col-12">
                     <div class="col-sm-12 col-md-6">
+                        <h5><b>Arqueo Caja Repartidor</b></h5>  
+                        @can('HabilitarCaja_index')     
+                            <select wire:model="repartidor" class="form-control form-control-sm text-center">
+                                <option value="Elegir">Elegir</option>
+                                @foreach($empleados as $t)
+                                <option value="{{ $t->id }}">
+                                    {{$t->apellido}} {{$t->name}}                        
+                                </option> 
+                                @endforeach                               
+                            </select>
+                        @else
+                            <input class="form-control form-control-sm text-center" value="{{auth()->user()->apellido}} {{auth()->user()->name}}">
+                        @endcan 
+                        <div class="row mt-1">
+                            <div class="col-7">
+                                <b>Fecha: {{$fecha_inicio->format('d-m-Y')}}</b>
+                            </div>
+                            @can('Facturas_index')
+                                @if($info->count() > 0)
+                                    <div class="col-5">
+                                        <span class="badge badge-primary mb-1" 
+                                        onclick="CobrarTodas('{{$repartidor}}','{{$nomRep}}')">Cobrar Todas</span>
+                                    </div>
+                                @endif
+                            @endcan
+                        </div> 
+                    </div>
+                    <div class="col-sm-12 col-md-6">
                         <div class="row mb-1">
                             <div class="col-8">
                                 <b></span>Caja Inicial...........$</b>
@@ -36,7 +64,7 @@
                                 <b>-{{number_format($totalGastos,2)}}</b>
                             </div>                        
                         </div> 
-                        <div class="row" style="color: #ff7f26">
+                        <div class="row mb-1" style="color: #ff7f26">
                             <div class="col-8">
                                 <b></span>CAJA FINAL..........$</b>
                             </div>
@@ -45,40 +73,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-6">
-                        <label>Caja Repartidor</label> 
-                        @can('Facturas_index')                     
-                        @if($info->count() > 0)
-                        <span class="badge badge-primary ml-4" 
-                            onclick="CobrarTodas('{{$repartidor}}','{{$nomRep}}')">Cerrar Caja</span>
-                        @endif
-                        @endcan  
-                        @can('HabilitarCaja_index')     
-                        <select wire:model="repartidor" class="form-control form-control-sm text-center">
-                            <option value="Elegir">Elegir</option>
-                            @foreach($empleados as $t)
-                            <option value="{{ $t->id }}">
-                                {{$t->apellido}} {{$t->name}}                        
-                            </option> 
-                            @endforeach                               
-                        </select>
-                        @else
-                        <input class="form-control form-control-sm text-center" value="{{auth()->user()->apellido}} {{auth()->user()->name}}">
-                        @endcan  
-                        <div class="row mt-1">
-                            <div class="col-12">
-                                <b>Fecha: {{$fecha_inicio->format('d-m-Y')}}</b>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
 				@include('common.alerts')
 				<div class="table-resposive scroll">
 					<table class="table table-hover table-checkable table-sm">
 						<thead>
 							<tr>
-								<th class="text-center">CLIENTE</th>
+								<th class="text-left">CLIENTE</th>
 								<th class="text-center">IMPORTE</th>
+								<th class="text-center">CAJA/FACTURA</th>
 								<th class="text-center">ACCIONES</th>
 							</tr>
 						</thead>
@@ -87,7 +91,8 @@
 							<tr>
 								<td class="text-left">{{$r->apeCli}} {{$r->nomCli}}</td>
 								<td class="text-center">{{number_format($r->importe,2)}}</td>
-								<td class="text-center">
+                                <td class="text-left">{{$r->descripcion}}</td>
+								<td class="text-right">
                                     <ul class="table-controls">
                                         @can('HabilitarCaja_index')
                                         <li>
@@ -98,8 +103,8 @@
                                         </li>
                                         <li>
                                             <a href="javascript:void(0);"          		
-        	                                    onclick="Confirm('{{$r->id}}')"
-        	                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+        	                                    onclick="AnularFactura('{{$r->id}}')"
+        	                                    data-toggle="tooltip" data-placement="top" title="Anular">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                         </li>
                                         <li>
@@ -170,7 +175,7 @@
 <style type="text/css" scoped>
 .scroll{
     position: relative;
-    height: 250px;
+    height: 255px;
     margin-top: .5rem;
     overflow: auto;
 }
@@ -185,10 +190,10 @@
 
 
 <script>
- 	function Confirm(id)
+    function ConfirmDel(id)
     {
-       let me = this
-       swal({
+    	let me = this
+    	swal({
         title: 'CONFIRMAR',
         text: '¿DESEAS ELIMINAR EL REGISTRO?',
         type: 'warning',
@@ -205,26 +210,41 @@
 			swal.close()   
         })
     }
-    function ConfirmDel(id)
+    function AnularFactura(id)
     {
-    	let me = this
-    	swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRowDel', id)    
-			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()   
-        })
-    }
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Anular la Factura, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					Swal.fire(
+						'Anulado!',
+						'Tu registro se Anuló correctamente...',
+						'success'
+					);
+					window.livewire.emit('anularFactura', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire(
+					'Cancelado',
+					'Tu registro está a salvo :)',
+					'error'
+				)
+            }
+		})
+    }  
     function Cobrar(id,idCli)
     {
         Swal.fire({
@@ -339,7 +359,7 @@
             'importe'   : $('#importe').val(),            
             'gasto'     : $('#gasto option:selected').val()
         });
-        window.livewire.emit('grabarCajaModal', data)
+        window.livewire.emit('grabarGastosModal', data)
     } 
     function openModal2(ing_egr, editar, mov_id, ing_egr_id, importe, nomRep)
     {
@@ -426,18 +446,18 @@
             $('#modalCajaRep').modal('hide')
         })
     });
-    window.onload = function() {
+    window.onload = function(){
         if($('#caja_abierta').val() == 0){
             swal({
-                title: 'Oops',
-                text: 'Para ver un Arqueo de Caja, primero debe estar habilitada...',
+                title: 'Caja inhabilitada!',
+                text: '',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
+                confirmButtonText: 'Volver',
                 closeOnConfirm: false
             },
             function() {  
-                window.location.href="{{ url('home') }}";
+                window.location.href="{{ url('notify') }}";
                 swal.close()   
             })
         }

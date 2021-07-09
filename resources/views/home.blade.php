@@ -8,12 +8,13 @@
 <div class="row layout-top-spacing">
     <div class="col-12 layout-spacing">
         <div class="widget-content-area">
-            <div class="widget-one">                
+            <div class="widget-one"> 
+            @include('common.alerts')               
                 @if(Auth::user()->sexo == 1)
                     <h1 class="text-center">Bienvenida <strong>{{Auth::user()->name}}!!!</strong></h1>
                 @else
                     <h1 class="text-center">Bienvenido <strong>{{Auth::user()->name}}!!!</strong></h1>
-                @endif                
+                @endif             
             </div>
         </div>
     </div>

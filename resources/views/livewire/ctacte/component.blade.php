@@ -184,6 +184,7 @@
 	@else
 	@can('Ctacte_index')
 	@include('livewire.ctacte.form')		
+	@include('livewire.ctacte.modal')		
 	@endcan
 	@endif
 </div>
@@ -191,7 +192,7 @@
 <style type="text/css" scoped>
 .scroll{
     position: relative;
-    height: 220px;
+    height: 185px;
     margin-top: .5rem;
     overflow: auto;
 }
@@ -254,7 +255,6 @@
 							cantidad ++;
 						}
 					if(cantidad > 1) Swal.fire('Ops!','Debes regresar y seleccionar solo la factura a la cual deseas hacerle una entrega a cuenta...','info')
-					// if(cantidad > 1) Swal.fire('Ok!','Debes regresar y seleccionar las facturas que deseas cobrar integramente, una vez realizado el cobro, selecciona la factura a la cual deseas hacerle una entrega a cuenta...','info')
 					else {  //recupero el Id de la factura a la cual se le hace una entrega
 						var arrId = $('[name="checks"]:checked').map(function(){
 							return this.id;
@@ -265,16 +265,11 @@
 							return this.value;
 						}).get();
 						var total = JSON.stringify(arrImporte);
-						// var total =0;
-						// for(var i of arrImporte) {
-						// 	total = parseInt(total) + parseInt(i); 
-						// }
 						//envío el id, el total y la señal de entrega
 						window.livewire.emit('cobrar',data,total,1,cantidad);
 					}
 				}
 			})
-
 		}
     }
 
@@ -303,13 +298,13 @@
 	}
 
 	function esVisible(elemento) {
-	var esVisible = true;
-	if($(elemento).is(':visible') && $(elemento).css("visibility") != "hidden"
-			&& $(elemento).css("opacity") > 0) {
-		esVisible = false;
-	}
-	console.log(esVisible);
-	return esVisible;
+		var esVisible = true;
+		if($(elemento).is(':visible') && $(elemento).css("visibility") != "hidden"
+				&& $(elemento).css("opacity") > 0) {
+			esVisible = false;
+		}
+		console.log(esVisible);
+		return esVisible;
 	}
 
 	//selecciona una fila de la tabla
@@ -325,8 +320,24 @@
 			}
 		}
 	}
+	function mostrarInput(){		
+		$('[id="nroCompPago"]').val('');
+		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
+				|| $('[id="formaDePago"]').val() == '4') {
+			$('#modalNroComprobanteDePago').modal('show');
+		}else{
+			guardarDatosPago();
+		}
+	}
+
+	function guardarDatosPago(){
+		$('[id="num"]').val($('[id="nroCompPago"]').val())
+		var formaDePago = $('[id="formaDePago"]').val();
+		var nroCompPago = $('[id="nroCompPago"]').val();
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+	}
 
     window.onload = function() {
-        document.getElementById("search").focus();
+        document.getElementById("search").focus()
     }
 </script>

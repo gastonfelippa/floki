@@ -14,5 +14,5 @@ class CajaUsuario extends Model
     protected $dates = ['deleted_at'];
     
     protected $table = 'caja_usuarios';
-    protected $fillable = ['caja_id', 'caja_usuario_id', 'estado', 'caja_final', 'diferencia', 'user_id'];
+    protected $fillable = ['caja_id', 'caja_usuario_id', 'estado', 'caja_final_sistema', 'diferencia', 'user_id', 'arqueo_gral_id'];
 }

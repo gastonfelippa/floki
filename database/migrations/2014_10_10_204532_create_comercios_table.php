@@ -16,8 +16,9 @@ class CreateComerciosTable extends Migration
         Schema::create('comercios', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-
             $table->unsignedBigInteger('tipo_id');
+            $table->time('hora_apertura')->nullable();
+
             $table->foreign('tipo_id')->references('id')->on('tipo_comercio');
             $table->timestamps();
         });

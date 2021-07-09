@@ -3,7 +3,7 @@
 		<button type="button" wire:click="doAction(1)" onclick="setfocus('nombre')"  class="btn btn-dark mr-1">
 			<i class="mbri-left"></i> Cancelar
 		</button>
-        <button type="button"
+        <button type="button" id="btnGuardar"
             wire:click="StoreOrUpdate()" onclick="setfocus('nombre')"   
             class="btn btn-primary">
             <i class="mbri-success"></i> Guardar

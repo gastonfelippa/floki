@@ -22,12 +22,15 @@ class CreateCajaUsuariosTable extends Migration
             $table->unsignedBigInteger('caja_usuario_id');     //id del cajero o repartidor
             $table->foreign('caja_usuario_id')->references('id')->on('users');
 
-            $table->enum('estado', ['0','1']);
-            $table->decimal('caja_final',10,2)->nullable();
-            $table->decimal('diferencia',10,2)->nullable();
+            $table->enum('estado', ['0','1']);                 //0-cerrada, 1-abierta
+            $table->decimal('caja_final_sistema',10,2)->nullable();
+            $table->decimal('diferencia',10,2)->nullable();    //un valor negativo indica un faltante
 
             $table->unsignedBigInteger('user_id');             //id de quien habilita la caja
             $table->foreign('user_id')->references('id')->on('users');
+
+            $table->unsignedBigInteger('arqueo_gral_id');
+            $table->foreign('arqueo_gral_id')->references('id')->on('arqueo_grals');
 
             $table->softDeletes();
 

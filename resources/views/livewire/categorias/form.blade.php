@@ -1,6 +1,7 @@
-<div class="col-sm-12 col-md-6 layout-spacing">
-	<div class="widget-content-area">
+<div class="col-sm-12 col-md-6 layout-spacing">    
+    <div class="widget-content-area">
         <div class="widget-one">
+            @include('common.messages')
             <h5><b>@if($selected_id ==0) Nueva Categoría  @else Editar Categoría @endif</b></h5>
             <div class="row mt-3">                               
                 <div class="col-12 layout-spacing">

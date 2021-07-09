@@ -19,7 +19,11 @@
             </button>
         </div>
         <div class="btn-group col-12 col-md-4 ">
-            <button type="submit" onclick="cambiarDiv(1)" class="btn btn-info mt-1">Ver Lista Facturas</button>
+        @if($mostrar_facturas)
+            <button type="submit" onclick="cambiarDiv(1)" class="btn btn-info mt-1" enabled>Ver Lista Facturas</button>
+        @else
+            <button type="submit" onclick="cambiarDiv(1)" class="btn btn-info mt-1" disabled>Ver Lista Facturas</button>
+        @endif
             <button id="btn_grabar" name="grabarTodas" type="submit" onclick="ConfirmGrabar()" class="btn btn-danger mt-1" disabled>Grabar todas</button>
         </div>
     </div>
@@ -41,7 +45,8 @@
             </select>          
         </div>   
         <div class="col-sm-12 col-md-8">
-            <div id="div1" style="display:none;" class="col-sm-12 col-md-10">
+            <div id="div1" class="col-sm-12 col-md-10">
+            <!-- style="display:none;"  -->
                 <div class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -52,7 +57,7 @@
                                 <th class="text-center">PRODUCTO</th>
                                 <th class="text-right">PR UNIT</th>
                                 <th class="text-right">IMPORTE</th>
-                                <th class="text-center">ACCION</th>
+                                <th class="text-center">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -83,7 +88,8 @@
                     </table>
                 </div> 
             </div>
-            <div id="div2" style="display:block;" class="col-sm-12 col-md-6">
+            <div id="div2" class="col-sm-12 col-md-6">
+            <!-- style="display:block;"  -->
                 <div  class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -105,7 +111,8 @@
                     </table>
                 </div>
             </div>   
-            <div id="div3" style="display:none;" class="col-sm-12 col-md-6">
+            <div id="div3" class="col-sm-12 col-md-6">
+            <!-- style="display:none;"  -->
                 <div class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -129,6 +136,8 @@
             </div>    
         </div>
     </div>
+    <input type="hidden" id="caja_abierta" wire:model="caja_abierta">
+    <input type="hidden" id="vista_facturas" wire:model="vista_facturas">
 </div></div>@include('livewire.viandas.modal')</div></div>  
 
 
@@ -152,7 +161,7 @@
     	let me = this
     	swal({
     		title: 'CONFIRMAR',
-    		text: '¿DESEAS GRABAR TODOS LOS REGISTROS?',
+    		text: '¿DESEAS ENVIAR A CUENTA CORRIENTE A TODOS LOS REGISTROS?',
     		type: 'warning',
     		showCancelButton: true,
     		confirmButtonColor: '#3085d6',
@@ -193,8 +202,12 @@
             }
         })
     }
-        
-    function openModal(row) {
+    function openModal(row) 
+    {
+        if($('#repartidor option:selected').val() == 'Elegir'){
+            Swal.fire('Elige una opción válida para el Repartidor')
+            return;
+        }
         var info = JSON.parse(row)
         $('.modal-title').text('Cliente: '+ info.apellido +' '+ info.nombre)
         $('#cliente_id').val(info.cliente_id)
@@ -204,7 +217,7 @@
         $('#modalVianda').modal('show')
     }
     function save()
-    {
+    { 
         if($('#cantidad').val() == '')
         {
             toastr.error('El campo Cantidad no puede estar vacío')
@@ -224,20 +237,25 @@
         $('#modalVianda').modal('hide')
         window.livewire.emit('createFactFromModal', data)
     } 
-
-    function cambiarDiv(idButton) {  
+    function cambiarDiv(idButton) 
+    {  
         switch(idButton) {
-            case 1:
-                div1.style.display = 'block';
-                div2.style.display = 'none';
-                div3.style.display = 'none';
-                document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
-                document.getElementById("btn_imp_comentarios").setAttribute("disabled",false);
-                if(document.getElementById("btn_grabar").disabled == true){
-                    document.getElementById("btn_grabar").removeAttribute("disabled");
+            case 1:              //Ver Lista Facturas
+                if($('#caja_abierta').val() == '0'){
+                    Swal.fire('info','Primero debes habilitar alguna Caja')
+                    return;
+                }else{
+                    div1.style.display = 'block';
+                    div2.style.display = 'none';
+                    div3.style.display = 'none';
+                    document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
+                    document.getElementById("btn_imp_comentarios").setAttribute("disabled",false);
+                    if(document.getElementById("btn_grabar").disabled == true){
+                        document.getElementById("btn_grabar").removeAttribute("disabled");
+                    }
                 }
                 break;
-            case 2:
+            case 2:              //Ver Lista Cocina
                 div1.style.display = 'none';
                 div2.style.display = 'block';
                 div3.style.display = 'none';
@@ -247,21 +265,23 @@
                     document.getElementById("btn_imp_viandas").removeAttribute("disabled");
                 }
                 break;
-            case 3:
+            case 3:               //Ver Comentarios
                 div1.style.display = 'none';
                 div2.style.display = 'none';
                 div3.style.display = 'block';
                 document.getElementById("btn_grabar").setAttribute("disabled",false);
                 document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
                 if(document.getElementById("btn_imp_comentarios").disabled == true){
-                        document.getElementById("btn_imp_comentarios").removeAttribute("disabled");
+                    document.getElementById("btn_imp_comentarios").removeAttribute("disabled");
                 }
                 break;
             default:
         }
-    }
-                    
-    window.onload = function() {                
+    }             
+    window.onload = function() {  
+        //if($('#vista_facturas').val() == 'true'){
+          //  cambiarDiv(1);
+       // }             
         var arr = $('[name="checks"]:checked').map(function(){            
             return this.value;           
         }).get();
@@ -270,7 +290,6 @@
         for(var i of arr) total = parseInt(total) + parseInt(i);    
         $('#cViandas').text(total);
     };  
-
     $(document).ready(function() {
         $('[name="checks"]').click(function() {            
             var arr = $('[name="checks"]:checked').map(function(){            
@@ -281,14 +300,19 @@
             for(var i of arr) total = parseInt(total) + parseInt(i);    
             $('#cViandas').text(total);
         });
-    });    
-    
-
+    });  
     $(document).ready(function() {
         $('[id="fecha"]').change(function() {
             var data =  $('#fecha').val();         
             $('#fechaConsulta').text(data);
             window.livewire.emit('cambiarFecha', data);
+        });
+    });
+    $(document).ready(function() {
+        $('[id="repartidor"]').change(function() {
+            if($('[id="repartidor"]').val() == 'Elegir'){
+                cambiarDiv(2);
+            }
         });
     });
 

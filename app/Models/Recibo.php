@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Recibo extends Model
 {
     protected $table = 'recibos';
-    protected $fillable = ['numero', 'importe', 'comentario', 'entrega', 'cliente_id', 'user_id', 
-                           'comercio_id', 'arqueo_id'];
+    protected $fillable = ['numero', 'importe', 'forma_de_pago', 'nro_comp_pago', 'mercadopago',
+                           'comentario', 'entrega', 'cliente_id', 'user_id', 'comercio_id', 'arqueo_id'];
 }

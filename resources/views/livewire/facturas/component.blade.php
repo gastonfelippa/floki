@@ -1,4 +1,5 @@
-<div class="row layout-top-spacing">	
+<div class="row layout-top-spacing">
+    @if($action == 1)	
     <div class="col-md-12 col-lg-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
@@ -26,7 +27,7 @@
                                 <button type="button" class="btn btn-success" disabled>Imprimir</button>
                             @else
                                 @if($delivery == 0)
-                                    <button type="button" onclick="openModal({{$factura_id}})" onclick="setfocus('barcode')" 
+                                    <button type="button" onclick="openModal({{$factura_id}})" 
                                         class="btn btn-dark" enabled>
                                         Delivery   
                                     </button>
@@ -38,7 +39,7 @@
                                         class="btn btn-dark" enabled>
                                         Mod Cli/Rep                                         
                                     </button>
-                                    <button type="button" wire:click.prevent="dejar_pendiente()"
+                                    <button type="button" onclick="dejar_pendiente()"
                                         class="btn btn-warning" enabled>
                                         Dejar Pendiente
                                     </button>
@@ -104,8 +105,7 @@
                             @endif
                         </div>
                     </div>                
-                @endif
-          
+                @endif          
             @endif
             @if($mostrar_datos == 1)
                     <div class="row mt-2">
@@ -147,7 +147,7 @@
 							<tr class="">
 								<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 								<td class="text-left">{{$r->producto}}</td>
-								<td class="text-right">{{$r->precio}}</td>
+								<td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
 								<td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
 								<td class="text-center">
 									@include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
@@ -160,6 +160,7 @@
 			</div>			
 		</div>
 	</div>
+
     <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
             <div class="widget-one">
@@ -193,14 +194,15 @@
                         </div>
                         <div class="form-group col-sm-12 col-md-2 mt-2">
                             <label></label>
-                            <button id="guardar" type="button" wire:click="StoreOrUpdate('0')" onclick="setfocus('barcode')" class="btn btn-primary">
-                                 Guardar
+                            <button id="guardar" type="button" wire:click="StoreOrUpdate('0')" class="btn btn-primary mt-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>                                
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+
         <div class="row mt-2">
             <div class="col-sm-12 col-lg-4">
                 <div class="widget-content-area">
@@ -233,10 +235,15 @@
                 </div>
             </div>
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta">  
-        </div>         
+            <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
+        </div> 
+    </div>
     @include('livewire.facturas.modal')  
     @include('livewire.facturas.modalCtacte')  
-    </div> 
+    @else    
+    @include('livewire.facturas.formaDePago')  
+    @include('livewire.facturas.modalNroCompPago')  
+	@endif        
 </div>
 
 <style type="text/css" scoped>
@@ -298,8 +305,9 @@
             denyButtonText: `Cuenta Corriente`,
         }).then((result) => {
             if (result.isConfirmed) {
-                window.livewire.emit('factura_contado')
-                Swal.fire('Factura Cobrada!', '', 'success')
+                window.livewire.emit('elegirFormaDePago');
+                // window.livewire.emit('factura_contado')
+                // Swal.fire('Factura Cobrada!', '', 'success')
             } else if (result.isDenied) {
                 if(delivery == 0) {
                     modalCtacte()
@@ -312,6 +320,11 @@
                 }
             }
         })
+    }
+    function factura_contado()
+    {
+        window.livewire.emit('factura_contado')
+        Swal.fire('Factura Cobrada!', '', 'success')
     }
     function AnularFactura(id)
     {
@@ -347,6 +360,10 @@
 				)
             }
 		})
+    }
+    function dejar_pendiente()
+    {
+        window.livewire.emit('dejar_pendiente')
     }
     function modalCtacte()
     {
@@ -392,22 +409,52 @@
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
     } 
+    function mostrarInput(){		
+		$('[id="nroCompPago"]').val('');
+		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
+				|| $('[id="formaDePago"]').val() == '4') {
+			$('#modalNroComprobanteDePago').modal('show');
+		}else{
+			guardarDatosPago();
+		}
+	}
+
+	function guardarDatosPago(){
+		$('[id="num"]').val($('[id="nroCompPago"]').val())
+		var formaDePago = $('[id="formaDePago"]').val();
+		var nroCompPago = $('[id="nroCompPago"]').val();
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+	}
 
     window.onload = function() {
-        if($('#caja_abierta').val() == 0){
+        if($('#forzar_arqueo').val() == 1){		
             swal({
-                title: 'Oops',
-                text: 'Para registrar una Venta, primero debés habilitar una Caja. Para ello dirigite a: Caja->Habilitar Cajas',
+                title: 'Caja inhabilitada!',
+                text: 'Existe un Arqueo General pendiente de cierre...',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
+                confirmButtonText: 'Volver',
                 closeOnConfirm: false
             },
             function() {  
-                window.location.href="{{ url('home') }}";
+                window.location.href="{{ url('notify') }}";
+                swal.close()
+		    })
+        }
+        if($('#caja_abierta').val() == 0){
+            swal({
+                title: 'Caja inhabilitada!',
+                text: '',
+                type: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Volver',
+                closeOnConfirm: false
+            },
+            function() {  
+                window.location.href="{{ url('notify') }}";
                 swal.close()   
             })
         }
-    }
-  
+
+    } 
 </script>

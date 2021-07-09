@@ -1,7 +1,7 @@
 <div class="row layout-top-spacing justify-content-center">  
 	@include('common.alerts')
 	@include('common.messages')
-    <div class="col-sm-12 col-md-8 layout-spacing">      
+    <div class="col-sm-12 col-md-10 layout-spacing">      
     	<div class="widget-content-area">
     		<div class="widget-one">
     			<div class="row">

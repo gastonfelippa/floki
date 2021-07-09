@@ -26,7 +26,7 @@ class CreateUsersTable extends Migration
 
             $table->string('telefono1',15)->nullable();
             $table->string('telefono2',15)->nullable();
-            $table->enum('sexo', ['1', '2']);
+            $table->enum('sexo', ['1', '2'])->nullable();
             $table->enum('abonado', ['Si', 'No', 'Admin'])->default('No');
             $table->string('username')->unique()->nullable();
             $table->string('pass')->nullable();

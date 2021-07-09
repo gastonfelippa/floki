@@ -174,6 +174,7 @@ class PdfController extends Controller
 
         $info = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
             ->where('c.comercio_id', $this->comercioId)
+            ->where('c.saldo', '1')
             ->select('cta_cte.cliente_id', 'c.nombre', 'c.apellido', DB::RAW("'' as importe"))
             ->groupBy('cta_cte.cliente_id', 'c.nombre', 'c.apellido')
             ->orderBy('c.apellido')->orderBy('c.nombre')->get();
@@ -208,7 +209,7 @@ class PdfController extends Controller
             }
             // calculo el total para cada cliente
             $i->importe = $sumaFacturas - $sumaRecibos;
-            //solo calculo el importe del total gral si se están mostrando todos los clientes
+            // solo calculo el importe del total gral si se están mostrando todos los clientes
             $suma += $i->importe;
         }  
         $pdf = PDF::loadView('livewire.pdf.pdfListadoCtaCte', compact('info','suma'));
@@ -225,8 +226,8 @@ class PdfController extends Controller
             ->orWhere('cta_cte.cliente_id', $cliId)
             ->where('f.estado', 'ctacte')
             ->where('f.estado_pago', '2')
-            ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.cliente_id', 'cta_cte.created_at as fecha', 
-                    'c.nombre', 'c.apellido', DB::RAW("'' as numero") , DB::RAW("'' as importe"), 
+            ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.cliente_id', 
+                    'c.nombre', 'c.apellido', DB::RAW("'' as fecha"), DB::RAW("'' as numero") , DB::RAW("'' as importe"), 
                     DB::RAW("'' as importe_factura"), DB::RAW("'' as resto"))
             ->orderBy('cta_cte.created_at')->get();
 
@@ -253,11 +254,12 @@ class PdfController extends Controller
                 ->orWhere('f.id', $i->factura_id)
                 ->where('f.estado', 'ctacte')
                 ->where('f.estado_pago', '2')
-                ->select('f.estado_pago', 'f.importe as importe', 'f.numero')->get();
+                ->select('f.estado_pago', 'f.importe as importe', 'f.numero', 'f.created_at')->get();
             $sumaFacturas += $importe[0]->importe; //calculo el total de las facturas de cada cliente
             if($importe[0]->estado_pago == 0) $i->importe_factura = 1; //aviso de factura para pintar rojo   
             else $i->importe_factura = 2;  //aviso de factura para pintar rojo/negrita            
         
+            $i->fecha = $importe[0]->created_at;                        
             $i->numero = $importe[0]->numero;                        
             $i->importe = $importe[0]->importe;
             //recupero las entregas y calculo el resto las facturas que correspondan

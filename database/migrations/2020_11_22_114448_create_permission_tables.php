@@ -32,10 +32,11 @@ class CreatePermissionTables extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('alias');
-
+            
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');
-
+            
+            $table->string('admite_caja')->nullable();
             $table->string('guard_name');
             $table->timestamps();
         });

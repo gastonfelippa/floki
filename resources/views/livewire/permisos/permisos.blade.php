@@ -4,7 +4,7 @@
             <h6 class="text-center"><b>PERMISOS DE SISTEMA</b></h6>
             <div class="table-responsive scroll">
                 <div id="tblPermisos" class="row row-cols-1 row-cols-md-3 g-4">
-                    <div class="col">
+                    <div class="col"> 
                         <div class="card border-dark text-dark bg-light mb-3">
                             <div class="card-header">Productos</div>
                             <div class="card-body">
@@ -26,6 +26,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col">
+                        <div class="card border-dark text-dark bg-light mb-3">
+                            <div class="card-header">Categorias</div>
+                            <div class="card-body">
+                            @foreach($pCategorias as $p)
+                            <tr>
+                                <td class="text-center">
+                                    <div class="n-check" id="divPermisos">
+                                        <label class="new-control new-checkbox checkbox-primary">
+                                            <input data-name="{{$p->name}}" 
+                                            {{$p->checked == 1 ? 'checked' : ''}}
+                                            type="checkbox" class="new-control-input checkbox-rol">
+                                            <span class="new-control-indicator"></span>
+                                            {{$p->alias}}
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                            </div>
+                        </div>
+                    </div>                    
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
                             <div class="card-header">Clientes</div>
@@ -50,53 +72,9 @@
                     </div>
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Empleados</div>
+                            <div class="card-header">Proveedores</div>
                             <div class="card-body">
-                            @foreach($pEmpleados as $p)
-                            <tr>
-                                <td class="text-center">
-                                    <div class="n-check" id="divPermisos">
-                                        <label class="new-control new-checkbox checkbox-primary">
-                                            <input data-name="{{$p->name}}" 
-                                            {{$p->checked == 1 ? 'checked' : ''}}
-                                            type="checkbox" class="new-control-input checkbox-rol">
-                                            <span class="new-control-indicator"></span>
-                                            {{$p->alias}}
-                                        </label>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card border-dark text-dark bg-light mb-3" >
-                            <div class="card-header">Facturas</div>
-                            <div class="card-body">
-                            @foreach($pFacturas as $p)
-                            <tr>
-                                <td class="text-center">
-                                    <div class="n-check" id="divPermisos">
-                                        <label class="new-control new-checkbox checkbox-primary">
-                                            <input data-name="{{$p->name}}" 
-                                            {{$p->checked == 1 ? 'checked' : ''}}
-                                            type="checkbox" class="new-control-input checkbox-rol">
-                                            <span class="new-control-indicator"></span>
-                                            {{$p->alias}}
-                                        </label>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Categorias</div>
-                            <div class="card-body">
-                            @foreach($pCategorias as $p)
+                            @foreach($pProveedores as $p)
                             <tr>
                                 <td class="text-center">
                                     <div class="n-check" id="divPermisos">
@@ -159,10 +137,10 @@
                         </div>
                     </div>
                     <div class="col">
-                        <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Reportes</div>
+                        <div class="card border-dark text-dark bg-light mb-3" >
+                            <div class="card-header">Facturas</div>
                             <div class="card-body">
-                            @foreach($pReportes as $p)
+                            @foreach($pFacturas as $p)
                             <tr>
                                 <td class="text-center">
                                     <div class="n-check" id="divPermisos">
@@ -182,9 +160,9 @@
                     </div>
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Configuraciones</div>
+                            <div class="card-header">Compras</div>
                             <div class="card-body">
-                            @foreach($pConfiguraciones as $p)
+                            @foreach($pCompras as $p)
                             <tr>
                                 <td class="text-center">
                                     <div class="n-check" id="divPermisos">
@@ -226,9 +204,31 @@
                     </div>
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Movimientos de Caja</div>
+                            <div class="card-header">Configuraciones</div>
                             <div class="card-body">
-                            @foreach($pMovDeCaja as $p)
+                            @foreach($pConfiguraciones as $p)
+                            <tr>
+                                <td class="text-center">
+                                    <div class="n-check" id="divPermisos">
+                                        <label class="new-control new-checkbox checkbox-primary">
+                                            <input data-name="{{$p->name}}" 
+                                            {{$p->checked == 1 ? 'checked' : ''}}
+                                            type="checkbox" class="new-control-input checkbox-rol">
+                                            <span class="new-control-indicator"></span>
+                                            {{$p->alias}}
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-dark text-dark bg-light mb-3">
+                            <div class="card-header">Reportes</div>
+                            <div class="card-body">
+                            @foreach($pReportes as $p)
                             <tr>
                                 <td class="text-center">
                                     <div class="n-check" id="divPermisos">
@@ -337,7 +337,7 @@
 <style type="text/css" scoped>
 .scroll{
     position: relative;
-    height: 300px;
+    height: 295px;
     margin-top: .5rem;
     overflow: auto;
 }

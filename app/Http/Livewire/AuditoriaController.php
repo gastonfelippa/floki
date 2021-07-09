@@ -61,7 +61,27 @@ class AuditoriaController extends Component
                         ->join('users as u', 'u.id', 'cu.caja_usuario_id')
                         ->where('auditorias.id', $i->id)
                         ->select('c.descripcion', 'u.apellido', 'u.name')->get();
-                    $i->item = $info2[0]->descripcion . '/' . $info2[0]->apellido . $info2[0]->name;
+                    $i->item = $info2[0]->descripcion . '/' . $info2[0]->apellido . ' ' . $info2[0]->name;
+                    break; 
+                case 'Empleados':                               
+                    $info2 = Auditoria::join('users as u', 'u.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)
+                        ->select('u.apellido', 'u.name')->get();
+                    $i->item = $info2[0]->apellido . ' ' . $info2[0]->name;
+                    break; 
+                case 'Categorias':                               
+                    $info2 = Auditoria::join('categorias as c', 'c.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)
+                        ->select('c.descripcion')->get();
+                    $i->item = $info2[0]->descripcion;
+                    break; 
+                case 'Detalle de Facturas':                               
+                    $info2 = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
+                        ->join('productos as p', 'p.id', 'df.producto_id')
+                        ->join('facturas as f', 'f.id', 'df.factura_id')
+                        ->where('auditorias.id', $i->id)
+                        ->select('df.cantidad', 'p.descripcion', 'f.numero')->get();
+                    $i->item = number_format($info2[0]->cantidad,2,',','.') . ' ' . $info2[0]->descripcion . ' - ' . 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);
                     break; 
                 default:
             } 

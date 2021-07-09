@@ -76,7 +76,7 @@
 
 @section('content_script_head')   
 <script>
-   function calcularPrecioVenta() {
+    function calcularPrecioVenta() {
         window.livewire.emit('calcular_precio_venta');
     }
 </script>

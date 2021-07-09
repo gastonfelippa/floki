@@ -9,11 +9,12 @@
                         <i class="la la-remove la-lg"></i>
                     </span>
                 </div>
-                <input type="text" id="roleName" wire:model.lazy="agregarRol" class="form-control  text-capitalize" placeholder="Agregar Rol..." autocomplete="off">
+                <!-- <input type="text" id="roleName" wire:model.lazy="agregarRol" class="form-control  text-capitalize" placeholder="Agregar nuevo Rol..." autocomplete="off"> -->
+                <input type="text" id="roleName" class="form-control  text-capitalize" placeholder="Agregar nuevo Rol..." autocomplete="off">
                 <input type="hidden" id="roleId">
                 <div class="input-group-prepend">
                     <span class="input-group-text" 
-                    wire:click="$emit('CrearRole',$('#roleName').val(), $('#roleId').val())">
+                        onclick="admiteCaja()">
                         <i class="la la-save la-lg"></i>
                     </span>
                 </div>
@@ -35,7 +36,8 @@
                             <td>{{$r->alias}}</td>
                             <td class="text-center">{{\App\Models\User::role($r->name)->count()}}</td>
                             <td class="text-center">
-                                @if($r->alias != 'Admin' && $r->alias != 'No Usuario' && $r->alias != 'Repartidor')
+                                @if($r->alias != 'Administrador' && $r->alias != 'No Usuario' 
+                                    && $r->alias != 'Encargado' && $r->alias != 'Cajero' && $r->alias != 'Repartidor')
                                     <span style="cursor:pointer"
                                         onclick="showRole('{{$r}}')"
                                         title="Editar rol">
@@ -50,7 +52,7 @@
                                     @endif
                                 @endif
                             </td>
-                            <td class="text-center">
+                            <td class="text-center">                            
                                 <div class="n-check" id="divRoles">
                                     <label class="new-control new-checkbox checkbox-primary">
                                         <input data-name="{{$r->name}}" 
@@ -90,7 +92,7 @@
 <style type="text/css" scoped>
 .scroll{
     position: relative;
-    height: 250px;
+    height: 245px;
     margin-top: .5rem;
     overflow: auto;
 }

@@ -136,15 +136,15 @@
     window.onload = function() {
         if($('#caja_abierta').val() == 0){
             swal({
-                title: 'Oops',
-                text: 'Para ver Clientes, primero deben habilitarte una Caja. Para ello dirigirse a: Caja->Habilitar Cajas',
+                title: 'Caja inhabilitada!',
+                text: '',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
+                confirmButtonText: 'Volver',
                 closeOnConfirm: false
             },
             function() {  
-                window.location.href="{{ url('home') }}";
+                window.location.href="{{ url('notify') }}";
                 swal.close()   
             })
         }

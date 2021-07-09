@@ -29,7 +29,12 @@
     <link href="{{ asset('plugins/flatpickr/flatpickr.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('plugins/flatpickr/material_red.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
-
+    <style>
+        body {
+            background: url('../images/arte.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
     
 
     <!-- Sección para incluír estilos personalizados en los módulos del sistema  -->
@@ -49,7 +54,7 @@
     <!--  END LOADER -->
 
     <!--  BEGIN NAVBAR  -->
-    <div class="header-container">
+    <div class="header-container mb-2" style="background-color: #D31E08;">
         <header class="header navbar navbar-expand-sm">
             <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
             
@@ -73,7 +78,7 @@
                         <div class="media">
                             <img src="assets/img/90x90.jpg" class="img-fluid" alt="admin-profile">
                             <div class="media-body align-self-center">
-                                <h6>@guest FlokI @else {{Auth::user()->name }}  @endguest</h6>
+                                <h6 style="color:#000">@guest FlokI @else {{Auth::user()->name }}  @endguest</h6>
                             </div>
                         </div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>

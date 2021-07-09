@@ -57,7 +57,7 @@
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">IMPORTE</th>
-                                    <th class="text-center">REPARTIDOR</th>
+                                    <th class="text-center">CAJA</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>

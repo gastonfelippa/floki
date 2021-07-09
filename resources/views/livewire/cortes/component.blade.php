@@ -1,34 +1,36 @@
-<div class="row layout-top-spacing">    
-<div class="col-sm-12">    
-@include('common.alerts')  
-@include('common.messages')  
+<div class="row layout-top-spacing">
+<div class="col-sm-12">
+@include('common.alerts')
+@include('common.messages')
 <div class="widget-content-area">
 <div class="widget-one">
     <h3 class="text-center"><b>Arqueo de Caja</b></h3>
     @can('HabilitarCaja_index')
     <div class="row">
-        <div class="col-sm-12 col-md-2 col-lg-2">
+        <!-- <div class="col-sm-12 col-md-2 col-lg-2">
             Elige Fecha
             <div class="form-group">
                 <input wire:model.lazy="fecha" type="text" class="form-control flatpickr flatpickr-input active"
                 placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}">
             </div>
-        </div>
+        </div> -->
         <div class="col-sm-12 col md-3 col-lg-3">
             <div class="form-group">Elige Operador
                 <select wire:model="user" class="form-control">
-                    <option value="todos">Todos</option>
+                    <option value="0">Todos</option>
                     @foreach($users as $u)
                         <option value="{{$u->id}}">{{$u->apellido}} {{$u->name}}</option>
                     @endforeach
                 </select>
             </div>
         </div>
-        <div class="col-sm-12 col-md-4 col-lg-4">                   
-            @if($factPendiente == 1)
-            <button onclick="cerrarCaja()" class="btn btn-dark btn-block mt-4" disabled>Cerrar Caja</button> 
-            @else        
-            <button onclick="cerrarCaja()" class="btn btn-dark btn-block mt-4" enabled>Cerrar Caja</button>                   
+        <div class="col-sm-12 col-md-3 col-lg-3 mb-2">
+            @if($user > 0)
+                @if($factPendiente == 1)
+                <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mt-4">Existen Facturas Pendientes..</button>
+                @else
+                <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mt-4">Cerrar Caja</button>
+                @endif
             @endif
         </div>
     </div>
@@ -39,7 +41,7 @@
            <h6><b>Fecha/Hora Inicio: </b> {{$fecha_inicio->format('d-m-Y')}} - {{$fecha_inicio->format('H:i')}} hs.</h6>
            @endif
         </div>
-    </div> 
+    </div>
     @endcan
     <!-- <hr> -->
     <div class="row">
@@ -49,6 +51,7 @@
                 <div class="cl-info">
                     <h1 class="cl-title">Caja Inicial</h1>
                     <span>$ {{number_format($cajaInicial,2,',','.')}}</span>
+                    <!-- <span>Efectivo<br>$ {{number_format($cajaInicial,2,',','.')}}</span> -->
                 </div>
             </div>
         </div>
@@ -82,7 +85,7 @@
                     <h1 class="cl-title">Egresos</h1>
                     <span>$ {{number_format($egresos,2,',','.')}}</span>
                 </div>
-            </div>   
+            </div>
         </div>
         <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
             <div class="color-box">
@@ -96,20 +99,29 @@
     </div>
 </div>
 @include('livewire.cortes.modal')
-<input type="hidden" id="caja_abierta" wire:model="caja_abierta">    
-<input type="hidden" id="id" value="0">	
+    <input type="hidden" id="caja_abierta" wire:model="caja_abierta">
+    <input type="hidden" id="usuario_habilitado" wire:model="usuario_habilitado">
+    <input type="hidden" id="id" value="0">
 @can('ArqueoDeCajaDeOtros_index')
-<input type="hidden" id="verArqueoDeOtros" value="1">	
-<input id="user" wire:model="user">
-<input id="user" wire:model="nro_arqueo">
+    <input type="hidden" id="verArqueoDeOtros" value="1">
+    <input id="user" wire:model="user">
+    <input id="user" wire:model="nro_arqueo">
 @else
-<input type="hidden" id="verArqueoDeOtros" value="0">
-@endif	
-
+    <input type="hidden" id="verArqueoDeOtros" value="0">
+@endif
 </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+<style type="text/css" scoped>
+.scrollmodal{
+    position: relative;
+    height: 270px;
+    margin-top: .5rem;
+    overflow: auto;
+}
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 <script type="text/javascript">
  	function Confirm(id)
@@ -127,40 +139,58 @@
         closeOnConfirm: false
         },
 		function() {
-			window.livewire.emit('deleteRow', id)    
+			window.livewire.emit('deleteRow', id)
 			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()   
+			swal.close()
         })
-    }   
-    function cerrarCaja()
+    }
+    function cerrarCaja(factPendiente,repartidor)
     {
-    	Swal.fire({
-    		title: 'CONFIRMAR',
-    		text: 'Deseas cerrar esta Caja? No podrás deshacer esta acción...',
-    		icon: 'warning',
-    		showCancelButton: true,
-    		confirmButtonText: 'Aceptar',
-    		cancelButtonText: 'Cancelar',
-    		closeOnConfirm: false
-		}).then((result) => {
-			if (result.isConfirmed) {
-				if (result.value) {
-					Swal.fire(
-						'Caja Cerrada!',
-						'El Cierre se efectuó correctamente...',
-						'success'
-					);
-					window.livewire.emit('cerrarCaja')
+        if(factPendiente == 1){
+            if(repartidor == true)
+            window.location = "{{url('cajarepartidor')}}";
+            else
+            window.location = "{{url('facturasacobrar')}}";
+        }else{
+            Swal.fire({
+                title: 'CONFIRMAR',
+                text: 'Deseas cerrar esta Caja? No podrás deshacer esta acción...',
+                icon: 'warning',
+                input: 'text',
+                inputPlaceholder: 'Ingresa el Monto que contaste...',
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Cancelar',
+                closeOnConfirm: false,
+                inputValidator: cajaFinalSegunUsuario => {
+				// Si el valor es válido, debes regresar undefined. Si no, una cadena
+				if (!cajaFinalSegunUsuario) {
+					return "Debés ingresar el Monto que contaste...";
+				} else {
+					return undefined;
 				}
-			}else if (result.dismiss === Swal.DismissReason.cancel) {
-				Swal.fire(
-					'Cancelado',
-					'El cierre no se concretó...',
-					'error'
-				)
-            }
-		})	
-	}	 
+			}
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value) {
+                        let cajaFinalSegunUsuario = result.value;
+                        Swal.fire(
+                            'Caja Cerrada!',
+                            'El Cierre se efectuó correctamente...',
+                            'success'
+                        );
+                        window.livewire.emit('cerrarCaja',cajaFinalSegunUsuario)
+                    }
+                }else if (result.dismiss === Swal.DismissReason.cancel) {
+                    Swal.fire(
+                        'Cancelado',
+                        'El cierre no se concretó...',
+                        'error'
+                    )
+                }
+            })
+        }
+	}
     function edit(row)
     {
         var info = JSON.parse(row)
@@ -174,75 +204,75 @@
             $('#id').show()
             $('#importe').show()
             $('#labelImporte').show()
-            $('#btnGuardar').hide()            
+            $('#btnGuardar').show()
             $('#id').val(0)
             $('#importe').val('')
             $('#modalCajaInicial').show()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
-            $('#modalEgresos').hide()           
-            $('#modalCajaFinal').hide()           
+            $('#modalEgresos').hide()
+            $('#modalCajaFinal').hide()
             $('.modal-title').text('Caja Inicial')
         }else if(id == 2){
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
+            $('#btnGuardar').hide()
             $('#modalCajaInicial').hide()
             $('#modalVentas').show()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide() 
+            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Ventas Diarias')
         }else if(id == 3){
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
+            $('#btnGuardar').hide()
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').show()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide() 
+            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Cobros de Cuenta Corriente')
         }else if(id == 4){
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
+            $('#btnGuardar').hide()
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').show()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide() 
+            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Otros Ingresos')
         }else if(id == 5){
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
+            $('#btnGuardar').hide()
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').show()
-            $('#modalCajaFinal').hide() 
+            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Egresos')
         }else{
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
+            $('#btnGuardar').hide()
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').show() 
+            $('#modalCajaFinal').show()
             $('.modal-title').text('Caja Final')
         }
         $('#modalCajaRep').modal('show')
@@ -256,32 +286,24 @@
         }
         var data = JSON.stringify({
             'id'        : $('#id').val(),
-            'importe'   : $('#importe').val()            
+            'importe'   : $('#importe').val()
         });
         window.livewire.emit('grabarCajaModal', data)
-    } 
-    // $(document).ready(function() {
-    //     $('[id="fecha"]').change(function() {
-    //         var data =  $('#fecha').val();         
-    //         $('#fechaConsulta').text(data);
-    //         window.livewire.emit('cambiarFecha', data);
-    //     });
-    //     if($('#caja_abierta').val() == 0){
-    // });
+    }
     window.onload = function() {
         if($('#caja_abierta').val() == 0){   //hacer ver historial
             swal({
-                title: 'Oops',
-                text: 'Para ver tu Arqueo de Caja, primero deben habilitarte una.',
+                title: 'Caja inhabilitada!',
+                text: '',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
+                confirmButtonText: 'Volver',
                 closeOnConfirm: false
             },
-            function() {  
-                window.location.href="{{ url('home') }}";
-                swal.close()   
-            });
-        }  
+            function() {
+                window.location.href="{{ url('notify') }}";
+                swal.close()
+            })
+        }
     }
 </script>

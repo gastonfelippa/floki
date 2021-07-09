@@ -162,18 +162,17 @@
     window.onload = function() {
         if($('#caja_abierta').val() == 0){
             swal({
-                title: 'Oops',
-                text: 'Para ver los registros de Caja, primero debés habilitar una. Para ello dirigite a: Caja->Habilitar Caja',
+                title: 'Caja inhabilitada!',
+                text: '',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
+                confirmButtonText: 'Volver',
                 closeOnConfirm: false
             },
             function() {  
-                window.location.href="{{ url('home') }}";
+                window.location.href="{{ url('notify') }}";
                 swal.close()   
             })
         }
     }
-
 </script>

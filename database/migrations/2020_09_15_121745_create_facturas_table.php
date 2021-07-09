@@ -28,8 +28,11 @@ class CreateFacturasTable extends Migration
          
             $table->decimal('importe',10,2);
             $table->enum('estado', ['abierta','contado', 'pendiente', 'ctacte', 'anulado']);
-            $table->enum('estado_pago', ['0','1','2']);
-            $table->enum('estado_entrega', ['0','1','2', '3']);
+            $table->enum('estado_pago', ['0','1','2']);           //ctacte,pagado,entrega
+            $table->enum('forma_de_pago', ['1','2','3','4','5'])->nullable(); //efectivo,tarj débito,tarj crédito,transferencia,cheque
+            $table->enum('mercadopago', ['0','1'])->nullable(); //no,si
+            $table->string('nro_comp_pago')->nullable();         //nro ticket tarjeta o transferencia 
+            $table->enum('estado_entrega', ['0','1','2','3']);    //no delivery,delivery o en espera,en camino,entregado
 
             $table->unsignedBigInteger('user_id_delete')->nullable();
             $table->foreign('user_id_delete')->references('id')->on('users');

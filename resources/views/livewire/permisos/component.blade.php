@@ -23,6 +23,7 @@
                     <div class="tab-content">
                         @if($tab == 'roles')
                             @include('livewire.permisos.roles')
+                            @include('livewire.permisos.modal')
                         @else ($tab == 'permisos')    
                             @include('livewire.permisos.permisos') 
                         @endif   
@@ -50,6 +51,7 @@
 
     function clearRoleSelected()
     {
+        document.querySelector('#no').checked = true;
         $('#roleName').val('')
         $('#roleid').val(0)
         $('#roleName').focus()
@@ -129,6 +131,30 @@
         window.livewire.emit('AsignarPermisos', permisosList, $('#roleSelected option:selected').val())
     }
 
+    function admiteCaja()
+    {
+        if($('#roleName').val() != ''){
+            var roleName = $('#roleName').val()
+            $('#admiteCaja').val('0')        
+            $('.modal-title').text('A este Nuevo Rol llamado "' + roleName + '"... ¿Se le puede Asignar una Caja?')
+            $('#modalAdmiteCaja').modal('show')
+        }
+    }
+
+    function CrearRol()
+    {
+        var radio = document.getElementsByName('admiteCaja');
+        for(i=0; i<radio.length; i++){
+            if(radio[i].checked){
+            var seleccion = radio[i].value;
+            //  alert(seleccion);
+            }
+        }
+        window.livewire.emit('CrearRole', $('#roleName').val(), $('#roleId').val(), seleccion)
+        $('#modalAdmiteCaja').modal('hide')
+        clearRoleSelected()     
+    }
+ 
     document.addEventListener('DOMContentLoaded', function(){
         window.livewire.on('activarTab', tabName => {
             var tab = "[href='" + tabName + "']"

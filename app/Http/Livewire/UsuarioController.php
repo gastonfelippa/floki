@@ -8,6 +8,7 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use App\Models\Auditoria;
 use App\Models\Comercio;
 use App\Models\Empleado;
 use App\Models\Localidad;
@@ -34,10 +35,9 @@ class UsuarioController extends Component
     public $name, $apellido, $documento, $calle, $numero, $localidad = 'Elegir', $provincia = 'Elegir';
     public $sexo = 0, $telefono1, $fecha_ingreso, $fecha_nac, $email, $username, $password;
     public $selected_id = null, $search, $action = 1;
-    public $comercioId;
-    public $empleado, $rol;
-    public $empleados, $roles;
-    public $comercio, $admin;
+    public $comercioId, $comercio, $admin;
+    public $rol, $roles, $comentario = '', $dni_valido = false;
+    public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
 
     public function render()
     {
@@ -47,7 +47,6 @@ class UsuarioController extends Component
         $localidades = Localidad::select()->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
  
-        $this->empleados = Empleado::select('*')->where('comercio_id', $this->comercioId)->get();
         $this->roles = Role::select('*')->where('id', '<>', '1')->where('comercio_id', $this->comercioId)->get();
       
         //busca el nombre del comercio logueado y de su admin para el envío de emails
@@ -55,12 +54,14 @@ class UsuarioController extends Component
         ->where('id', $this->comercioId)->first(); 
         $this->comercio = $comercio->nombre; 
 
+        //capturo el nombre del Admin del comercio para que aparezca en el correo de bienvenida 
+        //que se enviará al nuevo empleado
         $admin = User::join('usuario_comercio as uc', 'uc.usuario_id','users.id')
             ->where('uc.comercio_id', $this->comercioId)
             ->select('users.name', 'users.sexo')
             ->orderBy('users.id', 'asc')->first();
         $this->admin = $admin->name; 
-     
+
         if(strlen($this->search) > 0)
         {
             $info = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
@@ -73,9 +74,7 @@ class UsuarioController extends Component
                 ->orwhere('roles.alias', 'like', '%'. $this->search . '%')
                 ->where('uc.comercio_id', $this->comercioId)
                 ->select('users.*', 'roles.alias')->get();
-        }
-        else
-        {
+        }else{
             $info = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
                 ->join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
                 ->join('roles', 'roles.id', 'mhr.role_id')
@@ -112,14 +111,61 @@ class UsuarioController extends Component
         $this->selected_id = null;
         $this->action = 1;
         $this->search = '';
+        $this->dni_valido = false;
     }
     
     public $listeners = [
         'deleteRow' => 'destroy',
-        'createFromModal' => 'createFromModal'        
+        'createFromModal' => 'createFromModal',
+        'verificarPorDni' => 'verificarPorDni'       
 	];
 
-    public function createFromModal($info)
+    public function verificarPorDni()
+    {
+        $this->dni_valido = false;
+        $existe = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+            ->where('uc.comercio_id', $this->comercioId)
+            ->where('users.documento', $this->documento)
+            ->withTrashed()->get();
+        if($existe->count() && $existe[0]->deleted_at != null) {
+           // session()->flash('msg-error', 'El Empleado que desea agregar ya existe en el sistema pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+            $this->action = 1;
+            $this->recuperar_registro = 1;
+            $this->descripcion_soft_deleted = $existe[0]->apellido . ' ' . $existe[0]->name . ' - DNI: ' . $existe[0]->documento;
+            $this->id_soft_deleted = $existe[0]->usuario_id;
+            return;
+        }elseif($existe->count()) $this->emit('usuario_repetido');
+        else $this->dni_valido = true;
+    }
+    public function RecuperarRegistro($id)
+    {
+        DB::begintransaction();
+        try{
+            User::onlyTrashed()->find($id)->restore();            
+            $audit = Auditoria::create([
+                'item_deleted_id' => $id,
+                'tabla'           => 'Empleados',
+                'estado'          => '1',
+                'user_delete_id'  => auth()->user()->id,
+                'comentario'      => $this->comentario,
+                'comercio_id'     => $this->comercioId
+            ]);
+            session()->flash('msg-ok', 'Registro recuperado');
+            $this->volver();
+                
+            DB::commit();               
+        }catch (\Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
+        }
+    }
+    public function volver()
+    {
+        $this->recuperar_registro = 0;
+        $this->resetInput();
+        return; 
+    }
+    public function createFromModal($info)  //localidad
     {
         $data = json_decode($info);
 
@@ -177,16 +223,31 @@ class UsuarioController extends Component
         $cadena = strtolower($cadena->nombre);
         $username = str_replace(' ', '',Str::finish($nombre,'@'. $cadena));
         
-        //si existe el username, le agregamos un número al nombre
-        $existe = User::where('username', $username);
-        $i=2;
-        if($existe->count() > 0){
-            do{
-                $username = str_replace(' ', '',Str::finish($nombre, $i .'@'. $cadena));
-                $existe = User::where('username', $username);
-                $i ++;
-            }while($existe->count() > 0 );            
+        //si estamos creando un usuario y ya existe el username, 
+        //le agregamos un número al nombre y en caso de que también exista
+        //volvemos a ejecutar la acción hasta que no se encuentren coincidencias
+        if($this->selected_id > 0){
+            $existe = User::where('username', $username)->where('id', '<>', $this->selected_id);
+            $i=2;
+            if($existe->count() > 0){
+                do{
+                    $username = str_replace(' ', '',Str::finish($nombre, $i .'@'. $cadena));
+                    $existe = User::where('username', $username);
+                    $i ++;
+                }while($existe->count() > 0 );            
+            }
+        }else{
+            $existe = User::where('username', $username);
+            $i=2;
+            if($existe->count() > 0){
+                do{
+                    $username = str_replace(' ', '',Str::finish($nombre, $i .'@'. $cadena));
+                    $existe = User::where('username', $username);
+                    $i ++;
+                }while($existe->count() > 0 );            
+            }            
         }
+        
         $this->username = $username; 
         //busco el id del rol No Usuario para agregarlo por defecto al nuevo usuario
         $rolNoUsuario = Role::where('alias', 'No Usuario')
@@ -194,14 +255,17 @@ class UsuarioController extends Component
                     ->select('id')->get();
         
         $this->validate([
-			'sexo' => 'not_in:0',
+			'sexo'      => 'not_in:0',
 			'localidad' => 'not_in:Elegir'
 		]);
         
         $this->validate([
-            'name' => 'required',
-            'apellido' => 'required'
-            ]);  
+            'name'      => 'required',
+            'apellido'  => 'required',
+            'documento' => 'required',
+            'telefono1' => 'required',
+            'email'     => ['required', 'string', 'email', 'max:255']
+        ]);  
 
         if($this->numero == '' && $this->calle != '') $this->numero = 's/n';       
         
@@ -252,6 +316,7 @@ class UsuarioController extends Component
                     'fecha_nac' => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
                     'sexo' => $this->sexo,
                     'email' => strtolower($this->email),
+                    'username' => $username,
                     'abonado' => 'No'
                 ]);
             }
@@ -266,14 +331,38 @@ class UsuarioController extends Component
         }  
     }  
     
-    public function destroy($id)
+    public function destroy($id, $comentario)
     {
-        if ($id) { //si es un id válido
-            $record = User::where('id', $id); //buscamos el registro
-            $record->delete(); //eliminamos el registro
-            $this->resetInput(); //limpiamos las propiedades
+        if ($id) {
+            DB::begintransaction();
+            try{
+                $gasto = User::find($id)->delete();
+                $audit = Auditoria::create([
+                    'item_deleted_id' => $id,
+                    'tabla'           => 'Empleados',
+                    'estado'          => '0',
+                    'user_delete_id'  => auth()->user()->id,
+                    'comentario'      => $comentario,
+                    'comercio_id'     => $this->comercioId
+                ]);
+                session()->flash('msg-ok', 'Registro eliminado con éxito!!');
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }
+            $this->resetInput();
+            return;
         }
     }
+    // public function destroy($id)
+    // {
+    //     if ($id) { //si es un id válido
+    //         $record = User::where('id', $id); //buscamos el registro
+    //         $record->delete(); //eliminamos el registro
+    //         $this->resetInput(); //limpiamos las propiedades
+    //     }
+    // }
 
     public function sendEmail($user, $comercio, $admin)
     {

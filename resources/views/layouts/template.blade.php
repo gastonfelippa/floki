@@ -32,7 +32,12 @@
     <link href="{{ asset('plugins/jquery-ui/jquery-ui.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('plugins/select2/select2.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
-    
+    <style>
+        body {
+            background: url('../images/arte.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
     <!-- Sección para incluír estilos personalizados en los módulos del sistema  -->
      @yield('styles')
 
@@ -50,7 +55,7 @@
     <!--  END LOADER -->
 
     <!--  BEGIN NAVBAR  -->
-    <div class="header-container">
+    <div class="header-container mb-1" style="background-color: #B9BCCF;">
         <header class="header navbar navbar-expand-sm">
             <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
             
@@ -105,91 +110,88 @@
             <nav id="topbar">                
                 <ul class="list-unstyled menu-categories" id="topAccordion">
                 <!-- ABM -->
+                @canany(['Productos_index','Categorias_index','Clientes_index','Proveedores_index',
+                        'Gastos_index','OtroIngreso_index','Usuarios_index'])
                     <li class="menu single-menu">
-                        <a href="#abm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-list" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/><path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>
                                 <span>ABM</span>
                             </div>  
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>                      
                         </a>
-                        <ul class="collapse submenu list-unstyled" id="abm" data-parent="#topAccordion">
-                        @can('Productos_index')
-                            <li>
-                                <a href="{{ url('productos') }}"> PRODUCTOS  </a>
-                            </li>
-                        @endcan
-                        @can('Categorias_index')
-                        <li>
-                            <a href="{{ url('categorias') }}"> CATEGORIAS  </a>
-                        </li>
-                        @endcan
-                        @can('Clientes_index')
-                            <li>
-                                <a href="{{ url('clientes') }}"> CLIENTES  </a>
-                            </li>
-                        @endcan
-                        @can('Proveedores_index')
-                            <li>
-                                <a href="{{ url('proveedores') }}"> PROVEEDORES  </a>
-                            </li>                            
-                        @endcan
-                        @can('Gastos_index')
-                            <li>
-                                <a href="{{ url('gastos') }}"> EGRESOS  </a>
-                            </li>
-                        @endcan
-                        @can('OtroIngreso_index')
-                            <li>
-                                <a href="{{ url('otroingreso') }}"> OTROS INGRESOS  </a>
-                            </li>
-                        @endcan
-                        @can('Usuarios_index')
-                            <li>
-                                <a href="{{ url('usuarios') }}"> EMPLEADOS  </a>
-                            </li>
-                        @endcan
+                        <ul class="collapse submenu list-unstyled" data-parent="#topAccordion">
+                            @can('Productos_index')
+                                <li>
+                                    <a href="{{ url('productos') }}"> PRODUCTOS  </a>
+                                </li>
+                            @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('categorias') }}"> CATEGORIAS  </a>
+                                </li>
+                            @endcan
+                            @can('Clientes_index')
+                                <li>
+                                    <a href="{{ url('clientes') }}"> CLIENTES  </a>
+                                </li>
+                            @endcan
+                            @can('Proveedores_index')
+                                <li>
+                                    <a href="{{ url('proveedores') }}"> PROVEEDORES  </a>
+                                </li>                            
+                            @endcan
+                            @can('Gastos_index')
+                                <li>
+                                    <a href="{{ url('gastos') }}"> EGRESOS  </a>
+                                </li>
+                            @endcan
+                            @can('OtroIngreso_index')
+                                <li>
+                                    <a href="{{ url('otroingreso') }}"> OTROS INGRESOS  </a>
+                                </li>
+                            @endcan
+                            @can('Usuarios_index')
+                                <li>
+                                    <a href="{{ url('usuarios') }}"> EMPLEADOS  </a>
+                                </li>
+                            @endcan
                         </ul>                         
                     </li>
-                <!-- CONFIG --> 
-                @can('Config_index')   
+                @endcanany
+                <!-- CONFIG -->  
+                @canany(['Empresa_index', 'Permisos_index', 'Auditorias_index'])
                     <li class="menu single-menu">
-                        <a href="#components" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                 <span>CONFIG</span>
                             </div>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </a>
-                        <ul class="collapse submenu list-unstyled" id="components" data-parent="#topAccordion">
-                        @can('Empresa_index')
-                            <li>
-                                <a href="{{ url('empresa') }}">EMPRESA </a>
-                            </li>
-                        @endcan
-                        @can('Permisos_index')   
-                            <li>
-                                <a href="{{ url('permisos') }}">ROLES Y PERMISOS </a>
-                            </li>
-                        @endcan 
-                        @can('Auditorias_index')  
-                            <li>
-                                <a href="{{ url('auditorias') }}">AUDITORIAS </a>
-                            </li>
+                        <ul class="collapse submenu list-unstyled" data-parent="#topAccordion">
+                            @can('Empresa_index')
+                                <li>
+                                    <a href="{{ url('empresa') }}">EMPRESA </a>
+                                </li>
+                            @endcan
+                            @can('Permisos_index')   
+                                <li>
+                                    <a href="{{ url('permisos') }}">ROLES Y PERMISOS </a>
+                                </li>
+                            @endcan 
+                            @can('Auditorias_index')  
+                                <li>
+                                    <a href="{{ url('auditorias') }}">AUDITORIAS </a>
+                                </li>
+                            @endcan 
                         </ul>
-                        @endcan 
                     </li>
-                @endcan
+                @endcanany            
                 <!-- FACTURAS -->
                 @can('Facturas_index')
                     <li class="menu single-menu">
-                        <!-- <a href="{{ url('facturas') }}" >
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                <span>VENTAS</span>
-                            </div>                           
-                        </a>  -->
-                        <a href="#tables" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                                 <span>VENTAS</span>
@@ -198,10 +200,10 @@
                         </a> 
                         <ul class="collapse submenu list-unstyled" id="tables"  data-parent="#topAccordion">
                             <li>
-                                <a href="{{ url('facturas') }}" > NUEVA </a>
+                                <a href="{{ url('facturas') }}" >FACTURA NUEVA</a>
                             </li>
                             <li>
-                                <a href="{{ url('facturasacobrar') }}" > FACTURAS A COBRAR</a>
+                                <a href="{{ url('facturasacobrar') }}" >FACTURAS PENDIENTES</a>
                             </li>
                         </ul>                      
                     </li>
@@ -218,8 +220,10 @@
                     </li>
                 @endcan
                 <!-- CAJA -->
+                @canany(['HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index',
+                        'MovimientosDiarios_index',])
                     <li class="menu single-menu">
-                        <a href="#tables" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                                 <span>CAJA</span>
@@ -232,9 +236,14 @@
                                 <a href="{{ url('habilitarcaja') }}" > HABILITAR CAJAS </a>
                             </li>
                             @endcan
+                            @can('HabilitarCaja_index')
+                            <li>
+                                <a href="{{ url('arqueogral') }}" > ARQUEO CAJA GENERAL</a>
+                            </li>
+                            @endcan
                             @can('ArqueoDeCaja_index')
                             <li>
-                                <a href="{{ url('arqueodecaja') }}" > ARQUEO DE CAJA</a>
+                                <a href="{{ url('arqueodecaja') }}"> ARQUEO CAJA USUARIO </a>  
                             </li>
                             @endcan
                             @can('CajaRepartidor_index')
@@ -249,27 +258,9 @@
                             @endcan
                         </ul>
                     </li>
-                <!-- COTIZACIONES -->
-                @can('Cotizaciones_index')
-                    <li class="menu single-menu">
-                        <a href="#forms" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                                <span>COTIZACIONES</span>
-                            </div>                        
-                        </a>
-                        <ul class="collapse submenu list-unstyled" id="forms"  data-parent="#topAccordion">
-                            <li>
-                                <a href="#"> HISTORIAL </a>
-                            </li>
-                            <li>
-                                <a href="#"> PAGOS </a>
-                            </li>                          
-                         </ul>
-                    </li>
-                @endcan
+                @endcanany
                 <!-- REPORTES -->
-                @can('Reportes_index')
+                @canany(['VentasDiarias_index', 'VentasPorFechas_index'])
                     <li class="menu single-menu">
                         <a href="#page" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
@@ -279,17 +270,19 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </a>
                         <ul class="collapse submenu list-unstyled" id="page"  data-parent="#topAccordion">
-                            <li>
-                                <a href="{{ url('ventasdiarias') }}"> VENTAS DEL DIA </a>
-                            </li>
+                            @can('VentasDiarias_index')    
+                                <li>
+                                    <a href="{{ url('ventasdiarias') }}"> VENTAS DEL DIA </a>
+                                </li>
+                            @endcan                        
                             @can('VentasPorFechas_index')
-                            <li>
-                                <a  href="{{ url('ventasporfechas') }}"> VENTAS POR FECHAS </a>
-                            </li>  
+                                <li>
+                                    <a  href="{{ url('ventasporfechas') }}"> VENTAS POR FECHAS </a>
+                                </li>  
                             @endcan                        
                         </ul>
                     </li>
-                @endcan
+                @endcanany
                 <!-- VIANDAS -->
                 @can('Viandas_index')
                     <li class="menu single-menu">

@@ -21,7 +21,7 @@
 							@foreach($info as $r)
 							<tr>
 								<td class="text-left">{{$r->apeCli}} {{$r->nomCli}}</td>
-								<td class="text-center">{{number_format($r->importe,2)}}</td>
+								<td class="text-center">{{number_format($r->importe,2,',','.')}}</td>
 								<td class="text-center">
                                     <ul class="table-controls">
                                         <li>
@@ -32,8 +32,8 @@
                                         </li>
                                         <li>
                                             <a href="javascript:void(0);"          		
-        	                                    onclick="Confirm('{{$r->id}}')"
-        	                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+        	                                    onclick="AnularFactura('{{$r->id}}')"
+        	                                    data-toggle="tooltip" data-placement="top" title="Anular">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                         </li>
                                         <li>
@@ -85,8 +85,12 @@
 					</table>                   
 				</div>
             </div>
+            <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
 		</div>
 	</div>
+    @if($action == 2)
+    @include('livewire.facturasacobrar.detalle')		
+    @endif
 </div>
 
 <style type="text/css" scoped>
@@ -107,26 +111,6 @@
 
 
 <script>
- 	function Confirm(id)
-    {
-       let me = this
-       swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRow', id)    
-			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()   
-        })
-    }
     function ConfirmDel(id)
     {
     	let me = this
@@ -142,8 +126,7 @@
         closeOnConfirm: false
         },
 		function() {
-			window.livewire.emit('deleteRowDel', id)    
-			toastr.success('info', 'Registro eliminado con éxito')
+			window.livewire.emit('deleteRow', id)    
 			swal.close()   
         })
     }
@@ -156,15 +139,66 @@
             cancelButtonText: `Cancelar`,
             confirmButtonText: `Contado`,
             denyButtonText: `Cuenta Corriente`,
-            }).then((result) => {
-                if(result.isConfirmed) {
-                    window.livewire.emit('factura_contado',id)
-                    Swal.fire('Factura Cobrada!', '', 'success')
-                }else if (result.isDenied) {
-                    window.livewire.emit('factura_ctacte',id,idCli)
-                    Swal.fire('Factura Cuenta Corriente', '', 'success')                   
-                }
+        }).then((result) => {
+            if(result.isConfirmed) {
+                window.livewire.emit('factura_contado',id)
+                Swal.fire('Factura Cobrada!', '', 'success')
+            }else if (result.isDenied) {
+                window.livewire.emit('factura_ctacte',id,idCli)
+                   Swal.fire('Factura Cuenta Corriente', '', 'success')                   
+            }
+        })
+    }
+    function AnularFactura(id)
+    {
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Anular la Factura, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					Swal.fire(
+						'Anulado!',
+						'Tu registro se Anuló correctamente...',
+						'success'
+					);
+					window.livewire.emit('anularFactura', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire(
+					'Cancelado',
+					'Tu registro está a salvo :)',
+					'error'
+				)
+            }
+		})
+    }
+    window.onload = function() {
+        if($('#caja_abierta').val() == 0){
+            swal({
+                title: 'Caja inhabilitada!',
+                text: '',
+                type: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Volver',
+                closeOnConfirm: false
+            },
+            function() {  
+                window.location.href="{{ url('notify') }}";
+                swal.close()   
             })
-    } 
+        }
+    }  
 
 </script>

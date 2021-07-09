@@ -8,6 +8,6 @@
 
 @section('content')
      
-  @livewire('empleado-controller')
+  @livewire('arqueo-gral-controller')
 
 @endsection

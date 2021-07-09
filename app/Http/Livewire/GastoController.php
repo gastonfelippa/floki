@@ -95,41 +95,47 @@ class GastoController extends Component
 
     public function StoreOrUpdate()
     { 
-        $this->validate(['categoria' => 'not_in:Elegir']);
-        $this->validate(['descripcion' => 'required']);   
+        $this->validate([
+            'categoria' => 'not_in:Elegir',
+            'descripcion' => 'required'
+        ]);  
 
         DB::begintransaction();
         try{
             if($this->selected_id > 0) {
-                $existe = Gasto::where('descripcion', $this->descripcion)
-                    ->where('id', '<>', $this->selected_id)
-                    ->where('comercio_id', $this->comercioId)
+                $existe = Gasto::join('categoria_gastos as c', 'c.id', 'gastos.categoria_id')
+                    ->where('gastos.descripcion', $this->descripcion)
+                    ->where('gastos.id', '<>', $this->selected_id)
+                    ->where('gastos.comercio_id', $this->comercioId)
+                    ->select('gastos.*', 'c.descripcion as c_descripcion')
                     ->withTrashed()->get();
                 if($existe->count() > 0 && $existe[0]->deleted_at != null) {
-                    session()->flash('info', 'El Gasto que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+                    // session()->flash('msg-error', 'El Empleado que desea agregar ya existe en el sistema pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
-                    $this->descripcion_soft_deleted = $existe[0]->descripcion;
+                    $this->descripcion_soft_deleted = $existe[0]->descripcion . ' - ' . $existe[0]->c_descripcion;
                     $this->id_soft_deleted = $existe[0]->id;
                     return;
                 }elseif($existe->count() > 0) {
-                    session()->flash('info', 'El Gasto ya existe...');
+                    session()->flash('msg-ops','El registro no se grabó... el Gasto ya existe...');
                     $this->resetInput();
                     return;
                 }
             }else {
-                $existe = Gasto::where('descripcion', $this->descripcion)
-                    ->where('comercio_id', $this->comercioId)->withTrashed()->get();
-
+                $existe = Gasto::join('categoria_gastos as c', 'c.id', 'gastos.categoria_id')
+                    ->where('gastos.descripcion', $this->descripcion)
+                    ->where('gastos.comercio_id', $this->comercioId)
+                    ->select('gastos.*', 'c.descripcion as c_descripcion')
+                    ->withTrashed()->get();
                 if($existe->count() > 0 && $existe[0]->deleted_at != null) {
-                    session()->flash('info', 'El Gasto que desea agregar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+                    // session()->flash('msg-error', 'El Empleado que desea agregar ya existe en el sistema pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
-                    $this->descripcion_soft_deleted = $existe[0]->descripcion;
+                    $this->descripcion_soft_deleted = $existe[0]->descripcion . ' - ' . $existe[0]->c_descripcion;
                     $this->id_soft_deleted = $existe[0]->id;
                     return;
                 }elseif($existe->count() > 0) {
-                    session()->flash('info', 'El Gasto ya existe...');
+                    session()->flash('msg-ops','El registro no se grabó... el Gasto ya existe...');
                     $this->resetInput();
                     return;
                 }
@@ -152,7 +158,7 @@ class GastoController extends Component
             else session()->flash('msg-ok', 'Gasto Creado');
             
             DB::commit();               
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }

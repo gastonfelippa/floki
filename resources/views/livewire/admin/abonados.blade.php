@@ -127,7 +127,7 @@
         }
 .scroll{
     position: relative;
-    height: 275px;
+    height: 270px;
     margin-top: .5rem;
     overflow: auto;
 }

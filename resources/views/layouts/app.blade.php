@@ -20,11 +20,17 @@
     
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background: url('../images/resto.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
     
     @livewireStyles
 </head>
-<body style="background-color:#d8da8d">
-    
+<!-- <body style="background-color:#d8da8d"> -->
+<body>
     <main class="py-3">
         @yield('content')
     </main>

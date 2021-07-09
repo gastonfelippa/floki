@@ -23,11 +23,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        //lista de permisos
-        Permission::create(['name' => 'Estadisticas_index', 'alias' => 'Ver']);
-        Permission::create(['name' => 'Abm_index', 'alias' => 'Ver ABM']);
-        
-        Permission::create(['name' => 'Config_index', 'alias' => 'Ver Configuraciones']);
+        //lista de permisos        
         Permission::create(['name' => 'Auditorias_index', 'alias' => 'Ver Auditorías']);
         Permission::create(['name' => 'Empresa_index', 'alias' => 'Ver Empresa']);
         Permission::create(['name' => 'Permisos_index', 'alias' => 'Ver Permisos']);
@@ -41,11 +37,6 @@ class UserSeeder extends Seeder
         Permission::create(['name' => 'Categorias_create', 'alias' => 'Agregar']);
         Permission::create(['name' => 'Categorias_edit', 'alias' => 'Modificar']);
         Permission::create(['name' => 'Categorias_destroy', 'alias' => 'Eliminar']);
-
-        Permission::create(['name' => 'Empleados_index', 'alias' => 'Ver']);
-        Permission::create(['name' => 'Empleados_create', 'alias' => 'Agregar']);
-        Permission::create(['name' => 'Empleados_edit', 'alias' => 'Modificar']);
-        Permission::create(['name' => 'Empleados_destroy', 'alias' => 'Eliminar']);
 
         Permission::create(['name' => 'Clientes_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Clientes_create', 'alias' => 'Agregar']);
@@ -61,6 +52,11 @@ class UserSeeder extends Seeder
         Permission::create(['name' => 'Gastos_create', 'alias' => 'Agregar']);
         Permission::create(['name' => 'Gastos_edit', 'alias' => 'Modificar']);
         Permission::create(['name' => 'Gastos_destroy', 'alias' => 'Eliminar']);
+        
+        Permission::create(['name' => 'Usuarios_index', 'alias' => 'Ver']);
+        Permission::create(['name' => 'Usuarios_create', 'alias' => 'Agregar']);
+        Permission::create(['name' => 'Usuarios_edit', 'alias' => 'Modificar']);
+        Permission::create(['name' => 'Usuarios_destroy', 'alias' => 'Eliminar']);
 
         Permission::create(['name' => 'Facturas_index', 'alias' => 'Crear']);
         Permission::create(['name' => 'Facturas_edit_item', 'alias' => 'Modificar']);
@@ -76,28 +72,17 @@ class UserSeeder extends Seeder
 
         Permission::create(['name' => 'HabilitarCaja_index', 'alias' => 'Ver Habilitar Caja']);
         Permission::create(['name' => 'ArqueoDeCaja_index', 'alias' => 'Ver Arqueo De Caja']);
-        Permission::create(['name' => 'MovimientosDiarios_index', 'alias' => 'Ver Movimientos Diarios']);
-        Permission::create(['name' => 'OtroIngreso_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'CajaRepartidor_index', 'alias' => 'Ver Caja Repartidor']);
-
-        Permission::create(['name' => 'Reportes_index', 'alias' => 'Ver Reportes']);
+        Permission::create(['name' => 'MovimientosDiarios_index', 'alias' => 'Ver Movimientos Diarios']);
+        
         Permission::create(['name' => 'VentasDiarias_index', 'alias' => 'Ver Ventas Diarias']);
         Permission::create(['name' => 'VentasPorFechas_index', 'alias' => 'Ver Ventas Por Fecha']);
-
-        Permission::create(['name' => 'Usuarios_index', 'alias' => 'Ver']);
-        Permission::create(['name' => 'Usuarios_create', 'alias' => 'Agregar']);
-        Permission::create(['name' => 'Usuarios_edit', 'alias' => 'Modificar']);
-        Permission::create(['name' => 'Usuarios_destroy', 'alias' => 'Eliminar']);
         
-        Permission::create(['name' => 'Movimientos_index', 'alias' => 'Ver']);
-        Permission::create(['name' => 'Movimientos_create', 'alias' => 'Agregar']);
-        Permission::create(['name' => 'Movimientos_edit', 'alias' => 'Modificar']);
-        Permission::create(['name' => 'Movimientos_destroy', 'alias' => 'Eliminar']);
-
         Permission::create(['name' => 'Viandas_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Ctacte_index', 'alias' => 'Ver']);
-
-
+        Permission::create(['name' => 'OtroIngreso_index', 'alias' => 'Ver']);
+        
+        ////Permisos para Admin Floki
         Permission::create(['name' => 'Planes_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Abonados_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Procedimientos_index', 'alias' => 'Ver']);
@@ -125,11 +110,16 @@ class UserSeeder extends Seeder
         
  
         //creamos un comercio ficticio para poder crear el rol SuperAdmin
-        $comercio = Comercio::create(['nombre' => 'SUPERADMIN', 'tipo_id' => '1']);
-        $comercio = Comercio::create(['nombre' => 'ABONADO', 'tipo_id' => '2']);
+        $comercio = Comercio::create(['nombre' => 'SUPERADMIN', 'tipo_id' => '1', 'hora_apertura' => null]);
+        $comercio = Comercio::create(['nombre' => 'ABONADO', 'tipo_id' => '2', 'hora_apertura' => null]);
 
         // //lista de roles        
-        $superadmin = Role::create(['name' => 'SuperAdmin', 'alias' => 'SuperAdmin','comercio_id' => '1']); 
+        $superadmin = Role::create([
+            'name'        => 'SuperAdmin', 
+            'alias'       => 'SuperAdmin',
+            'comercio_id' => '1',
+            'admite_caja'  => null
+        ]); 
         
         //asignación de permisos a roles
         $superadmin->givePermissionTo([   

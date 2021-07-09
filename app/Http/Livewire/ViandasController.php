@@ -3,9 +3,11 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use App\Models\Cliente;
-use App\Models\Ctacte;
+use App\Models\ArqueoGral;
 use App\Models\CajaUsuario;
+use App\Models\Cliente;
+use App\Models\Comercio;
+use App\Models\Ctacte;
 use App\Models\Detfactura;
 use App\Models\Factura;
 use App\Models\Producto;
@@ -17,21 +19,43 @@ use DB;
 class ViandasController extends Component
 {
 
-    public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir', $estado_entrega = '0';
+    public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
     public $numero, $cliente_id, $importe, $factura_id, $producto_id, $cantidad, $precio, $nro_arqueo;
+    public $caja_abierta, $arqueoGralId, $mostrar_facturas = true;
+    public $estado, $estado_pago, $estado_entrega = '3', $vista_facturas;
 
     public function render()
     {
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
+        //vemos si tenemos una caja habilitada con nuestro comercioId
+        //este dato lo utizamos a la hora de Ver lista Facturas
+        //además de ver si hay que hacer el arqueo gral.
+        $caja_abierta = CajaUsuario::join('usuario_comercio as uc', 'uc.usuario_id', 'caja_usuarios.caja_usuario_id')
+            ->where('uc.comercio_id', $this->comercioId)
+            ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();
+        $this->caja_abierta = $caja_abierta->count();
+        if($caja_abierta->count()){    
+            $this->arqueoGralId = session('idArqueoGral');//busca si hay que hacer el arqueo gral.
+            if($this->arqueoGralId == 0){                 //debe hacer el arqueo gral.
+                return view('arqueodecaja');
+            }
+        }
+
+        if($this->repartidor != 'Elegir') $this->vista_facturas = true;
+        else $this->vista_facturas = false;
+        
         $productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
+
+        //muestro todas las Cajas habilitadas
         $repartidores = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
             ->join('roles as r', 'r.id', 'mhr.role_id')
-            ->where('r.alias', 'Repartidor')
+            ->join('caja_usuarios as cu', 'cu.caja_usuario_id', 'users.id')
             ->where('r.comercio_id', $this->comercioId)
+            ->where('cu.estado', '1')
             ->select('users.*')->orderBy('apellido')->get();
-        
+
         $diaDeLaSemana = '';
         if($this->fecha != '') $diaDeLaSemana = $this->fecha;
         else $diaDeLaSemana = date('w');
@@ -65,17 +89,16 @@ class ViandasController extends Component
     }
     
     protected $listeners = [       
-        'grabar'=>'grabar',         
-        'cambiarFecha'=>'cambiarFecha',         
+        'grabar'              =>'grabar',         
+        'cambiarFecha'        =>'cambiarFecha',         
         'createFactFromModal' => 'createFactFromModal',
-        'factura_contado' => 'factura_contado',         
-        'factura_ctacte' => 'factura_ctacte'         
+        'factura_contado'     => 'factura_contado',         
+        'factura_ctacte'      => 'factura_ctacte'         
     ];
 
     public function grabar($data)
     { 
-        $data = json_decode($data);     
-
+        $data = json_decode($data); 
         DB::begintransaction();                 //iniciar transacción para grabar
         try{
             $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
@@ -88,55 +111,49 @@ class ViandasController extends Component
             foreach ($info as $i){
                 $i->importe=$i->cantidad * $i->precio_venta;
             } 
-
-
-//////////////MOSTRAR SOLO LOS REPARTIDORES CON CAJA ABIERTA////////////////////////////
-
-
-
             //busco el nro_arqueo del repartidor
             $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
                 ->where('caja_usuarios.estado', '1')->get();
-            if($nroArqueo->count() > 0){
-                $this->nro_arqueo = $nroArqueo[0]->id;  
-            }         
-           
-            foreach($info as $i){
+            $this->nro_arqueo = $nroArqueo[0]->id;                     
+   
+            foreach($info as $i){                
                 if (in_array($i->cliente_id, $data)) {
-
-                    $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
-                    if($primerFactura->count() == 0){
+                    $primerFactura = Factura::where('comercio_id', $this->comercioId)->get();
+                    if(!$primerFactura->count()){
                         $numFactura = 1;
                     }else{
                         $encabezado = Factura::select('facturas.numero')
                                     ->where('comercio_id', $this->comercioId)
                                     ->orderBy('facturas.numero', 'desc')->get();                             
                         $numFactura = $encabezado[0]->numero + 1;
-                    }  
-                            
+                    }        
                     $factura = Factura::create([
-                        'numero' => $numFactura,
-                        'cliente_id' => $i->cliente_id,
-                        'repartidor_id' => $this->repartidor,
-                        'user_id' => auth()->user()->id,
-                        'importe' => $i->importe,
-                        'estado' => 'ctacte',
+                        'numero'         => $numFactura,
+                        'cliente_id'     => $i->cliente_id,
+                        'repartidor_id'  => $this->repartidor,
+                        'user_id'        => auth()->user()->id,
+                        'importe'        => $i->importe,
+                        'estado'         => 'ctacte',
                         'estado_pago'    => '0',
                         'estado_entrega' => $this->estado_entrega,
-                        'comercio_id' => $this->comercioId,
+                        'comercio_id'    => $this->comercioId,
                         'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
-                        'factura_id' => $factura->id,
+                        'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
-                        'cantidad' => $i->cantidad,
-                        'precio' => $i->precio_venta,
+                        'cantidad'    => $i->cantidad,
+                        'precio'      => $i->precio_venta,
                         'comercio_id' => $this->comercioId
                     ]);	
                     Ctacte::create([
                         'cliente_id' => $i->cliente_id,
                         'factura_id' => $factura->id
-                    ]);                
+                    ]); 
+                    $record = Cliente::find($i->cliente_id);//marca que el cliente tiene un saldo en ctacte
+                    $record->update([
+                        'saldo' => '1'
+                    ]);               
                 }
             }
             DB::commit();
@@ -151,12 +168,47 @@ class ViandasController extends Component
         
     public function cambiarFecha($data)
     {
+        $fecha_consulta = Carbon::parse($data);
         if($data != '') $this->fecha = date('w',strtotime($data));
+
+        //averiguamos la hora de apertura del comercio
+        $horaApertura = Comercio::select('hora_apertura')
+            ->where('id', $this->comercioId)->first();
+        $hora_apertura = $horaApertura->hora_apertura;
+    
+        //obtenemos la fecha de creación del Arqueo Gral actual
+        $idArqueoGral = ArqueoGral::where('estado', '1')
+            ->where('comercio_id', $this->comercioId)->get();
+        $date = Carbon::parse($idArqueoGral[0]->created_at);
+        $dia_arqueo = Carbon::parse($date)->format('Y-m-d');
+        
+        //obtenemos la fecha de consulta elegida para compararla con la del Arqueo anterior
+        $dia_consulta = Carbon::parse($fecha_consulta)->format('Y-m-d');
+        if($dia_consulta > $dia_arqueo) {
+            $now = $dia_consulta . ' 23:59:59';       //si es mayor, tomamos el final del día
+        }else{
+            $now = $dia_consulta . ' 00:00:00';       //si es menor, tomamos el inicio del día
+        }        
+        $diff = $date->diffInDays($now);              //obtenemos la diferencia en días
+        $hora_actual = Carbon::now()->format('H:i');
+        //si estamos en el mismo día 'o' es el día siguiente 
+        //y 'no' es más tarde que la hora de apertura del comercio
+        //permitimos grabar viandas
+        if($diff == 0 || $diff == 1 && $hora_actual <= $hora_apertura){
+            $this->mostrar_facturas = true; 
+        }else{    //sino, no permitimos grabar viandas
+            $this->mostrar_facturas = false;
+        }
     }
        
     public function createFactFromModal($infoMod)
     {
         $data = json_decode($infoMod);
+
+        //busco el nro_arqueo del repartidor
+        $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
+            ->where('caja_usuarios.estado', '1')->get();
+        $this->nro_arqueo = $nroArqueo[0]->id; 
 
         DB::begintransaction();                 //iniciar transacción para grabar
         try{
@@ -165,7 +217,7 @@ class ViandasController extends Component
             $importe = $data->cantidad * $preVta[0]->precio_venta;            
            
             $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
-            if($primerFactura->count() == 0){
+            if(!$primerFactura->count()){
                 $numFactura = 1;
             }else{
                 $ultimaFactura = Factura::select('facturas.numero')
@@ -175,12 +227,16 @@ class ViandasController extends Component
             }   
 
             $factura = Factura::create([
-                'numero' => $numFactura,
-                'cliente_id' => $data->cliente_id,
-                'importe' => $importe,
-                'estado' => 'ctacte',
-                'user_id' => auth()->user()->id,
-                'comercio_id' => $this->comercioId
+                'numero'         => $numFactura,
+                'cliente_id'     => $data->cliente_id,
+                'repartidor_id'  => $this->repartidor,
+                'user_id'        => auth()->user()->id,
+                'importe'        => $importe,
+                'estado'         => 'ctacte',
+                'estado_pago'    => '0',
+                'estado_entrega' => $this->estado_entrega,
+                'comercio_id'    => $this->comercioId,
+                'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
             ]);
             Detfactura::create([         //creamos un nuevo detalle
                 'factura_id' => $factura->id,
@@ -195,17 +251,42 @@ class ViandasController extends Component
             ]);                    
          
             DB::commit();
-        }catch (\Exception $e){
+            session()->flash('message', 'Factura creada exitosamente!!');
+        }catch (Exception $e){
             DB::rollback();      
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');           
-        } 
-        session()->flash('message', 'Facturas de Viandas creadas exitosamente!!');
+        }         
     } 
 
     public function factura_contado($cliId)
-    {        
-        $repartidor = User::where('id', $this->repartidor)->first();
-        if($repartidor['name'] == '...') $estado = 'contado'; else $estado = 'pendiente';
+    {
+        //busco solo los repartidores con caja habilitada y lo comparo con la variable $this->repartidor
+        //si coinciden, debo enviar la factura como 'pendiente' y 'entregada' al Arqueo Caja Repartidor 
+        //si no coincide es porque es alguna Caja que no es repartidor
+        //en este caso grabamos la factura como 'contado' y 'pagada' al Arqueo Caja Usuario     
+        $repartidores = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
+            ->join('roles as r', 'r.id', 'mhr.role_id')
+            ->join('caja_usuarios as cu', 'cu.caja_usuario_id', 'users.id')
+            ->where('r.alias', 'Repartidor')
+            ->where('r.comercio_id', $this->comercioId)
+            ->where('cu.estado', '1')
+            ->select('users.id')->orderBy('apellido')->get();
+        if($repartidores->count()){
+            foreach($repartidores as $repartidor){
+                if($repartidor->id == $this->repartidor){
+                    $this->estado = 'pendiente';    
+                    $this->estado_pago = '0';    
+                }
+            }
+        }else{
+            $this->estado = 'contado';    
+            $this->estado_pago = '1';
+        }
+      
+        //busco el nro_arqueo del repartidor
+        $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
+            ->where('caja_usuarios.estado', '1')->get();
+        $this->nro_arqueo = $nroArqueo[0]->id;
 
         DB::begintransaction();
         try{
@@ -220,7 +301,7 @@ class ViandasController extends Component
                 if ($i->cliente_id == $cliId) {
                     $i->importe=$i->cantidad * $i->precio_venta;
                     $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
-                    if($primerFactura->count() == 0){
+                    if(!$primerFactura->count()){
                          $numFactura = 1;
                     }else{
                         $encabezado = Factura::select('facturas.numero')
@@ -229,34 +310,42 @@ class ViandasController extends Component
                         $numFactura = $encabezado[0]->numero + 1;
                     }                                    
                     $factura = Factura::create([
-                        'numero' => $numFactura,
-                        'cliente_id' => $i->cliente_id,
-                        'repartidor_id' => $this->repartidor,
-                        'importe' => $i->importe,
-                        'estado' => $estado,
-                        'estado_pago' => '1',
-                        'user_id' => auth()->user()->id,
-                        'comercio_id' => $this->comercioId
+                        'numero'         => $numFactura,
+                        'cliente_id'     => $i->cliente_id,
+                        'repartidor_id'  => $this->repartidor,
+                        'importe'        => $i->importe,
+                        'estado'         => $this->estado,
+                        'estado_pago'    => $this->estado_pago,
+                        'estado_entrega' => $this->estado_entrega,
+                        'user_id'        => auth()->user()->id,
+                        'comercio_id'    => $this->comercioId,
+                        'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
-                        'factura_id' => $factura->id,
+                        'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
-                        'cantidad' => $i->cantidad,
-                        'precio' => $i->precio_venta,
+                        'cantidad'    => $i->cantidad,
+                        'precio'      => $i->precio_venta,
                         'comercio_id' => $this->comercioId
                     ]);	
                 }
             }      
             DB::commit();
+            session()->flash('message', 'La Factura se creó exitosamente!!');
         }catch (\Exception $e){
             DB::rollback();    
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se creó...');
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
         return;
     }
 
     public function factura_ctacte($cliId)
     {
+        //busco el nro_arqueo del repartidor
+        $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
+            ->where('caja_usuarios.estado', '1')->get();
+        $this->nro_arqueo = $nroArqueo[0]->id;
+
         DB::begintransaction();    
         try{ 
             $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
@@ -270,8 +359,8 @@ class ViandasController extends Component
             foreach($info as $i){
                 if ($i->cliente_id == $cliId) {
                     $i->importe=$i->cantidad * $i->precio_venta;
-                    $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
-                    if($primerFactura->count() == 0){
+                    $primerFactura = Factura::where('comercio_id', $this->comercioId)->get();                       
+                    if(!$primerFactura->count()){
                          $numFactura = 1;
                     }else{
                         $encabezado = Factura::select('facturas.numero')
@@ -280,20 +369,22 @@ class ViandasController extends Component
                         $numFactura = $encabezado[0]->numero + 1;
                     }                
                     $factura = Factura::create([
-                        'numero' => $numFactura,
-                        'cliente_id' => $i->cliente_id,
-                        'repartidor_id' => $this->repartidor,
-                        'importe' => $i->importe,
-                        'estado' => 'ctacte',
-                        'estado_pago' => '0',
-                        'user_id' => auth()->user()->id,
-                        'comercio_id' => $this->comercioId
+                        'numero'         => $numFactura,
+                        'cliente_id'     => $i->cliente_id,
+                        'repartidor_id'  => $this->repartidor,
+                        'importe'        => $i->importe,
+                        'estado'         => 'ctacte',
+                        'estado_pago'    => '0',
+                        'estado_entrega' => '3',
+                        'user_id'        => auth()->user()->id,
+                        'comercio_id'    => $this->comercioId,
+                        'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
-                        'factura_id' => $factura->id,
+                        'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
-                        'cantidad' => $i->cantidad,
-                        'precio' => $i->precio_venta,
+                        'cantidad'    => $i->cantidad,
+                        'precio'      => $i->precio_venta,
                         'comercio_id' => $this->comercioId
                     ]);	
                     Ctacte::create([
@@ -303,7 +394,7 @@ class ViandasController extends Component
                 }
             }
             DB::commit();     
-        }catch (Exception $e){
+        }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }

@@ -8,7 +8,12 @@
     					<h3><b>Usuarios y Empleados</b></h3>
     				</div> 
     			</div>
-			</div>					
+			</div>
+			@if($recuperar_registro == 1)
+			@include('common.alerts')
+				@include('common.recuperarRegistro')
+				@include('common.messages')
+			@else					
 			@include('common.inputBuscarBtnNuevo', ['create' => 'Usuarios_create']) 
 			@include('common.alerts') 
     		<div class="table-responsive scroll">
@@ -24,7 +29,7 @@
     					</tr>
     				</thead>
     				<tbody>
-    					@foreach($info as $r) <!-- iteración para llenar la tabla-->
+    					@foreach($info as $r)
     					<tr>
     						<td><p class="mb-0">{{$r->apellido}}, {{$r->name}}</p></td>
     						<td>{{$r->alias}}</td>
@@ -39,6 +44,7 @@
     				</tbody>
     			</table>
     		</div>
+			@endif
 		</div> 
     	@elseif($action == 2)
     	@include('livewire.usuarios.form')		
@@ -57,49 +63,44 @@
 </style>
 <script src="{{ asset('assets/js/sweetAlert.js') }}"></script>
 <script type="text/javascript">
-    function Confirm(id)
+	function Confirm(id)
     {
-    	let me = this
-    	swal({
+    	Swal.fire({
     		title: 'CONFIRMAR',
-    		text: '¿DESEAS ELIMINAR EL REGISTRO?',
-    		type: 'warning',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
     		showCancelButton: true,
-    		confirmButtonColor: '#3085d6',
-    		cancelButtonColor: '#d33',
     		confirmButtonText: 'Aceptar',
     		cancelButtonText: 'Cancelar',
-    		closeOnConfirm: false
-    	},
-    	function() {
-    		window.livewire.emit('deleteRow', id)    //emitimos evento deleteRow
-    		toastr.success('info', 'Registro eliminado con éxito') //mostramos mensaje de confirmación 
-    		swal.close()   //cerramos la modal
-    	})
-    }
-	function Agregar()
-	{
-		Swal.fire({
-			title: 'El nuevo Usuario es Empleado?',
-			showDenyButton: true,
-			showCancelButton: true,
-			confirmButtonText: `Si`,
-			denyButtonText: `No`,
-			}).then((result) => {
-			/* Read more about isConfirmed, isDenied below */
-			if (result.isConfirmed) {
-				Swal.fire({
-					input: 'select',
-					inputPlaceHolder: 'Empleado',
-					inputValue: '@foreach($empleados as $e)
-						{{$e->nombre}}@endforeach',
-					inputOptions:'',
-
-				})
-			} else if (result.isDenied) {
-				Swal.fire('Changes are not saved', '', 'info')
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				// Si el valor es válido, debes regresar undefined. Si no, una cadena
+				if (!comentario) {
+					return "Por favor escribe un breve comentario";
+				} else {
+					return undefined;
+				}
 			}
-		})
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					Swal.fire(
+						'Eliminado!',
+						'Tu registro se Eliminó correctamente...',
+						'success'
+					);
+					window.livewire.emit('deleteRow', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire(
+					'Cancelado',
+					'Tu registro está a salvo :)',
+					'error'
+				)
+            }
+		})	
 	}
 	function openModal()
     {        
@@ -125,6 +126,56 @@
         $('#modalAddLocalidad').modal('hide')
         window.livewire.emit('createFromModal', data)
     } 
-	
-	
+	function verificarPorDni()
+	{
+		//var dni = $('#documento').val();
+		var dni = document.getElementById("documento");
+		var ex_regular_dni; 
+		ex_regular_dni = /^\d{8}(?:[-\s]\d{4})?$/;
+		//if(ex_regular_dni.test (dni) == true){
+		if (ex_regular_dni.exec(dni.value)){
+			window.livewire.emit('verificarPorDni')
+		}else{
+			toastr.error('DNI erróneo, formato no válido. Ingrese solo números.')
+			dni.focus();
+			return false;
+		}		
+	}
+	function validarNombre()
+	{
+		var nombre = document.getElementById("name");
+		var expRegNombre=/^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
+		if (!expRegNombre.exec(nombre.value)){
+			toastr.error("El campo Nombre solo admite letras y espacios.")
+			nombre.focus();
+			return false;
+		}		
+	}
+	function validarApellido()
+	{
+		var apellido = document.getElementById("apellido");
+		var expRegApellido=/^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
+		if (!expRegApellido.exec(apellido.value)){
+			toastr.error("El campo Apellido solo admite letras y espacios.")
+			apellido.focus();
+			return false;
+		}		
+	}
+	window.onload = function(){
+		Livewire.on('usuario_repetido',()=>{
+			var dni = document.getElementById("documento");
+			toastr.error('El DNI ya está registrado...', 'Verifica los datos!')
+			dni.focus();
+			return false;		
+			// Swal.fire(
+			// 	'Verifica los datos!',
+			// 	'El DNI ya está registrado...',
+			// 	'error'
+			// )
+			// var dni = document.getElementById("documento");
+			// dni.text('');
+			// dni.focus();
+			// return false;
+		})
+	}
 </script>

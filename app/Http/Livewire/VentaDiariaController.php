@@ -9,24 +9,33 @@ use DB;
 
 class VentaDiariaController extends Component
 {
-    public $pagination = 5, $comercioId, $estado = 1;
+    public $pagination = 5, $comercioId, $arqueoGralId, $estado = 1;
 
     public function render()
     {
-         //busca el comercio que está en sesión
+         //busca el comercio que está en sesión y el id del ArqueoGral
         $this->comercioId = session('idComercio');
+        $this->arqueoGralId = session('idArqueoGral');
 
         switch ($this->estado) {
             case '1': //todas
-                $info = Factura::where('facturas.comercio_id', $this->comercioId)
-                            ->whereDate('facturas.created_at', Carbon::today())
-                            ->where('facturas.estado', 'contado')
-                            ->orWhere('facturas.comercio_id', $this->comercioId)
-                            ->whereDate('facturas.created_at', Carbon::today())
-                            ->where('facturas.estado', 'ctacte')
-                            ->orderBy('facturas.id', 'desc')
-                            ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
-                            ->get();
+                $info = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
+                    ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+                    ->where('facturas.estado', 'contado')
+                    ->orWhere('cu.arqueo_gral_id', $this->arqueoGralId)
+                    ->where('facturas.estado', 'ctacte')
+                    ->orderBy('facturas.id', 'desc')
+                    ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
+                    ->get();
+                // $info = Factura::where('facturas.comercio_id', $this->comercioId)
+                //             ->whereDate('facturas.created_at', Carbon::today())
+                //             ->where('facturas.estado', 'contado')
+                //             ->orWhere('facturas.comercio_id', $this->comercioId)
+                //             ->whereDate('facturas.created_at', Carbon::today())
+                //             ->where('facturas.estado', 'ctacte')
+                //             ->orderBy('facturas.id', 'desc')
+                //             ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
+                //             ->get();
                 foreach ($info as $i){
                     if($i->cliente_id != null){
                         $infoCli = Factura::join('clientes as c', 'c.id', 'facturas.cliente_id')
@@ -49,12 +58,18 @@ class VentaDiariaController extends Component
                 }
                 break;
             case '2': //contado  
-                $info = Factura::where('facturas.comercio_id', $this->comercioId)
-                    ->whereDate('facturas.created_at', Carbon::today())
+                 $info = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
+                    ->where('cu.arqueo_gral_id', $this->arqueoGralId)
                     ->where('facturas.estado', 'contado')
                     ->orderBy('facturas.id', 'desc')
                     ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
                     ->get();
+                // $info = Factura::where('facturas.comercio_id', $this->comercioId)
+                //     ->whereDate('facturas.created_at', Carbon::today())// cambiar por nrozeta
+                //     ->where('facturas.estado', 'contado')
+                //     ->orderBy('facturas.id', 'desc')
+                //     ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
+                //     ->get();
                 foreach ($info as $i){
                     if($i->cliente_id != null){
                         $infoCli = Factura::join('clientes as c', 'c.id', 'facturas.cliente_id')
@@ -77,12 +92,18 @@ class VentaDiariaController extends Component
                 }
                 break;
             case '3': //ctacte 
-                $info = Factura::where('facturas.comercio_id', $this->comercioId)
-                    ->whereDate('facturas.created_at', Carbon::today())
+                $info = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
+                    ->where('cu.arqueo_gral_id', $this->arqueoGralId)
                     ->where('facturas.estado', 'ctacte')
                     ->orderBy('facturas.id', 'desc')
                     ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
                     ->get();
+                // $info = Factura::where('facturas.comercio_id', $this->comercioId)
+                //     ->whereDate('facturas.created_at', Carbon::today())
+                //     ->where('facturas.estado', 'ctacte')
+                //     ->orderBy('facturas.id', 'desc')
+                //     ->select('facturas.*',DB::RAW("'' as nomCli"),DB::RAW("'' as nomRep"))
+                //     ->get();
                 foreach ($info as $i){
                     if($i->cliente_id != null){
                         $infoCli = Factura::join('clientes as c', 'c.id', 'facturas.cliente_id')

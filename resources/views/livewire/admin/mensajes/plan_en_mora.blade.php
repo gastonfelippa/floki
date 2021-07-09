@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid" style="color:#fff">
     <div class="row justify-content-center">
         <h3 class="mt-5 text-center col-sm-12 col-md-8">ATENCIÓN!!!<br>TU PLAN ESTÁ EN MORA...</h3>
-        <h2 class="mt-2 text-center col-sm-12 col-md-8">Debes regularizar la situación porque en los 
-            próximos días se precederá a la suspensión de la suscripción del plan.<br>¡Muchas gracias!
+        <h2 class="mt-2 text-center col-sm-12 col-md-8">Debes regularizar tu situación porque en los 
+            próximos días se precederá a la suspensión de la suscripción.<br>¡Muchas gracias!
         </h2>
     </div>
     <div class="mt-2 text-center">

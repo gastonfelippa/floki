@@ -85,7 +85,7 @@ class RegisterController extends Controller
     {
         //genera un password random de 8 caracteres y crea una sesion con ese password
         $password = Str::random(8);
-        session(['pass' => $password]);
+        session(['pass'     => $password]);
         session(['empleado' => false]);
 
         $cadena = strtolower($data['nombreComercio']);
@@ -94,85 +94,131 @@ class RegisterController extends Controller
         DB::begintransaction();                 //iniciar transacción para grabar
         try{    
             $comercio = Comercio::create([
-                'nombre' => strtoupper($data['nombreComercio']),            
-                'tipo_id' => $data['tipo']            
+                'nombre'        => strtoupper($data['nombreComercio']),            
+                'tipo_id'       => $data['tipo'],
+                'hora_apertura' => '08:00:00'            
             ]);
             $this->comercio = $comercio->nombre;
             $this->comercioId = $comercio->id;
                 
             $user = User::create([            
-                'name' => ucwords($data['name']),
+                'name'     => ucwords($data['name']),
                 'apellido' => ucwords($data['apellido']),
-                'sexo' => $data['sexo'],
+                'sexo'     => $data['sexo'],
                 'username' => $username,
-                'email' => strtolower($data['email']),
+                'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
-                'pass' => $password,
-                'abonado' => 'Si'
+                'pass'     => $password,
+                'abonado'  => 'Si'
             ]);
+
             $userAdminComercio = UsuarioComercio::create([
-                'usuario_id' => $user->id,            
+                'usuario_id'  => $user->id,            
                 'comercio_id' => $this->comercioId            
             ]);
 
-                //creo un usuario/repartidor Salón para las ventas en el local
+            //creo un usuario/repartidor Salón para las ventas en el local
             $userRepartidor = User::create([            
-                'name' => '...',
+                'name'     => '...',
                 'apellido' => 'Salón',
-                'sexo' => 1,
-                'abonado' => 'No'
+                'sexo'     => null,
+                'abonado'  => 'No'
             ]);                
             UsuarioComercio::create([
-                'usuario_id' => $userRepartidor->id,            
+                'usuario_id'  => $userRepartidor->id,            
                 'comercio_id' => $this->comercioId            
             ]);
 
-            //creo los roles Admin, No Usuario y Repartidor            
+            //creo los roles Admin, No Usuario, Encargado, Cajero y Repartidor            
             $rolAdmin = Role::create([
-                'name' => 'Admin'. $this->comercioId,
-                'alias' => 'Admin',
-                'comercio_id' => $this->comercioId         
-            ]);            
-            
-            Role::create([
-                'name' => 'No Usuario'. $this->comercioId,
-                'alias' => 'No Usuario',
-                'comercio_id' => $this->comercioId         
+                'name'        => 'Admin'. $this->comercioId,
+                'alias'       => 'Administrador',
+                'comercio_id' => $this->comercioId,
+                'admite_caja' => '1'        
+            ]);    
+            $rolNoUsuario = Role::create([
+                'name'        => 'No Usuario'. $this->comercioId,
+                'alias'       => 'No Usuario',
+                'comercio_id' => $this->comercioId,
+                'admite_caja' => null         
             ]);
-                
+            $rolEncargado = Role::create([
+                'name'        => 'Encargado'. $this->comercioId,
+                'alias'       => 'Encargado',
+                'comercio_id' => $this->comercioId,
+                'admite_caja' => '1'         
+            ]);
+            $rolCajero = Role::create([
+                'name'        => 'Cajero'. $this->comercioId,
+                'alias'       => 'Cajero',
+                'comercio_id' => $this->comercioId,
+                'admite_caja' => '1'         
+            ]);
             $rolRepartidor = Role::create([
-                'name' => 'Repartidor'. $this->comercioId,
-                'alias' => 'Repartidor',
-                'comercio_id' => $this->comercioId         
+                'name'        => 'Repartidor'. $this->comercioId,
+                'alias'       => 'Repartidor',
+                'comercio_id' => $this->comercioId,
+                'admite_caja' => '1'         
             ]);
+            
             //Asigno el rol Admin al nuevo Usuario
             ModelHasRole::create([
-                'role_id' => $rolAdmin->id,
+                'role_id'    => $rolAdmin->id,
                 'model_type' => 'App\Models\User',           
-                'model_id' => $user->id           
+                'model_id'   => $user->id           
             ]);
-            //Asigno el rol Repartidor al usuario Salón
-            ModelHasRole::create([
-                'role_id' => $rolRepartidor->id,
-                'model_type' => 'App\Models\User',           
-                'model_id' => $userRepartidor->id           
-            ]);
-                                
+            // // Asigno el rol Repartidor al usuario Salón
+            // ModelHasRole::create([
+            //     'role_id'    => $rolRepartidor->id,
+            //     'model_type' => 'App\Models\User',           
+            //     'model_id'   => $userRepartidor->id           
+            // ]);
+               
+            //asigno permisos al rol Admin
             $rolAdmin->givePermissionTo([
-                'Estadisticas_index','Abm_index','Config_index','Empresa_index','Permisos_index','Productos_index',
-                'Productos_create','Productos_edit','Productos_destroy','Categorias_index','Categorias_create','Categorias_edit',
-                'Categorias_destroy','Empleados_index','Empleados_create','Empleados_edit','Empleados_destroy',
-                'Clientes_index','Clientes_create','Clientes_edit','Clientes_destroy', 'Proveedores_index',
-                'Proveedores_create','Proveedores_edit','Proveedores_destroy','Gastos_index','Gastos_create',
-                'Gastos_edit','Gastos_destroy','Facturas_index','Facturas_create_producto','Facturas_edit_item',
-                'Facturas_destroy_item', 'Compras_index','Compras_create_producto','Compras_edit_item','Compras_destroy_item',
-                'ArqueoDeCaja_index','MovimientosDiarios_index','CajaRepartidor_index',
-                'Reportes_index','VentasDiarias_index','VentasPorFechas_index','Usuarios_index','Usuarios_create','Usuarios_edit',
-                'Usuarios_destroy','Movimientos_index','Movimientos_create','Movimientos_edit','Movimientos_destroy','Facturas_imp','Fact_delivery_imp',
-                'Viandas_index','Ctacte_index','Auditorias_index','OtroIngreso_index','HabilitarCaja_index'           
+                'Auditorias_index','Empresa_index','Permisos_index',
+                'Productos_index','Productos_create','Productos_edit','Productos_destroy',
+                'Categorias_index','Categorias_create','Categorias_edit','Categorias_destroy',
+                'Clientes_index','Clientes_create','Clientes_edit','Clientes_destroy', 
+                'Proveedores_index','Proveedores_create','Proveedores_edit','Proveedores_destroy',
+                'Gastos_index','Gastos_create','Gastos_edit','Gastos_destroy',
+                'Usuarios_index','Usuarios_create','Usuarios_edit','Usuarios_destroy',
+                'Facturas_index','Facturas_create_producto','Facturas_edit_item','Facturas_destroy_item',
+                'Facturas_imp','Fact_delivery_imp',
+                'Compras_index','Compras_create_producto','Compras_edit_item','Compras_destroy_item',
+                'HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index','MovimientosDiarios_index',                
+                'VentasDiarias_index','VentasPorFechas_index',                                
+                'Viandas_index','Ctacte_index','OtroIngreso_index'           
             ]);                                    
-                                    
-            // $usercomercio = UsuarioComercio::select('id')->orderBy('id')->get();
+            //asigno permisos al rol Encargado
+            $rolEncargado->givePermissionTo([
+                'Productos_index','Productos_create','Productos_edit','Productos_destroy',
+                'Categorias_index',
+                'Clientes_index','Clientes_create','Clientes_edit','Clientes_destroy', 
+                'Proveedores_index','Proveedores_create','Proveedores_edit','Proveedores_destroy',
+                'Gastos_index',
+                'Usuarios_index',
+                'Facturas_index','Facturas_create_producto','Facturas_edit_item','Facturas_destroy_item',
+                'Facturas_imp','Fact_delivery_imp',
+                'Compras_index','Compras_create_producto','Compras_edit_item','Compras_destroy_item',
+                'HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index','MovimientosDiarios_index',                
+                'VentasDiarias_index',                               
+                'Viandas_index','Ctacte_index','OtroIngreso_index'           
+            ]);                                    
+            //asigno permisos al rol Cajero
+            $rolCajero->givePermissionTo([
+                'Clientes_index','Clientes_create','Clientes_edit',
+                'Facturas_index','Facturas_edit_item','Facturas_destroy_item',
+                'Facturas_imp','Fact_delivery_imp',
+                'ArqueoDeCaja_index','MovimientosDiarios_index'               
+            ]);                                    
+            //asigno permisos al rol Repartidor
+            $rolRepartidor->givePermissionTo([
+                'Clientes_index',
+                'Facturas_imp','Fact_delivery_imp',
+                'CajaRepartidor_index'               
+            ]);                                    
+                                  
             $plan = Plan::select('*')->where('id', '1')->get(); 
                                     
             $fecha_inicio = Carbon::now()->locale('en');      //inicializo fecha_inicio con la fecha en que se suscribe al sistema
@@ -202,9 +248,10 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-                
-            //$this->sendEmail($user, $this->comercio);
+
+            $this->sendEmail($user, $this->comercio);
             DB::commit();
+            
             return $user;
         }catch (\Exception $e){
             DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos  

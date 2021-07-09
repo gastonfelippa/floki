@@ -37,29 +37,34 @@ Route::get('/pdfRecibos/{id}', 'PdfController@PDFRecibos');
 Route::get('/pdfListadoCtaCte', 'PdfController@PDFListadoCtaCte');
 Route::get('/pdfResumenDeCuenta/{id}', 'PdfController@PDFResumenDeCuenta');
 
-Route::view('categorias', 'categorias')->middleware('permission:Categorias_index');
+Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
+Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
+Route::view('permisos', 'permisos')->middleware('permission:Usuarios_index');
+
 Route::view('productos', 'productos')->middleware('permission:Productos_index');
+Route::view('categorias', 'categorias')->middleware('permission:Categorias_index');
 Route::view('clientes', 'clientes')->middleware('permission:Clientes_index');
 Route::view('proveedores', 'proveedores')->middleware('permission:Proveedores_index');
-Route::view('empleados', 'empleados')->middleware('permission:Empleados_index');
-Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
-Route::view('facturasacobrar', 'facturasacobrar');
 Route::view('gastos', 'gastos')->middleware('permission:Gastos_index');
-Route::view('movimientosdecaja', 'movimientosdecaja')->middleware('permission:MovimientosDiarios_index');
+Route::view('usuarios', 'usuarios')->middleware('permission:Usuarios_index');
+
+Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
+Route::view('compras', 'compras')->middleware('permission:Compras_index');
+Route::view('facturasacobrar', 'facturasacobrar')->middleware('permission:Facturas_index');
+
+Route::view('habilitarcaja', 'habilitarcaja')->middleware('permission:HabilitarCaja_index');
 Route::view('arqueodecaja', 'arqueodecaja')->middleware('permission:ArqueoDeCaja_index');
+Route::view('arqueogral', 'arqueogral');
 Route::view('cajarepartidor', 'cajarepartidor')->middleware('permission:CajaRepartidor_index');
+Route::view('movimientosdecaja', 'movimientosdecaja')->middleware('permission:MovimientosDiarios_index');
+
 Route::view('ventasdiarias', 'ventasdiarias')->middleware('permission:VentasDiarias_index');
 Route::view('ventasporfechas', 'ventasporfechas')->middleware('permission:VentasPorFechas_index');
-Route::view('usuarios', 'usuarios')->middleware('permission:Usuarios_index');
-Route::view('compras', 'compras')->middleware('permission:Compras_index');
+
 Route::view('viandas', 'viandas')->middleware('permission:Viandas_index');
 Route::view('ctacte', 'ctacte')->middleware('permission:Ctacte_index');
-Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
 Route::view('otroingreso', 'otroingreso')->middleware('permission:OtroIngreso_index');
-Route::view('habilitarcaja', 'habilitarcaja')->middleware('permission:HabilitarCaja_index');
 
-Route::view('permisos', 'permisos')->middleware('permission:Usuarios_index');
-Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
 
 //rutas ADMIN
 Route::view('planes', 'planes')->middleware('permission:Planes_index');

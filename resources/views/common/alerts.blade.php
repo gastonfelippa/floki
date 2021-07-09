@@ -15,7 +15,8 @@
 @endif
 @if (session()->has('msg-ops'))                        
          <script>
-           toastr.error("{{ @session('msg-ops') }}", "Atención!!");                               
+           toastr.error("{{ @session('msg-ops') }}", "Atención!!"); 
+                                         
          </script>                           
 @endif
 @if (session()->has('info'))                        

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\ArqueoGral;
+use App\Models\Comercio;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
 use Carbon\Carbon;
@@ -10,7 +12,7 @@ use Carbon\Carbon;
 class HomeController extends Controller
 {
 
-    public $comercioId;
+    public $comercioId, $arqueoGralId;
     /**
      * Create a new controller instance.
      *
@@ -33,25 +35,60 @@ class HomeController extends Controller
         {
             //inicializa la variable de session idComercio con el comercio asignado al usuario actual
             $userComercio = UsuarioComercio::select('id','comercio_id')
-            ->where('usuario_id', Auth()->user()->id)->get();
+                ->where('usuario_id', Auth()->user()->id)->get();
             session(['idComercio' => $userComercio[0]->comercio_id]); 
             $this->comercioId = session('idComercio'); 
+            
+            //averiguamos la hora de apertura del comercio para comprobar el arqueo
+            $horaApertura = Comercio::select('hora_apertura')
+                ->where('id', $this->comercioId)->first();
+
+            //inicializa la variable de session idArqueoGral correspondiente al idComercio anterior
+            $idArqueoGral = ArqueoGral::where('estado', '1')
+                ->where('comercio_id', $this->comercioId)->get();
+            if($idArqueoGral->count()){ //si existe algún arqueo abierto, capturamos la fecha de creación
+                session(['idArqueoGral' => $idArqueoGral[0]->id]); //capturamos su id solo para usarlo en el arqueo gral
+                $date = Carbon::parse($idArqueoGral[0]->created_at);
+                //obtenemos solo la fecha actual y le agregamos la hora para que sea el final del día
+                $hoy = Carbon::now();
+                $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d');
+                $hoy = $hoy_solo_fecha . ' 23:59:59';
+                //comparamos las dos fecha/hora
+                $diff = $date->diffInDays($hoy);
          
+                $hora_actual = Carbon::now()->format('H:i');
+                //si estamos en el mismo día 'o' es el día siguiente 
+                //y 'no' es más tarde que la hora de apertura del comercio
+                if($diff == 0 || $diff == 1 && $hora_actual <= $horaApertura->hora_apertura){
+       /////             session(['idArqueoGral' => $idArqueoGral[0]->id]); 
+                    session(['estadoArqueoGral' => 'activo']); 
+                }else{    //sino, debemos hacer el arqueo 'si o si', e igualamos la variable a cero
+       /////             session(['idArqueoGral' => 0]);
+                    session(['estadoArqueoGral' => 'pendiente']);
+                }     
+            }else{
+                session(['idArqueoGral' => -1]);
+                session(['estadoArqueoGral' => 'no existe']); //si no existe ningún arqueo para este comercio, 
+                    //igualamos la variable a 'no_existe', para indicar que hay iniciar el arqueo al
+                    //inicializar alguna Caja. 
+            }               
+       /////     $this->arqueoGralId = session('idArqueoGral');
+            $this->estadoAqueoGral = session('estadoArqueoGral');
+
             //verificaciones de planes
             $fecha_actual = Carbon::now();      
             $estado = UsuarioComercioPlanes::select('*')
-            ->where('comercio_id', $this->comercioId)
-            ->orderBy('id', 'desc')->first();
-            // ->where('usuariocomercio_planes.usuariocomercio_id', $userComercio[0]->id)
+                ->where('comercio_id', $this->comercioId)
+                ->orderBy('id', 'desc')->first();
             
-            if($estado->estado_plan == 'completado' && $estado->plan_id == 1)
+            if($estado->estado_plan == 'finalizado' && $estado->plan_id == 1)
             {
-                return view('livewire.admin.mensajes.prueba_completada');
+                return view('livewire.admin.mensajes.prueba_finalizada');
             } 
 
-            if($estado->estado_plan == 'completado' && $estado->estado_pago == 'pagado')
+            if($estado->estado_plan == 'finalizado' && $estado->estado_pago == 'pagado')
             {
-                return view('livewire.admin.mensajes.plan_completado');
+                return view('livewire.admin.mensajes.plan_finalizado');
             } 
 
             if($estado->estado_plan == 'activo' && $estado->estado_pago == 'en mora')
@@ -61,7 +98,9 @@ class HomeController extends Controller
 
             if($estado->estado_plan == 'activo')
             {
-                return view('home');
+       /////         if($this->arqueoGralId == 0) return view('livewire.admin.mensajes.forzar_arqueo');
+                if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
+                else return view('home');
             }              
             
             if($estado->estado_plan == 'suspendido')

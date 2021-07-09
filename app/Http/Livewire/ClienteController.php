@@ -273,6 +273,7 @@ class ClienteController extends Component
                     'localidad_id' => $this->localidad,            
                     'telefono' => $this->telefono,
                     'vianda' => $this->vianda,
+                    'saldo' => '0',
                     'comercio_id' => $this->comercioId            
                 ]);
             }else {   

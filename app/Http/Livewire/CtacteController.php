@@ -15,11 +15,12 @@ use DB;
 class CtacteController extends Component
 {
     //public properties
-	public $f_de_pago, $cliente = 'Elegir', $importeCobrado, $comentario, $suma = 0, $sumaFacturas = 0, $sumaRecibos = 0;           
+	public  $cliente = 'Elegir', $importeCobrado, $comentario, $suma = 0, $sumaFacturas = 0, $sumaRecibos = 0;           
     public $selected_id = null, $search = '', $ver_historial = 0, $verHistorial = 0;  
     public $comercioId, $action = 1, $nomCli, $numRecibo, $cliSelected = '', $clienteId = '';
     public $nomApeCli, $totalCli, $facturas_a_cobrar = array(), $entrega = 0;
     public $importeFactura, $importeEntrega, $saldo = 0, $entregas = 0, $saldoFactura, $nro_arqueo, $caja_abierta;
+    public $f_de_pago = '1', $nro_comp_pago = '', $mercadopago = '0';
 
     public function render()
     {
@@ -47,8 +48,8 @@ class CtacteController extends Component
             if($this->verHistorial == 1){   
                 $info = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
                     ->where('cta_cte.cliente_id', $this->clienteId)
-                    ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.created_at as fecha', 
-                            'c.nombre', 'c.apellido', DB::RAW("'' as numero") , DB::RAW("'' as importe"), DB::RAW("'' as importe_factura"))
+                    ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 
+                            'c.nombre', 'c.apellido', DB::RAW("'' as fecha") , DB::RAW("'' as numero") , DB::RAW("'' as importe"), DB::RAW("'' as importe_factura"))
                     ->orderBy('cta_cte.created_at', 'desc')->get();
             }else{ //verHistorial = 0
                 if($this->clienteId == ''){
@@ -70,8 +71,8 @@ class CtacteController extends Component
                         ->orWhere('cta_cte.cliente_id', $this->clienteId)
                         ->where('f.estado', 'ctacte')
                         ->where('f.estado_pago', '2')
-                        ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.cliente_id', 'cta_cte.created_at as fecha', 
-                                 'c.nombre', 'c.apellido', DB::RAW("'' as numero_fac") , DB::RAW("'' as importe"), 
+                        ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.cliente_id', 
+                                 'c.nombre', 'c.apellido', DB::RAW("'' as fecha"), DB::RAW("'' as numero_fac") , DB::RAW("'' as importe"), 
                                  DB::RAW("'' as importe_factura"), DB::RAW("'' as resto"))
                         ->orderBy('cta_cte.created_at')->get();                     
                 }
@@ -181,19 +182,20 @@ class CtacteController extends Component
                     if($info->count() > 0){        //si debe algo... 
                         foreach($info as $i) {     //busco todas las facturas                            
                             $importe = Ctacte::join('facturas as f', 'f.id', 'cta_cte.factura_id') 
-                            ->where('f.id', $i->factura_id)
-                            ->where('f.estado', 'ctacte')
-                            ->where('f.estado_pago', '0')
-                            ->orWhere('f.id', $i->factura_id)
-                            ->where('f.estado', 'ctacte')
-                            ->where('f.estado_pago', '2')
-                            ->select('f.estado_pago', 'f.importe as importe', 'f.numero')->get();
+                                ->where('f.id', $i->factura_id)
+                                ->where('f.estado', 'ctacte')
+                                ->where('f.estado_pago', '0')
+                                ->orWhere('f.id', $i->factura_id)
+                                ->where('f.estado', 'ctacte')
+                                ->where('f.estado_pago', '2')
+                                ->select('f.estado_pago', 'f.importe as importe', 'f.numero', 'f.created_at')->get();
                             $this->sumaFacturas += $importe[0]->importe; //calculo el total de las facturas de cada cliente
                             if($importe[0]->estado_pago == 0) $i->importe_factura = 1; //aviso de factura para pintar rojo   
                             else $i->importe_factura = 2;  //aviso de factura para pintar rojo/negrita            
                             
-                            $i->numero_fac = $importe[0]->numero;                        
-                            $i->importe = $importe[0]->importe;
+                            $i->numero_fac = $importe[0]->numero;
+                            $i->fecha      = $importe[0]->created_at;                        
+                            $i->importe    = $importe[0]->importe;
                             
                             //busco las entregas y calculo el resto de las facturas que correspondan                           
                             if($importe[0]->estado_pago == 2){
@@ -220,13 +222,15 @@ class CtacteController extends Component
                 foreach($info as $i) {
                     if($i->factura_id != null) {    //busco todas las facturas
                         $importe = Factura::where('id', $i->factura_id)
-                        ->select('numero', 'importe')->get();
+                        ->select('numero', 'importe', 'created_at')->get();
                         $i->numero_fac = $importe[0]->numero;
+                        $i->fecha = $importe[0]->created_at;
                         $i->importe_factura = 1;        //aviso de factura para pintar rojo                   
                     }else {                         //busco todos los recibos
                         $importe = Recibo::where('id', $i->recibo_id)
-                            ->select('numero', 'importe')->get();
-                        $i->numero_fac = $importe[0]->numero;
+                            ->select('numero', 'importe', 'created_at')->get();
+                        $i->numero_fac      = $importe[0]->numero;
+                        $i->fecha           = $importe[0]->created_at;
                         $i->importe_factura = 0;        //aviso de recibo para pintar verde
                     }
                     $i->importe = $importe[0]->importe;
@@ -282,15 +286,13 @@ class CtacteController extends Component
             'clientes'    => $clientes
         ]);
     }
-
     public function doAction($action)
     {
         $this->action = $action;
     }
-
     private function resetInput()
     {
-        $this->f_de_pago = '';
+        //$this->f_de_pago = '1';
         $this->importeCobrado = '';
         $this->cliente = 'Elegir';
         $this->comentario = '';
@@ -302,17 +304,14 @@ class CtacteController extends Component
         $this->clienteId = '';
         $this->action = 1;
     }
-
     public function clearClientSelected()
     {
         $this->resetInput();
     }
-
     public function verHistorial($tipo)
     {
         $this->verHistorial = $tipo;
     }
-
     public function edit($id)
     {
         $record = Ctacte::findOrFail($id);
@@ -322,20 +321,20 @@ class CtacteController extends Component
         $this->importeCobrado = $record->importe;
         $this->comentario = $record->comentario;
     }
-
     public function StoreOrUpdate()
     { 
+        $this->nro_comp_pago = 125;
         if($this->entrega == 1){
-            if($this->importeCobrado == $this->importeFactura[0]){
+            if($this->importeCobrado == $this->importeFactura){
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El importe a registrar es igual al importe total de la factura... en esta vista solo se registran entregas');
                 return;
-            }elseif($this->importeCobrado > $this->importeFactura[0]){
+            }elseif($this->importeCobrado > $this->importeFactura){
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El importe a registrar no puede ser mayor al importe total de la factura...');
                 return;
             }  
         }     
         $existe = Recibo::select('*')->where('comercio_id', $this->comercioId)->get();                        // ->where('estado','like','abierta')->get();
-        //si es la primera factura, le asigno el nro: 1
+        //si es el primer recibo, le asigno el nro: 1
         if($existe->count() == 0){
             $this->numRecibo = 1;
         }else{ 
@@ -347,14 +346,17 @@ class CtacteController extends Component
         DB::begintransaction();                         //iniciar transacción para grabar
         try{
             $recibo =  Recibo::create([
-                'numero'      => $this->numRecibo,            
-                'importe'     => $this->importeCobrado,
-                'comentario'  => $this->comentario,
-                'entrega'     => $this->entrega,
-                'cliente_id'  => $this->clienteId, 
-                'user_id'     => auth()->user()->id,         
-                'comercio_id' => $this->comercioId,
-                'arqueo_id'   => $this->nro_arqueo          
+                'numero'        => $this->numRecibo,            
+                'importe'       => $this->importeCobrado,
+                'forma_de_pago' => $this->f_de_pago,
+                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                'mercadopago'   => $this->mercadopago,
+                'comentario'    => $this->comentario,
+                'entrega'       => $this->entrega,
+                'cliente_id'    => $this->clienteId, 
+                'user_id'       => auth()->user()->id,         
+                'comercio_id'   => $this->comercioId,
+                'arqueo_id'     => $this->nro_arqueo          
             ]);
             Ctacte::create([
                 'cliente_id' => $this->clienteId,  
@@ -373,35 +375,47 @@ class CtacteController extends Component
                     ]);
                 }
                 ReciboFactura::create([
-                    'recibo_id' => $recibo->id,  
+                    'recibo_id'  => $recibo->id,  
                     'factura_id' => $i       
                 ]);      
-            }  
+            }
             session()->flash('msg-ok', 'El Cobro se registró correctamente...');
             DB::commit();          
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
+        $this->verificar_saldo();    
+    }
+    public function verificar_saldo()    //busca si hay alguna factura que el estado_pago no sea =1
+    {        
+        $saldo = Factura::where('cliente_id', $this->clienteId)
+            ->where('estado_pago', '<>', '1')
+            ->where('estado', '<>', 'anulado')
+            ->where('estado', '<>', 'pendiente')->get();
+        if($saldo->count() == 0){
+            $record = Cliente::find($this->clienteId);
+            $record->update([
+                'saldo' => '0'
+            ]);
+        }
         $this->resetInput();
         return;
     }
-
-    protected $listeners = [
-        'deleteRow'        =>'destroy',           //no se utiliza
-        'cobrar_factura'   => 'cobrar_factura',   //no se utiliza    
-        'cobrar_saldo'     => 'cobrar_saldo',     //no se utiliza
-        'entrega_a_cuenta' => 'entrega_a_cuenta', //no se utiliza    
+    protected $listeners = [  
         'cobrar'           => 'cobrar',      
         'mostrar_facturas' => 'mostrar_facturas',
-        'importe_a_cobrar' => 'importe_a_cobrar'     //no se utiliza 
+        'enviarDatosPago'  => 'enviarDatosPago'
     ]; 
-
-    public function importe_a_cobrar($importe)  //no se utiliza
+    public function enviarDatosPago($tipo,$nro)
     {
-      //  $this->totalCli = $importe;
-    }
+////////////////////////////////////////////////////////////////////dd($tipo,$nro);
 
+
+
+        $this->f_de_pago = $tipo;
+        $this->nro_comp_pago = $nro;
+    }
     public function mostrar_facturas($id)
     {
         if($this->clienteId == ''){
@@ -412,35 +426,19 @@ class CtacteController extends Component
             }
         }
     }
-
-    public function cobrar_saldo($cliId, $importe)   //no se utiliza
-    { 
-        // $this->cliente = $cliId;
-        // $this->importeCobrado = abs($importe);      
-        // $recibo =  Recibo::create([
-        //     'cliente_id' => $this->cliente,            
-        //     'importe' => $this->importeCobrado,
-        //     'comentario' => $this->comentario,
-        //     'comercio_id' => $this->comercioId            
-        // ]);
-        // Ctacte::create([
-        //     'cliente_id' => $this->cliente,  
-        //     'recibo_id' => $recibo->id            
-        // ]);
-       
-        // if($this->selected_id) session()->flash('message', 'Recibo Actualizado'); 
-        // else session()->flash('message', 'Recibo Creado');
-        // $this->resetInput();
-    }
-
-    public function cobrar($data,$total,$entrega,$cantidad)
+    public function cobrar($data, $total, $entrega, $cantidad)
     {
-
         $this->entrega = $entrega;
         $this->facturas_a_cobrar = json_decode($data);
-        $this->importeFactura = json_decode($total);
-        $this->importeCobrado = json_decode($total);
-
+        $importeFactura = json_decode($total);
+        $importeCobrado = json_decode($total);
+        if($entrega == 0){
+            $this->importeFactura = $importeFactura;       
+            $this->importeCobrado = $importeCobrado;
+        }else{
+            $this->importeFactura = $importeFactura[0];       
+            $this->importeCobrado = $importeCobrado[0];
+        }
         if($cantidad > 1){
             $facturasConEntrega =0;
             foreach($this->facturas_a_cobrar as $f){
@@ -465,34 +463,15 @@ class CtacteController extends Component
         if($ver[0]->estado_pago == 2){
             $totalEntregas = 0;
             $pagos = ReciboFactura::join('recibos as r', 'r.id', 'recibo_facturas.recibo_id')
-            ->where('recibo_facturas.factura_id', $this->facturas_a_cobrar[0])
-            ->select('r.importe')->get();
+                ->where('recibo_facturas.factura_id', $this->facturas_a_cobrar[0])
+                ->select('r.importe')->get();
             foreach($pagos as $p){
                 $totalEntregas += $p->importe;
             }
             // $this->saldoFactura = $ver[0]->importe - $totalEntregas;
             $this->importeCobrado = $ver[0]->importe - $totalEntregas;
-        }        
+        }
+        $this->f_de_pago = '1';        
         $this->doAction(2);
-    }
-
-    public function cobrar_factura($id)  //no se utiliza
-    {
-        // if($id != '') {           
-        //     $record = Factura::find($id);
-        //     $record->update([
-        //         'estado_pago' => '1'
-        //     ]);
-        // }              
-        // $this->resetInput();
-    } 
-       
-    public function destroy($id)    //no se utiliza
-    {
-        // if ($id) { //si es un id válido
-        //     $record = Ctacte::where('id', $id); //buscamos el registro
-        //     $record->delete(); //eliminamos el registro
-        //     $this->resetInput(); //limpiamos las propiedades
-        // }
     }
 }
