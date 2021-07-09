@@ -248,7 +248,7 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-            //$this->sendEmail($user, $this->comercio);
+            $this->sendEmail($user, $this->comercio);
             DB::commit();
             
             return $user;
@@ -264,8 +264,6 @@ class RegisterController extends Controller
         $objDemo->demo_two = '';
         $objDemo->sender = 'El equipo de FlokI';
         $objDemo->receiver = $user->name;
-
-        $email = 'admin@floki.com';
  
         Mail::to(env('MAIL_FROM_ADDRESS'))->send(new NuevoAbonado($user, $comercio));
     }
