@@ -40,7 +40,7 @@
             <div class="row ">
                 <div class="col-12">
                     <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">Cancelar</button>
-                    <button type="button" wire:click="StoreOrUpdate()" class="btn btn-primary">Guardar</button>       
+                    <button type="button" onclick="datos_pago()" class="btn btn-primary">Guardar</button>       
                 </div>
             </div>  
         </div>

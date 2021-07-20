@@ -20,7 +20,7 @@ class CtacteController extends Component
     public $comercioId, $action = 1, $nomCli, $numRecibo, $cliSelected = '', $clienteId = '';
     public $nomApeCli, $totalCli, $facturas_a_cobrar = array(), $entrega = 0;
     public $importeFactura, $importeEntrega, $saldo = 0, $entregas = 0, $saldoFactura, $nro_arqueo, $caja_abierta;
-    public $f_de_pago = '1', $nro_comp_pago = '', $mercadopago = '0';
+    public $f_de_pago = '1', $nro_comp_pago = '0', $mercadopago = '0';
 
     public function render()
     {
@@ -286,6 +286,12 @@ class CtacteController extends Component
             'clientes'    => $clientes
         ]);
     }
+    protected $listeners = [  
+        'cobrar'           => 'cobrar',      
+        'mostrar_facturas' => 'mostrar_facturas',
+        'enviarDatosPago'  => 'enviarDatosPago',
+        'StoreOrUpdate'    => 'StoreOrUpdate'
+    ];
     public function doAction($action)
     {
         $this->action = $action;
@@ -323,7 +329,6 @@ class CtacteController extends Component
     }
     public function StoreOrUpdate()
     { 
-        $this->nro_comp_pago = 125;
         if($this->entrega == 1){
             if($this->importeCobrado == $this->importeFactura){
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El importe a registrar es igual al importe total de la factura... en esta vista solo se registran entregas');
@@ -381,7 +386,7 @@ class CtacteController extends Component
             }
             session()->flash('msg-ok', 'El Cobro se registró correctamente...');
             DB::commit();          
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
@@ -401,18 +406,9 @@ class CtacteController extends Component
         }
         $this->resetInput();
         return;
-    }
-    protected $listeners = [  
-        'cobrar'           => 'cobrar',      
-        'mostrar_facturas' => 'mostrar_facturas',
-        'enviarDatosPago'  => 'enviarDatosPago'
-    ]; 
+    } 
     public function enviarDatosPago($tipo,$nro)
     {
-////////////////////////////////////////////////////////////////////dd($tipo,$nro);
-
-
-
         $this->f_de_pago = $tipo;
         $this->nro_comp_pago = $nro;
     }

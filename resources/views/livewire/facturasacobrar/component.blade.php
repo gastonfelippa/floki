@@ -1,4 +1,5 @@
 <div class="row layout-top-spacing justify-content-center">	
+    @if($action == 1)
     <div class="col-sm-12 col-md-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
 			<div class="widget-one">
@@ -38,7 +39,7 @@
                                         </li>
                                         <li>
                                             <a href="javascript:void(0);"          		
-                                                onclick="Cobrar('{{$r->id}}',{{$r->cliente_id}})"
+                                                onclick="Cobrar('{{$r->id}}',{{$r->cliente_id}},{{$r->importe}})"
         	                                    data-toggle="tooltip" data-placement="top" title="Cobrar">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                                         </li>                             
@@ -88,9 +89,12 @@
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
 		</div>
 	</div>
-    @if($action == 2)
+    @elseif($action == 2)
     @include('livewire.facturasacobrar.detalle')		
-    @endif
+    @else    
+    @include('livewire.facturasacobrar.formaDePago')  
+    @include('livewire.facturasacobrar.modalNroCompPago')  
+	@endif 
 </div>
 
 <style type="text/css" scoped>
@@ -113,25 +117,33 @@
 <script>
     function ConfirmDel(id)
     {
-    	let me = this
-    	swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRow', id)    
-			swal.close()   
-        })
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('eliminarRegistro', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
     }
-    function Cobrar(id,idCli)
+    function Cobrar(id,idCli,total)
     {
+        console.log(id,idCli,total)
         Swal.fire({
             title: 'Elige una opción...',
             showDenyButton: true,
@@ -141,13 +153,51 @@
             denyButtonText: `Cuenta Corriente`,
         }).then((result) => {
             if(result.isConfirmed) {
-                window.livewire.emit('factura_contado',id)
-                Swal.fire('Factura Cobrada!', '', 'success')
+                window.livewire.emit('elegirFormaDePago', id, idCli, total);
             }else if (result.isDenied) {
-                window.livewire.emit('factura_ctacte',id,idCli)
-                   Swal.fire('Factura Cuenta Corriente', '', 'success')                   
+                var data = JSON.stringify({
+                    'factura_id' : id,
+                    'cliente_id' : idCli,
+                    'total' : total
+                });
+                window.livewire.emit('factura_ctacte', data)                                  
             }
         })
+    }
+    function mostrarInput(){		
+		$('[id="nroCompPago"]').val('');
+		$('[id="num"]').val('');
+		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
+				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+			$('#modalNroComprobanteDePago').modal('show');
+		}else{
+			guardarDatosPago();
+		}
+	}
+	function guardarDatosPago(){
+		$('[id="num"]').val($('[id="nroCompPago"]').val())
+        if($('[id="num"]').val() != ''){
+            var formaDePago = $('[id="formaDePago"]').val();
+            var nroCompPago = $('[id="nroCompPago"]').val();
+        }else{
+            $('[id="formaDePago"]').val(1)           
+        }    
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+	}
+    function factura_contado()
+    {
+        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Faltan datos, se cobrará como efectivo!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('[id="formaDePago"]').val(1)
+        }else{
+            window.livewire.emit('factura_contado')
+        }
     }
     function AnularFactura(id)
     {
@@ -199,6 +249,34 @@
                 swal.close()   
             })
         }
+        Livewire.on('facturaCobrada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura Cobrada!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})         
+        Livewire.on('facturaCtaCte',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura enviada a Cuenta Corriente!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})         
+        Livewire.on('eliminarRegistro',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Eliminado!',
+                text: 'Tu registro se Eliminó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})         
     }  
 
 </script>

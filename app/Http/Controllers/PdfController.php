@@ -146,13 +146,12 @@ class PdfController extends Controller
                                  'c.apellido', 'c.nombre')->get(); 
             break;
         case '6':
-            $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
-            ->where('c.vianda', '1')
-            ->where('viandas.c_sabado_m', '<>', '')
-            ->where('c.comercio_id', $this->comercioId)
-            ->select('c_sabado_m as cantidad','h_sabado_m as hora','c.apellido', 'c.nombre')
-            ->orderBy('h_sabado_m')->get(); 
-      
+                $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
+                        ->where('c.vianda', '1')
+                        ->where('viandas.c_sabado_m', '<>', '')
+                        ->where('c.comercio_id', $this->comercioId)
+                        ->select('c_sabado_m as cantidad','h_sabado_m as hora','c.apellido', 'c.nombre')
+                        ->orderBy('h_sabado_m')->get();       
             break;
         case '7':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')

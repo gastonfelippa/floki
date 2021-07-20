@@ -1,3 +1,4 @@
+<!-- mensaje enviado al Admin Floki -->
 @component('mail::message')
 # Grande Mirlooo!!<br>
 # Tenés un nuevo abonado!!!

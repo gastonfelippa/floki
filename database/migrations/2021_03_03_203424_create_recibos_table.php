@@ -19,7 +19,7 @@ class CreateRecibosTable extends Migration
             $table->unsignedBigInteger('numero');
             $table->decimal('importe',10,2);
             $table->enum('forma_de_pago', ['1','2','3','4','5']); //efectivo,tarj débito,tarj crédito,transferencia,cheque
-            $table->integer('nro_comp_pago')->nullable();                     //nro ticket tarjeta o transferencia
+            $table->string('nro_comp_pago')->nullable();                     //nro ticket tarjeta o transferencia
             $table->enum('mercadopago', ['0','1'])->default('0'); //no,si
             $table->string('comentario',100)->nullable();
             $table->string('entrega',1); //se indicará '0' si es pago total, y '1' si es una entrega

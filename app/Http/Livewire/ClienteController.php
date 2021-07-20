@@ -57,13 +57,19 @@ class ClienteController extends Component
             $info = Cliente::join('localidades as loc', 'loc.id', 'clientes.localidad_id')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orderBy('apellido', 'asc')
-                ->select('clientes.*', 'loc.descripcion as localidad')->get();
-        }            
+                ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as tieneViandasCargadas"))->get();
+        } 
+        foreach ($info as $i){            
+            $tieneViandasCargadas = Vianda::where('cliente_id', $i->id);
+            if($tieneViandasCargadas->count()) $i->tieneViandasCargadas = 1;
+            else $i->tieneViandasCargadas = 0;
+        }
+
         return view('livewire.clientes.component', [
             'info'        =>$info,
             'localidades' => $localidades,
             'provincias'  => $provincias,
-            'productos'  => $productos
+            'productos'   => $productos
         ]);
     }
 
@@ -81,36 +87,36 @@ class ClienteController extends Component
             ->select('viandas.*', 'p.id as producto_id')->get();
 
         if($viandas->count() > 0){
-            $this->producto = $viandas[0]->producto_id;
-            $this->comentarios = $viandas[0]->comentarios;
-            $this->h_lunes_m = $viandas[0]->h_lunes_m;   
-            $this->h_lunes_n = $viandas[0]->h_lunes_n;   
-            $this->h_martes_m = $viandas[0]->h_martes_m;   
-            $this->h_martes_n = $viandas[0]->h_martes_n;   
+            $this->producto      = $viandas[0]->producto_id;
+            $this->comentarios   = $viandas[0]->comentarios;
+            $this->h_lunes_m     = $viandas[0]->h_lunes_m;   
+            $this->h_lunes_n     = $viandas[0]->h_lunes_n;   
+            $this->h_martes_m    = $viandas[0]->h_martes_m;   
+            $this->h_martes_n    = $viandas[0]->h_martes_n;   
             $this->h_miercoles_m = $viandas[0]->h_miercoles_m;   
             $this->h_miercoles_n = $viandas[0]->h_miercoles_n;   
-            $this->h_jueves_m = $viandas[0]->h_jueves_m;   
-            $this->h_jueves_n = $viandas[0]->h_jueves_n;   
-            $this->h_viernes_m = $viandas[0]->h_viernes_m;   
-            $this->h_viernes_n = $viandas[0]->h_viernes_n;   
-            $this->h_sabado_m = $viandas[0]->h_sabado_m;   
-            $this->h_sabado_n = $viandas[0]->h_sabado_n;   
-            $this->h_domingo_m = $viandas[0]->h_domingo_m;   
-            $this->h_domingo_n = $viandas[0]->h_domingo_n;
-            $this->c_lunes_m = $viandas[0]->c_lunes_m;   
-            $this->c_lunes_n = $viandas[0]->c_lunes_n;   
-            $this->c_martes_m = $viandas[0]->c_martes_m;   
-            $this->c_martes_n = $viandas[0]->c_martes_n;   
+            $this->h_jueves_m    = $viandas[0]->h_jueves_m;   
+            $this->h_jueves_n    = $viandas[0]->h_jueves_n;   
+            $this->h_viernes_m   = $viandas[0]->h_viernes_m;   
+            $this->h_viernes_n   = $viandas[0]->h_viernes_n;   
+            $this->h_sabado_m    = $viandas[0]->h_sabado_m;   
+            $this->h_sabado_n    = $viandas[0]->h_sabado_n;   
+            $this->h_domingo_m   = $viandas[0]->h_domingo_m;   
+            $this->h_domingo_n   = $viandas[0]->h_domingo_n;
+            $this->c_lunes_m     = $viandas[0]->c_lunes_m;   
+            $this->c_lunes_n     = $viandas[0]->c_lunes_n;   
+            $this->c_martes_m    = $viandas[0]->c_martes_m;   
+            $this->c_martes_n    = $viandas[0]->c_martes_n;   
             $this->c_miercoles_m = $viandas[0]->c_miercoles_m;   
             $this->c_miercoles_n = $viandas[0]->c_miercoles_n;   
-            $this->c_jueves_m = $viandas[0]->c_jueves_m;   
-            $this->c_jueves_n = $viandas[0]->c_jueves_n;   
-            $this->c_viernes_m = $viandas[0]->c_viernes_m;   
-            $this->c_viernes_n = $viandas[0]->c_viernes_n;   
-            $this->c_sabado_m = $viandas[0]->c_sabado_m;   
-            $this->c_sabado_n = $viandas[0]->c_sabado_n;   
-            $this->c_domingo_m = $viandas[0]->c_domingo_m;   
-            $this->c_domingo_n = $viandas[0]->c_domingo_n;
+            $this->c_jueves_m    = $viandas[0]->c_jueves_m;   
+            $this->c_jueves_n    = $viandas[0]->c_jueves_n;   
+            $this->c_viernes_m   = $viandas[0]->c_viernes_m;   
+            $this->c_viernes_n   = $viandas[0]->c_viernes_n;   
+            $this->c_sabado_m    = $viandas[0]->c_sabado_m;   
+            $this->c_sabado_n    = $viandas[0]->c_sabado_n;   
+            $this->c_domingo_m   = $viandas[0]->c_domingo_m;   
+            $this->c_domingo_n   = $viandas[0]->c_domingo_n;
         }       
     }
         //activa la vista edición o creación
@@ -123,62 +129,63 @@ class ClienteController extends Component
         //método para reiniciar variables
     private function resetInput()
     {
-        $this->nombre = '';
-        $this->apellido = '';
-        $this->documento = '';
-        $this->calle = '';
-        $this->numero = '';
-        $this->localidad = 'Elegir';
-        $this->provincia = 'Elegir';
-        $this->producto = 'Elegir';
-        $this->telefono = '';
-        $this->vianda = '0';
+        $this->nombre      = '';
+        $this->apellido    = '';
+        $this->documento   = '';
+        $this->calle       = '';
+        $this->numero      = '';
+        $this->localidad   = 'Elegir';
+        $this->provincia   = 'Elegir';
+        $this->producto    = 'Elegir';
+        $this->telefono    = '';
+        $this->vianda      = '0';
         $this->selected_id = null;       
-        $this->search = '';
+        $this->search      = '';
 
-        $this->comentarios = '';
-        $this->h_lunes_m = '';   
-        $this->h_lunes_n = '';   
-        $this->h_martes_m = '';   
-        $this->h_martes_n = '';   
-        $this->h_miercoles_m = '';   
-        $this->h_miercoles_n = '';   
-        $this->h_jueves_m = '';   
-        $this->h_jueves_n = '';   
-        $this->h_viernes_m = '';   
-        $this->h_viernes_n = '';   
-        $this->h_sabado_m = '';   
-        $this->h_sabado_n = '';   
-        $this->h_domingo_m = '';   
-        $this->h_domingo_n = '';
-        $this->c_lunes_m = '';   
-        $this->c_lunes_n = '';   
-        $this->c_martes_m = '';   
-        $this->c_martes_n = '';   
-        $this->c_miercoles_m = '';   
-        $this->c_miercoles_n = '';   
-        $this->c_jueves_m = '';   
-        $this->c_jueves_n = '';   
-        $this->c_viernes_m = '';   
-        $this->c_viernes_n = '';   
-        $this->c_sabado_m = '';   
-        $this->c_sabado_n = '';   
-        $this->c_domingo_m = '';   
-        $this->c_domingo_n = '';
+        $this->producto   = 'Elegir';
+        $this->comentarios   = '';
+        $this->h_lunes_m     = null;   
+        $this->h_lunes_n     = null;   
+        $this->h_martes_m    = null;   
+        $this->h_martes_n    = null;   
+        $this->h_miercoles_m = null;   
+        $this->h_miercoles_n = null;   
+        $this->h_jueves_m    = null;   
+        $this->h_jueves_n    = null;   
+        $this->h_viernes_m   = null;   
+        $this->h_viernes_n   = null;   
+        $this->h_sabado_m    = null;   
+        $this->h_sabado_n    = null;   
+        $this->h_domingo_m   = null;   
+        $this->h_domingo_n   = null;
+        $this->c_lunes_m     = null;   
+        $this->c_lunes_n     = null;   
+        $this->c_martes_m    = null;   
+        $this->c_martes_n    = null;   
+        $this->c_miercoles_m = null;   
+        $this->c_miercoles_n = null;   
+        $this->c_jueves_m    = null;   
+        $this->c_jueves_n    = null;   
+        $this->c_viernes_m   = null;   
+        $this->c_viernes_n   = null;   
+        $this->c_sabado_m    = null;   
+        $this->c_sabado_n    = null;   
+        $this->c_domingo_m   = null;   
+        $this->c_domingo_n   = null;
     }
 
     public function edit($id)
     {
         $record = Cliente::findOrFail($id);
         $this->selected_id = $id;
-        $this->nombre = $record->nombre;
-        $this->apellido = $record->apellido;
-        $this->documento = $record->documento;
-        $this->calle = $record->calle;
-        $this->numero = $record->numero;
-        $this->localidad = $record->localidad_id;
-        $this->telefono = $record->telefono;
-        $this->vianda = $record->vianda;
+        $this->nombre      = $record->nombre;
+        $this->apellido    = $record->apellido;
+        $this->documento   = $record->documento;
+        $this->calle       = $record->calle;
+        $this->numero      = $record->numero;
+        $this->localidad   = $record->localidad_id;
+        $this->telefono    = $record->telefono;
+        $this->vianda      = $record->vianda;
 
         $this->action = 2;
     }
@@ -266,33 +273,33 @@ class ClienteController extends Component
             }        
             if($this->selected_id <= 0) {
                 Cliente::create([
-                    'nombre' => strtoupper($this->nombre),            
-                    'apellido' => strtoupper($this->apellido),     
-                    'calle' => ucwords($this->calle),            
-                    'numero' => $this->numero,            
+                    'nombre'       => strtoupper($this->nombre),            
+                    'apellido'     => strtoupper($this->apellido),     
+                    'calle'        => ucwords($this->calle),            
+                    'numero'       => $this->numero,            
                     'localidad_id' => $this->localidad,            
-                    'telefono' => $this->telefono,
-                    'vianda' => $this->vianda,
-                    'saldo' => '0',
-                    'comercio_id' => $this->comercioId            
+                    'telefono'     => $this->telefono,
+                    'vianda'       => $this->vianda,
+                    'saldo'        => '0',
+                    'comercio_id'  => $this->comercioId            
                 ]);
             }else {   
                 $record = Cliente::find($this->selected_id);
                 $record->update([
-                    'nombre' => strtoupper($this->nombre),            
-                    'apellido' => strtoupper($this->apellido),     
-                    'calle' => ucwords($this->calle),            
-                    'numero' => $this->numero,            
+                    'nombre'       => strtoupper($this->nombre),            
+                    'apellido'     => strtoupper($this->apellido),     
+                    'calle'        => ucwords($this->calle),            
+                    'numero'       => $this->numero,            
                     'localidad_id' => $this->localidad,            
-                    'telefono' => $this->telefono,
-                    'vianda' => $this->vianda
+                    'telefono'     => $this->telefono,
+                    'vianda'       => $this->vianda
                 ]); 
                 $this->action = 1;             
             }
             if($this->selected_id) session()->flash('msg-ok', 'Cliente Actualizado');    
             else session()->flash('msg-ok', 'Cliente Creado'); 
 
-            DB::commit();               
+            DB::commit();            
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -302,87 +309,162 @@ class ClienteController extends Component
     }
         
     public function grabarViandas()
-    {
+    {   //creo un array con las cantidades y otro con los horarios de todos los días
+        $arrayCantidad = [$this->c_lunes_m, $this->c_lunes_n, $this->c_martes_m, $this->c_martes_n, $this->c_miercoles_m,
+            $this->c_miercoles_n, $this->c_jueves_m, $this->c_jueves_n, $this->c_viernes_m, $this->c_viernes_n,
+            $this->c_sabado_m, $this->c_sabado_n, $this->c_domingo_m, $this->c_domingo_n];
+        $arrayHora = [$this->h_lunes_m, $this->h_lunes_n, $this->h_martes_m, $this->h_martes_n, $this->h_miercoles_m,
+            $this->h_miercoles_n, $this->h_jueves_m, $this->h_jueves_n, $this->h_viernes_m, $this->h_viernes_n,
+            $this->h_sabado_m, $this->h_sabado_n, $this->h_domingo_m, $this->h_domingo_n];
+
+        for ($i=0;$i<14;$i++){           //verifico que las horas estén completas
+            if(strlen($arrayHora[$i])==0 && $arrayCantidad[$i] > 0){
+                if($i==0 || $i==1) $dia= 'Lunes';
+                elseif($i==2 || $i==3) $dia= 'Martes';
+                elseif($i==4 || $i==5) $dia= 'Miércoles';
+                elseif($i==6 || $i==7) $dia= 'Jueves';
+                elseif($i==8 || $i==9) $dia= 'Viernes';
+                elseif($i==10 || $i==11) $dia= 'Sábado';
+                else $dia= 'Doningo';
+                session()->flash('msg-error', 'Verificar hora día ' . $dia . '. Está incompleta');
+                return;
+            }    
+        }    
+        for ($i=0;$i<14;$i++){          //verifico que las horas no estén en cero
+            if($arrayHora[$i]=='00:00'){
+                if($i==0 || $i==1) $dia= 'Lunes';
+                elseif($i==2 || $i==3) $dia= 'Martes';
+                elseif($i==4 || $i==5) $dia= 'Miércoles';
+                elseif($i==6 || $i==7) $dia= 'Jueves';
+                elseif($i==8 || $i==9) $dia= 'Viernes';
+                elseif($i==10 || $i==11) $dia= 'Sábado';
+                else $dia= 'Doningo';
+                session()->flash('msg-error', 'Verificar hora día ' . $dia . '. No puede estar en cero');
+                return;
+            }    
+        }    
+        for ($i=0;$i<14;$i++){        //verifico que si hay una cantidad, la hora no esté nula
+            if($arrayCantidad[$i]>0 && $arrayHora[$i]==null){
+                if($i==0 || $i==1) $dia= 'Lunes';
+                elseif($i==2 || $i==3) $dia= 'Martes';
+                elseif($i==4 || $i==5) $dia= 'Miércoles';
+                elseif($i==6 || $i==7) $dia= 'Jueves';
+                elseif($i==8 || $i==9) $dia= 'Viernes';
+                elseif($i==10 || $i==11) $dia= 'Sábado';
+                else $dia= 'Doningo';
+                session()->flash('msg-error', 'Verificar hora día ' . $dia . '. No puede ser nula');
+                return;
+            }
+        }
+        for ($i=0;$i<14;$i++){        //verifico que si hay una hora, la cantidad no esté en cero
+            if($arrayCantidad[$i]==0 && $arrayHora[$i]!=null){
+                if($i==0 || $i==1) $dia= 'lunes';
+                elseif($i==2 || $i==3) $dia= 'martes';
+                elseif($i==4 || $i==5) $dia= 'miercoles';
+                elseif($i==6 || $i==7) $dia= 'jueves';
+                elseif($i==8 || $i==9) $dia= 'viernes';
+                elseif($i==10 || $i==11) $dia= 'sabado';
+                else $dia= 'doningo';
+                session()->flash('msg-error', 'Verificar cantidad día ' . $dia . '. No puede estar en cero');
+                return;
+            }
+        }
+        //validacion propia del sistema
+        if($this->h_lunes_m == "") $this->h_lunes_m = null; 
+        if($this->h_lunes_n == "") $this->h_lunes_n = null;  
+        if($this->h_martes_m == "") $this->h_martes_m = null; 
+        if($this->h_martes_n == "") $this->h_martes_n = null;  
+        if($this->h_miercoles_m == "") $this->h_miercoles_m = null; 
+        if($this->h_miercoles_n == "") $this->h_miercoles_n = null;  
+        if($this->h_jueves_m == "") $this->h_jueves_m = null; 
+        if($this->h_jueves_n == "") $this->h_jueves_n = null; 
+        if($this->h_viernes_m == "") $this->h_viernes_m = null; 
+        if($this->h_viernes_n == "") $this->h_viernes_n = null;  
+        if($this->h_sabado_m == "") $this->h_sabado_m = null; 
+        if($this->h_sabado_n == "") $this->h_sabado_n = null;  
+        if($this->h_domingo_m == "") $this->h_domingo_m = null; 
+        if($this->h_domingo_n == "") $this->h_domingo_n = null; 
+
         $this->validate(['producto' => 'not_in:Elegir']);
             
         DB::begintransaction();                
         try{
-            $existe = Vianda::where('cliente_id', $this->selected_id)->get();
-            if($existe->count() > 0){
-                   $existe->update([
-                    'cliente_id' => $this->selected_id, 
-                    'producto_id' => $this->producto,
-                    'estado' => 'activo', 
-                    'comentarios' => $this->comentarios, 
-                    'h_lunes_m' => $this->h_lunes_m, 
-                    'h_lunes_n' => $this->h_lunes_n, 
-                    'h_martes_m' => $this->h_martes_m, 
-                    'h_martes_n' => $this->h_martes_n, 
+            $existe = Vianda::find($this->selected_id);
+            if($existe != null){
+                $existe->update([
+                    'cliente_id'    => $this->selected_id, 
+                    'producto_id'   => $this->producto,
+                    'estado'        => 'activo', 
+                    'comentarios'   => $this->comentarios, 
+                    'h_lunes_m'     => $this->h_lunes_m, 
+                    'h_lunes_n'     => $this->h_lunes_n, 
+                    'h_martes_m'    => $this->h_martes_m, 
+                    'h_martes_n'    => $this->h_martes_n, 
                     'h_miercoles_m' => $this->h_miercoles_m, 
                     'h_miercoles_n' => $this->h_miercoles_n, 
-                    'h_jueves_m' => $this->h_jueves_m, 
-                    'h_jueves_n' => $this->h_jueves_n, 
-                    'h_viernes_m' => $this->h_viernes_m, 
-                    'h_viernes_n' => $this->h_viernes_n, 
-                    'h_sabado_m' => $this->h_sabado_m, 
-                    'h_sabado_n' => $this->h_sabado_n, 
-                    'h_domingo_m' => $this->h_domingo_m, 
-                    'h_domingo_n' => $this->h_domingo_n, 
-                    'c_lunes_m' => $this->c_lunes_m, 
-                    'c_lunes_n' => $this->c_lunes_n, 
-                    'c_martes_m' => $this->c_martes_m, 
-                    'c_martes_n' => $this->c_martes_n, 
+                    'h_jueves_m'    => $this->h_jueves_m, 
+                    'h_jueves_n'    => $this->h_jueves_n, 
+                    'h_viernes_m'   => $this->h_viernes_m, 
+                    'h_viernes_n'   => $this->h_viernes_n, 
+                    'h_sabado_m'    => $this->h_sabado_m, 
+                    'h_sabado_n'    => $this->h_sabado_n, 
+                    'h_domingo_m'   => $this->h_domingo_m, 
+                    'h_domingo_n'   => $this->h_domingo_n, 
+                    'c_lunes_m'     => $this->c_lunes_m, 
+                    'c_lunes_n'     => $this->c_lunes_n, 
+                    'c_martes_m'    => $this->c_martes_m, 
+                    'c_martes_n'    => $this->c_martes_n, 
                     'c_miercoles_m' => $this->c_miercoles_m, 
                     'c_miercoles_n' => $this->c_miercoles_n, 
-                    'c_jueves_m' => $this->c_jueves_m, 
-                    'c_jueves_n' => $this->c_jueves_n, 
-                    'c_viernes_m' => $this->c_viernes_m, 
-                    'c_viernes_n' => $this->c_viernes_n, 
-                    'c_sabado_m' => $this->c_sabado_m, 
-                    'c_sabado_n' => $this->c_sabado_n, 
-                    'c_domingo_m' => $this->c_domingo_m, 
-                    'c_domingo_n' => $this->c_domingo_n 
+                    'c_jueves_m'    => $this->c_jueves_m, 
+                    'c_jueves_n'    => $this->c_jueves_n, 
+                    'c_viernes_m'   => $this->c_viernes_m, 
+                    'c_viernes_n'   => $this->c_viernes_n, 
+                    'c_sabado_m'    => $this->c_sabado_m, 
+                    'c_sabado_n'    => $this->c_sabado_n, 
+                    'c_domingo_m'   => $this->c_domingo_m, 
+                    'c_domingo_n'   => $this->c_domingo_n 
                 ]); 
             }else {
                 Vianda::create([
-                    'cliente_id' => $this->selected_id, 
-                    'producto_id' => $this->producto,
-                    'estado' => 'activo', 
-                    'comentarios' => $this->comentarios, 
-                    'h_lunes_m' => $this->h_lunes_m, 
-                    'h_lunes_n' => $this->h_lunes_n, 
-                    'h_martes_m' => $this->h_martes_m, 
-                    'h_martes_n' => $this->h_martes_n, 
+                    'cliente_id'    => $this->selected_id, 
+                    'producto_id'   => $this->producto,
+                    'estado'        => 'activo', 
+                    'comentarios'   => $this->comentarios, 
+                    'h_lunes_m'     => $this->h_lunes_m, 
+                    'h_lunes_n'     => $this->h_lunes_n, 
+                    'h_martes_m'    => $this->h_martes_m, 
+                    'h_martes_n'    => $this->h_martes_n, 
                     'h_miercoles_m' => $this->h_miercoles_m, 
                     'h_miercoles_n' => $this->h_miercoles_n, 
-                    'h_jueves_m' => $this->h_jueves_m, 
-                    'h_jueves_n' => $this->h_jueves_n, 
-                    'h_viernes_m' => $this->h_viernes_m, 
-                    'h_viernes_n' => $this->h_viernes_n, 
-                    'h_sabado_m' => $this->h_sabado_m, 
-                    'h_sabado_n' => $this->h_sabado_n, 
-                    'h_domingo_m' => $this->h_domingo_m, 
-                    'h_domingo_n' => $this->h_domingo_n, 
-                    'c_lunes_m' => $this->c_lunes_m, 
-                    'c_lunes_n' => $this->c_lunes_n, 
-                    'c_martes_m' => $this->c_martes_m, 
-                    'c_martes_n' => $this->c_martes_n, 
+                    'h_jueves_m'    => $this->h_jueves_m, 
+                    'h_jueves_n'    => $this->h_jueves_n, 
+                    'h_viernes_m'   => $this->h_viernes_m, 
+                    'h_viernes_n'   => $this->h_viernes_n, 
+                    'h_sabado_m'    => $this->h_sabado_m, 
+                    'h_sabado_n'    => $this->h_sabado_n, 
+                    'h_domingo_m'   => $this->h_domingo_m, 
+                    'h_domingo_n'   => $this->h_domingo_n, 
+                    'c_lunes_m'     => $this->c_lunes_m, 
+                    'c_lunes_n'     => $this->c_lunes_n, 
+                    'c_martes_m'    => $this->c_martes_m, 
+                    'c_martes_n'    => $this->c_martes_n, 
                     'c_miercoles_m' => $this->c_miercoles_m, 
                     'c_miercoles_n' => $this->c_miercoles_n, 
-                    'c_jueves_m' => $this->c_jueves_m, 
-                    'c_jueves_n' => $this->c_jueves_n, 
-                    'c_viernes_m' => $this->c_viernes_m, 
-                    'c_viernes_n' => $this->c_viernes_n, 
-                    'c_sabado_m' => $this->c_sabado_m, 
-                    'c_sabado_n' => $this->c_sabado_n, 
-                    'c_domingo_m' => $this->c_domingo_m, 
-                    'c_domingo_n' => $this->c_domingo_n 
+                    'c_jueves_m'    => $this->c_jueves_m, 
+                    'c_jueves_n'    => $this->c_jueves_n, 
+                    'c_viernes_m'   => $this->c_viernes_m, 
+                    'c_viernes_n'   => $this->c_viernes_n, 
+                    'c_sabado_m'    => $this->c_sabado_m, 
+                    'c_sabado_n'    => $this->c_sabado_n, 
+                    'c_domingo_m'   => $this->c_domingo_m, 
+                    'c_domingo_n'   => $this->c_domingo_n 
                 ]);        
             }
-            if($existe->count() > 0) session()->flash('msg-ok', 'Detalle de Viandas actualizado exitosamente!!');            
+            DB::commit();
+            if($existe != null) session()->flash('msg-ok', 'Detalle de Viandas actualizado exitosamente!!');            
             else session()->flash('msg-ok', 'Detalle de Viandas creado exitosamente!!');  
             
-            DB::commit();
         }catch (Exception $e){
             DB::rollback();     
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -427,9 +509,9 @@ class ClienteController extends Component
             DB::begintransaction();
             try{   
                 Localidad::create([
-                    'descripcion' => ucwords($data->localidad),
+                    'descripcion'  => ucwords($data->localidad),
                     'provincia_id' => $data->provincia_id,
-                    'comercio_id' => $this->comercioId
+                    'comercio_id'  => $this->comercioId
                 ]);
                 session()->flash('msg-ok', 'Localidad creada exitosamente!!!'); 
                 DB::commit();               

@@ -22,7 +22,7 @@ class ViandasController extends Component
     public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
     public $numero, $cliente_id, $importe, $factura_id, $producto_id, $cantidad, $precio, $nro_arqueo;
     public $caja_abierta, $arqueoGralId, $mostrar_facturas = true;
-    public $estado, $estado_pago, $estado_entrega = '3', $vista_facturas;
+    public $estado, $estado_pago, $estado_entrega = '3';
 
     public function render()
     {
@@ -42,9 +42,6 @@ class ViandasController extends Component
                 return view('arqueodecaja');
             }
         }
-
-        if($this->repartidor != 'Elegir') $this->vista_facturas = true;
-        else $this->vista_facturas = false;
         
         $productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
 
@@ -81,9 +78,21 @@ class ViandasController extends Component
         foreach ($info as $i){
             $i->importe = $i->cantidad * $i->precio_venta;
         }
+        $info2 = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
+            ->join('productos as p', 'p.id', 'viandas.producto_id')
+            ->where('c.vianda', '1')
+            ->where('viandas.c_'. $this->dia .'_m', '<>', '')
+            ->where('c.comercio_id', $this->comercioId)
+            ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
+            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta', 
+            DB::RAW("'' as importe"))->orderBy('c.apellido')->get(); 
+        foreach ($info2 as $i){
+            $i->importe = $i->cantidad * $i->precio_venta;
+        }
         return view('livewire.viandas.component', [
-            'info' => $info,
-            'productos' => $productos,
+            'info'         => $info,
+            'info2'        => $info2,
+            'productos'    => $productos,
             'repartidores' => $repartidores,
         ]);
     }
@@ -260,10 +269,13 @@ class ViandasController extends Component
 
     public function factura_contado($cliId)
     {
+        $this->estado = 'contado';    
+        $this->estado_pago = '1';       
         //busco solo los repartidores con caja habilitada y lo comparo con la variable $this->repartidor
         //si coinciden, debo enviar la factura como 'pendiente' y 'entregada' al Arqueo Caja Repartidor 
         //si no coincide es porque es alguna Caja que no es repartidor
-        //en este caso grabamos la factura como 'contado' y 'pagada' al Arqueo Caja Usuario     
+        //en este caso grabamos la factura como 'contado' y 'pagada' al Arqueo de Caja del Usuario seleccionado
+        //con los datos de las variables inicializadas anteriormente     
         $repartidores = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
             ->join('roles as r', 'r.id', 'mhr.role_id')
             ->join('caja_usuarios as cu', 'cu.caja_usuario_id', 'users.id')
@@ -271,18 +283,14 @@ class ViandasController extends Component
             ->where('r.comercio_id', $this->comercioId)
             ->where('cu.estado', '1')
             ->select('users.id')->orderBy('apellido')->get();
-        if($repartidores->count()){
-            foreach($repartidores as $repartidor){
-                if($repartidor->id == $this->repartidor){
-                    $this->estado = 'pendiente';    
-                    $this->estado_pago = '0';    
-                }
+     
+        foreach($repartidores as $repartidor){
+            if($repartidor->id == $this->repartidor){
+                $this->estado = 'pendiente';    
+                $this->estado_pago = '0';    
             }
-        }else{
-            $this->estado = 'contado';    
-            $this->estado_pago = '1';
         }
-      
+         
         //busco el nro_arqueo del repartidor
         $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
             ->where('caja_usuarios.estado', '1')->get();
@@ -332,7 +340,7 @@ class ViandasController extends Component
             }      
             DB::commit();
             session()->flash('message', 'La Factura se creó exitosamente!!');
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();    
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
@@ -399,11 +407,11 @@ class ViandasController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
         return;
-    }
-    
-    public function contar_viandas($data)
-    {
-        $data = json_decode($data);
-        $this->cViandas = $data->cantidad;
-    }
+    }    
+
+    // public function contar_viandas($data)
+    // {
+    //     $data = json_decode($data);
+    //     $this->cViandas = $data->cantidad;
+    // }
 }

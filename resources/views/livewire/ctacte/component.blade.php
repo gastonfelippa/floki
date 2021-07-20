@@ -205,17 +205,7 @@
 	function Cobrar() //ctdo/ctacte
     {   
 		if($('#caja_abierta').val() == 0){
-            swal({
-                title: 'Oops',
-                text: 'Para realizar un Cobro de Cuenta Corriente, primero debes tener habilitada una Caja.',
-                type: 'warning',
-                confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar',
-                closeOnConfirm: false
-            },
-            function() {  
-                swal.close()  
-            })
+			Swal.fire('Oops!','No tenés una Caja Habilitada...')
         }else{
 			Swal.fire({
 				title: 'CONFIRMAR',
@@ -272,7 +262,6 @@
 			})
 		}
     }
-
 	function manejarChecks()
 	{
 		var isSelected = $('[id="modChecks"]').is(":checked");
@@ -280,7 +269,6 @@
 		else $('[name="checks"]').prop("checked", false);
 		calcularTotal();
 	}
-
 	function calcularTotal()
 	{
 		$(document).ready(function() {
@@ -296,7 +284,6 @@
 			});
 		});
 	}
-
 	function esVisible(elemento) {
 		var esVisible = true;
 		if($(elemento).is(':visible') && $(elemento).css("visibility") != "hidden"
@@ -306,7 +293,6 @@
 		console.log(esVisible);
 		return esVisible;
 	}
-
 	//selecciona una fila de la tabla
 	function ver_id() {
 		if (esVisible('#cli')) {
@@ -320,23 +306,52 @@
 			}
 		}
 	}
-	function mostrarInput(){		
+	function mostrarInput(){
 		$('[id="nroCompPago"]').val('');
+		$('[id="num"]').val('');
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-				|| $('[id="formaDePago"]').val() == '4') {
+				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
 			$('#modalNroComprobanteDePago').modal('show');
 		}else{
 			guardarDatosPago();
+		}	
+	}
+	function guardarDatosPago(){
+        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() <= 0){ 
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Faltan datos, se cobrará como efectivo!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('[id="formaDePago"]').val(1)
+        }else{
+			$('[id="num"]').val($('[id="nroCompPago"]').val())
+			if($('[id="num"]').val() != ''){
+				var formaDePago = $('[id="formaDePago"]').val();
+				var nroCompPago = $('[id="nroCompPago"]').val();
+			}else{
+				$('[id="formaDePago"]').val(1)           
+			}		
+			window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 		}
 	}
-
-	function guardarDatosPago(){
-		$('[id="num"]').val($('[id="nroCompPago"]').val())
-		var formaDePago = $('[id="formaDePago"]').val();
-		var nroCompPago = $('[id="nroCompPago"]').val();
-		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
-	}
-
+	function datos_pago()
+    { 
+        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() <= 0){ 
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Faltan datos, se cobrará como efectivo!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('[id="formaDePago"]').val(1)
+        }else{
+            window.livewire.emit('StoreOrUpdate')
+        }    
+    }
     window.onload = function() {
         document.getElementById("search").focus()
     }

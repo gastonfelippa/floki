@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Auditoria;
+use App\Models\Caja;
 use App\Models\Cajarepartidor;
 use App\Models\CajaUsuario;
 use App\Models\Cliente;
@@ -22,7 +23,8 @@ use DB;
 class CajarepartidorController extends Component
 {
     //properties
-    public $clientes, $empleados, $productos, $repartidor = '0', $comentario = '', $caja_abierta, $usuario_habilitado = true;
+    public $clientes, $empleados, $productos, $repartidor = '0', $caja_abierta;
+    public $usuarioAdmin = false, $usuario_habilitado = true;
     public $selected_id = null, $search, $id_factura, $fact_id, $infoDetalle, $comercioId, $estado = 1;
     public $producto="Elegir", $action='1', $totalfactura, $nombreCliente, $nomRep, $nro_arqueo, $fecha_inicio;
     public $cantidadEdit, $productoEdit, $precioEdit, $editFacturaId = '', $importeFactura, $estado_entrega;
@@ -35,38 +37,6 @@ class CajarepartidorController extends Component
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
 
-        $this->fecha_inicio = Carbon::today();
-
-        $egresos = Gasto::where('comercio_id', $this->comercioId)->get();
-
-        $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->clientes = Cliente::select()->where('comercio_id', $this->comercioId)->orderBy('apellido')->get();
-        $this->gastos = Gasto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        
-        $this->empleados = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
-            ->join('model_has_roles as mhr', 'mhr.model_id', 'u.id')
-            ->join('roles as r', 'r.id', 'mhr.role_id')
-            ->where('r.alias', 'Repartidor')
-            ->where('r.comercio_id', $this->comercioId)
-            ->where('caja_usuarios.estado', '1')
-            ->where('caja_usuarios.user_id', auth()->user()->id)
-            ->select('u.id', 'u.name', 'u.apellido')->orderBy('u.apellido')->get();     
-        if($this->empleados->count() == 0){  //sino, busca la caja abierta del repartidor logueado
-            $this->empleados = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
-                ->join('roles as r', 'r.id', 'mhr.role_id')
-                ->join('caja_usuarios as cu', 'cu.caja_usuario_id', 'users.id')
-                ->where('r.alias', 'Repartidor')
-                ->where('r.comercio_id', $this->comercioId)
-                ->where('cu.estado', '1')
-                ->where('cu.caja_usuario_id', auth()->user()->id)
-                ->select('users.id', 'users.name', 'users.apellido')->orderBy('users.apellido')->get();
-        }
-        if($this->empleados->count()){
-            foreach ($this->empleados as $i){   
-                if($i->id == auth()->user()->id) $this->repartidor = auth()->user()->id;
-            }            
-        }
-
         //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
         //no hago ninguna validación y le permito hacer cualquier procedimiento
         $usuadrioAdmin = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
@@ -75,7 +45,7 @@ class CajarepartidorController extends Component
             ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
         if($usuadrioAdmin[0]->id <> auth()->user()->id){
             //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir...
-            //si es ese usuario, habilito para que vea todas las cajas
+            //si es ese usuario, habilito para que vea solo las cajas que habilitó
             //sino, debo averiguar si hay una Caja abierta con su Id, 
             //y en ese caso solo le dejo ver la suya, de lo contrario muestro un mensaje y vuelvo al home
             $usuarioArqueo = CajaUsuario::where('user_id', auth()->user()->id)
@@ -91,7 +61,7 @@ class CajarepartidorController extends Component
                     $this->fecha_inicio = $caja_abierta[0]->created_at;
                 }else $this->usuario_habilitado = false;
             }
-        }
+        }else $this->usuarioAdmin = true;
         if($this->nro_arqueo == null){
             $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
                 ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();    
@@ -99,8 +69,50 @@ class CajarepartidorController extends Component
                 $this->nro_arqueo = $caja_abierta[0]->id;
                 $this->fecha_inicio = $caja_abierta[0]->created_at;
             }
-        }            
+        } 
+ 
+        $this->fecha_inicio = Carbon::today();
 
+        $egresos = Gasto::where('comercio_id', $this->comercioId)->get();
+
+        $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->clientes = Cliente::select()->where('comercio_id', $this->comercioId)->orderBy('apellido')->get();
+        $this->gastos = Gasto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        
+        if($this->usuarioAdmin){                //si es el Admin, le dejo ver todas las cajas
+            $this->empleados = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
+            ->join('model_has_roles as mhr', 'mhr.model_id', 'u.id')
+            ->join('roles as r', 'r.id', 'mhr.role_id')
+            ->where('r.alias', 'Repartidor')
+            ->where('r.comercio_id', $this->comercioId)
+            ->where('caja_usuarios.estado', '1')
+            ->select('u.id', 'u.name', 'u.apellido')->orderBy('u.apellido')->get();
+        }else{                                   //sino, solo verá las que habilitó
+            $this->empleados = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
+                ->join('model_has_roles as mhr', 'mhr.model_id', 'u.id')
+                ->join('roles as r', 'r.id', 'mhr.role_id')
+                ->where('r.alias', 'Repartidor')
+                ->where('r.comercio_id', $this->comercioId)
+                ->where('caja_usuarios.estado', '1')
+                ->where('caja_usuarios.user_id', auth()->user()->id)
+                ->select('u.id', 'u.name', 'u.apellido')->orderBy('u.apellido')->get();           
+            if($this->empleados->count() == 0){  //sino, busca la caja abierta del repartidor logueado
+                $this->empleados = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
+                    ->join('roles as r', 'r.id', 'mhr.role_id')
+                    ->join('caja_usuarios as cu', 'cu.caja_usuario_id', 'users.id')
+                    ->where('r.alias', 'Repartidor')
+                    ->where('r.comercio_id', $this->comercioId)
+                    ->where('cu.estado', '1')
+                    ->where('cu.caja_usuario_id', auth()->user()->id)
+                    ->select('users.id', 'users.name', 'users.apellido')->orderBy('users.apellido')->get();
+            }
+        }  
+        if($this->empleados->count()){
+            foreach ($this->empleados as $i){   
+                if($i->id == auth()->user()->id) $this->repartidor = auth()->user()->id;
+            }            
+        }           
+     
         $dProducto = Producto::find($this->productoEdit);
         if($dProducto != null) $this->precioEdit = $dProducto->precio_venta;
         else $this->precioEdit = '';
@@ -144,27 +156,28 @@ class CajarepartidorController extends Component
         $nomRep = User::find($this->repartidor);
             if($nomRep != null) $this->nomRep = $nomRep->apellido . ' ' . $nomRep->name;
             else $this->repartidor = '0';
-
+        //busco las facturas de cada repartidor
         $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
-            ->join('users as u','u.id','facturas.repartidor_id')
-            ->join('caja_usuarios as cu','cu.id','facturas.arqueo_id')
-            ->join('cajas','cajas.id','cu.caja_id')
-            ->where('facturas.comercio_id', $this->comercioId)
-            ->where('facturas.estado', 'pendiente')
-            ->where('facturas.repartidor_id', $this->repartidor)
-            ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
-                     'u.apellido as apeRep', 'cajas.descripcion', DB::RAW("'' as total"))
-            ->orderBy('facturas.id', 'asc')->get();
-  
+                ->join('users as u','u.id','facturas.repartidor_id')
+                ->where('facturas.comercio_id', $this->comercioId)
+                ->where('facturas.estado', 'pendiente')
+                ->where('facturas.repartidor_id', $this->repartidor)
+                ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
+                        'u.apellido as apeRep', DB::RAW("'' as nombreCaja"))
+                ->orderBy('facturas.id', 'asc')->get();
+               
         $this->totalCobrado = 0;
-        if($info->count() > 0){
+        if($info->count()){
             foreach ($info as $i){
+                $info2 = CajaUsuario::join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
+                    ->where('caja_usuarios.caja_usuario_id', $i->user_id)
+                    ->orderBy('caja_usuarios.id', 'desc')->select('c.descripcion')->first();
+                $i->nombreCaja = $info2->descripcion;
                 $this->totalCobrado += $i->importe;
             }
-            $this->fact_id = $info[0]->id;
         }
         $this->totalCF = $this->totalCI + $this->totalCobrado - $this->totalGastos;
-
+    
 		return view('livewire.cajarepartidor.component', [
             'info' => $info,
             'infoCaja' => $infoCaja,
@@ -178,7 +191,7 @@ class CajarepartidorController extends Component
         'factura_ctacte'         => 'factura_ctacte',
         'cobrarTodas'            => 'cobrarTodas',
         'destroyGastoIngreso'    => 'destroyGastoIngreso',
-        'deleteRow'              => 'destroy',
+        'eliminarRegistro'       => 'eliminarRegistro',
         'grabarGastosModal'      => 'grabarGastosModal',
         'grabarComentarioModal'  => 'grabarComentarioModal',
         'doAction2'              => 'doAction2',
@@ -251,7 +264,6 @@ class CajarepartidorController extends Component
         $this->cantidadEdit = '';
         $this->productoEdit='Elegir';
         $this->precioEdit ='';
-        $this->comentario ='';
         $this->selected_id = 0;
 
     }
@@ -352,15 +364,27 @@ class CajarepartidorController extends Component
     }
     public function cobrarTodas($repId)
     {
-        $record = Factura::select('estado', 'estado_pago')->where('repartidor_id',$repId)->where('estado', 'pendiente');
-        $record->update([
-            'estado'      => 'contado',
-            'estado_pago' => '1'
-        ]);
-        $record = CajaUsuario::where('id', $this->nro_arqueo);
-        $record->update([
-            'estado' => '0'
-        ]);
+        DB::begintransaction();                       
+        try{
+            $record = Factura::select('estado', 'estado_pago')->where('repartidor_id',$repId)->where('estado', 'pendiente');
+            $record->update([
+                'estado'      => 'contado',
+                'estado_pago' => '1'
+            ]);
+           // session()->flash('msg-ok', 'La Factura fué enviada a Cuenta Corriente...');
+            $this->emit('facturas_cobradas');
+            DB::commit();
+
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }
+        $this->resetInput();
+        return;
+        // $record = CajaUsuario::where('id', $this->nro_arqueo);
+        // $record->update([
+        //     'estado' => '0'
+        // ]);
     }
     public function destroyGastoIngreso($id) //elimina gasto o ingreso
     {
@@ -371,7 +395,7 @@ class CajarepartidorController extends Component
             $this->resetInput();
         }
     }
-    public function destroy($id) //elimina item
+    public function eliminarRegistro($id, $comentario) //elimina item
     {
         if ($id) {
             DB::begintransaction();
@@ -379,14 +403,14 @@ class CajarepartidorController extends Component
                 $detFactura = Detfactura::find($id)->delete();
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
-                    'tabla'           => 'Detalle de Facturas',
+                    'tabla'           => 'Detalle de Facturas Delivery',
                     'estado'          => '0',
                     'user_delete_id'  => auth()->user()->id,
-                    'comentario'      => $this->comentario,
+                    'comentario'      => $comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
-                session()->flash('msg-ok', 'Registro eliminado con éxito!!');
                 DB::commit();               
+                $this->emit('registroEliminado'); 
             }catch (\Exception $e){
                 DB::rollback();
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');

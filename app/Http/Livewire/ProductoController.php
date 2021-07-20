@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Models\Auditoria;
 use App\Models\Producto;
 use App\Models\Categoria;
 use DB;
@@ -65,13 +66,16 @@ class ProductoController extends Component
 			]);
 		}
 	}
-
+	protected $listeners = [
+		'deleteRow'             => 'destroy',
+		'calcular_precio_venta' => 'calcular_precio_venta',
+		'validarProducto'       => 'validarProducto' 
+	];
 	public function doAction($action)
 	{
 		$this->action = $action;
 		$this->resetInput();
 	}
-
 	public function resetInput()
 	{
 		$this->codigo = null;
@@ -84,8 +88,7 @@ class ProductoController extends Component
 		$this->estado = 'DISPONIBLE';
 		$this->selected_id = null;
 		$this->search ='';
-	}
-	
+	}	
 	public function edit($id)
 	{
 		$this->action = 2;
@@ -99,20 +102,26 @@ class ProductoController extends Component
 		$this->stock = $record->stock;
 		$this->tipo = $record->tipo;
 		$this->estado = $record->estado;
-	}
-	
+	}	
 	public function volver()
     {
 		$this->recuperar_registro = 0;
         $this->resetInput();
         return; 
-    }
-	
+    }	
     public function RecuperarRegistro($id)
     {
 		DB::begintransaction();
         try{
 			Producto::onlyTrashed()->find($id)->restore();
+			$audit = Auditoria::create([
+                'item_deleted_id' => $id,
+                'tabla'           => 'Productos',
+                'estado'          => '1',
+                'user_delete_id'  => auth()->user()->id,
+                'comentario'      => '',
+                'comercio_id'     => $this->comercioId
+            ]);
             session()->flash('msg-ok', 'Registro recuperado');
             $this->volver();
             
@@ -122,7 +131,6 @@ class ProductoController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-
 	public function StoreOrUpdate()
 	{
 		$this->validate([
@@ -130,10 +138,11 @@ class ProductoController extends Component
 		]);
 		
 		$this->validate([
-			'categoria' => 'required',
-			'descripcion' => 'required',
-			'estado' => 'required',
-			'tipo' => 'required'
+			'categoria'    => 'required',
+			'descripcion'  => 'required',
+			'estado'       => 'required',
+			'tipo'         => 'required',
+			'precio_venta' => 'required'
 		]);
 			
 		DB::begintransaction();
@@ -238,31 +247,30 @@ class ProductoController extends Component
 		}
 		$this->resetInput();
 		return;
-	}
-			
-	protected $listeners = [
-		'deleteRow' => 'destroy',
-		'calcular_precio_venta' => 'calcular_precio_venta',
-		'createCategoriaFromModal' => 'createCategoriaFromModal' 
-	]; 
-			
-	public function destroy($id) 
-	{
-		if ($id) {
-			DB::begintransaction();
-			try{
-				$producto = Producto::find($id)->delete();
-				session()->flash('msg-ok', 'Registro eliminado con éxito!!');
-				DB::commit();               
-			}catch (\Exception $e){
-				DB::rollback();
-				session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
-			}
-			$this->resetInput();
-			return;
-		}	
-	}
-			
+	}			
+	public function destroy($id, $comentario)
+    {
+        if ($id) {
+            DB::begintransaction();
+            try{
+                $record = Producto::find($id)->delete();
+                $audit = Auditoria::create([
+                    'item_deleted_id' => $id,
+                    'tabla' => 'Productos',
+                    'user_delete_id' => auth()->user()->id,
+                    'comentario' => $comentario,
+                    'comercio_id' => $this->comercioId
+                ]);
+                DB::commit();  
+                $this->emit('registroEliminado');             
+            }catch (Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }             
+            $this->resetInput();
+            return;
+        }
+    } 			
 	public function calcular_precio_venta()
 	{
 		if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
@@ -271,29 +279,23 @@ class ProductoController extends Component
 		}else {
 			session()->flash('msg-error', 'Debe elegir una Categoría');
 		}
-	}
-						
-	public function createCategoriaFromModal($info)
+	}	
+	public function validarProducto()
 	{
-		$data = json_decode($info);
-		DB::begintransaction();
-		try{
-			$existeCategoria = Categoria::where('descripcion', $data->descripcion)
-				->where('comercio_id', $this->comercioId)->withTrashed()->get();
-			if($existeCategoria->count() == 0){
-				Categoria::create([
-					'descripcion' => strtoupper($data->descripcion),
-					'margen' => $data->margen,
-					'comercio_id' => $this->comercioId
-				]);
-			}	
-			if($existeCategoria->count() > 0) session()->flash('info', 'La Categoría ya existe...');
-			else session()->flash('msg-ok', 'Categoria creada exitosamente!!!');
-			DB::commit();               
-		}catch (\Exception $e){
-			DB::rollback();
-			session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-		}  
-	} 
+		$existe = Producto::where('descripcion', $this->descripcion)
+			->where('comercio_id', $this->comercioId)
+			->withTrashed()->get();
+		if($existe->count() && $existe[0]->deleted_at != null) {
+			session()->flash('info', 'El Producto que desea crear ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+			$this->action = 1;
+			$this->recuperar_registro = 1;
+			$this->descripcion_soft_deleted = $existe[0]->descripcion;
+			$this->id_soft_deleted = $existe[0]->id;
+			return;
+		}elseif( $existe->count()) {
+			$this->emit('registroRepetido');
+			return;
+		}
+	}
 }
 	

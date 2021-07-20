@@ -34,7 +34,7 @@
             <h5><b>Fecha de Consulta</b></h5>          
             <input id="fecha" onchange="cambiarDiv(2)" type="text" class="form-control flatpickr flatpickr-input sm-control" placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}" autocomplete="off">             
             <br>
-            <h5><b>Repartidor</b></h5>           
+            <h5><b>Repartidor/Caja Salón</b></h5>           
             <select id="repartidor" wire:model="repartidor" class="form-control text-center">
                 <option value="Elegir">Elegir</option>
                 @foreach($repartidores as $r)
@@ -45,8 +45,7 @@
             </select>          
         </div>   
         <div class="col-sm-12 col-md-8">
-            <div id="div1" class="col-sm-12 col-md-10">
-            <!-- style="display:none;"  -->
+            <div id="div1" class="col-sm-12 col-md-10" style="display:none;">
                 <div class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -61,7 +60,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($info as $r)
+                            @foreach($info2 as $r)
                             <tr>
                                 <td class="text-left">
                                     <input value="{{$r->cantidad}}" id="{{$r->cliente_id}}" class="name" name="checks" type="checkbox" checked>                                                                         
@@ -88,8 +87,7 @@
                     </table>
                 </div> 
             </div>
-            <div id="div2" class="col-sm-12 col-md-6">
-            <!-- style="display:block;"  -->
+            <div id="div2" class="col-sm-12 col-md-6" style="display:block;">
                 <div  class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -111,8 +109,7 @@
                     </table>
                 </div>
             </div>   
-            <div id="div3" class="col-sm-12 col-md-6">
-            <!-- style="display:none;"  -->
+            <div id="div3" class="col-sm-12 col-md-6" style="display:none;">
                 <div class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
@@ -137,7 +134,6 @@
         </div>
     </div>
     <input type="hidden" id="caja_abierta" wire:model="caja_abierta">
-    <input type="hidden" id="vista_facturas" wire:model="vista_facturas">
 </div></div>@include('livewire.viandas.modal')</div></div>  
 
 
@@ -242,7 +238,7 @@
         switch(idButton) {
             case 1:              //Ver Lista Facturas
                 if($('#caja_abierta').val() == '0'){
-                    Swal.fire('info','Primero debes habilitar alguna Caja')
+                    Swal.fire('Oops!','No tenés una Caja Habilitada...')
                     return;
                 }else{
                     div1.style.display = 'block';
@@ -279,9 +275,7 @@
         }
     }             
     window.onload = function() {  
-        //if($('#vista_facturas').val() == 'true'){
-          //  cambiarDiv(1);
-       // }             
+        cambiarDiv(2);         
         var arr = $('[name="checks"]:checked').map(function(){            
             return this.value;           
         }).get();
@@ -308,14 +302,6 @@
             window.livewire.emit('cambiarFecha', data);
         });
     });
-    $(document).ready(function() {
-        $('[id="repartidor"]').change(function() {
-            if($('[id="repartidor"]').val() == 'Elegir'){
-                cambiarDiv(2);
-            }
-        });
-    });
-
 </script>
 
 

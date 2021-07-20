@@ -2,7 +2,7 @@
     <div class="col-sm-12 col-md-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
 			<div class="widget-one">
-                <div class="row col-12">
+                <div class="row">
                     <div class="col-sm-12 col-md-6">
                         <h5><b>Arqueo Caja Repartidor</b></h5>  
                         @can('HabilitarCaja_index')     
@@ -33,47 +33,58 @@
                     </div>
                     <div class="col-sm-12 col-md-6">
                         <div class="row mb-1">
-                            <div class="col-8">
-                                <b></span>Caja Inicial...........$</b>
+                            <div class="col-6">
+                                <b>Caja Inicial</b>
+                            </div>
+                            <div class="col-2 text-right">
+                                <b>$</b>
                             </div>
                             <div class="col-4 text-right">
-                                <b>{{number_format($totalCI,2)}}</b>
+                                <b>{{number_format($totalCI,2,',','.')}}</b>
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-8">
-                                <b></span>Total Cobranzas.$</b> 
+                            <div class="col-6">
+                                <b>Total Cobranzas</b> 
+                            </div>
+                            <div class="col-2 text-right">
+                                <b>$</b>
                             </div>
                             <div class="col-4 text-right">
-                                <b>{{number_format($totalCobrado,2)}}</b>
+                                <b>{{number_format($totalCobrado,2,',','.')}}</b>
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-8">            
+                            <div class="col-6">            
                                 @can('Facturas_index')
                                     @if($repartidor == '0')
-                                    <span class="badge badge-warning mr-1">...
+                                    <span class="badge badge-warning mr-1">...</span>
                                     @else
                                     <span class="badge badge-warning mr-1" 
-                                    onclick="openModal(0, '{{$nomRep}}')" >...
+                                    onclick="openModal(0, '{{$nomRep}}')" >...</span>
                                     @endif
                                 @endcan 
-                                <b></span>Total de Gastos..$</b>           
+                                <b>Total Gastos</b>           
+                            </div>
+                            <div class="col-2 text-right">
+                                <b>$</b>
                             </div>
                             <div class="col-4 text-right">
-                                <b>-{{number_format($totalGastos,2)}}</b>
+                                <b>-{{number_format($totalGastos,2,',','.')}}</b>
                             </div>                        
                         </div> 
                         <div class="row mb-1" style="color: #ff7f26">
-                            <div class="col-8">
-                                <b></span>CAJA FINAL..........$</b>
+                            <div class="col-6">
+                                <b>CAJA FINAL</b>
+                            </div>
+                            <div class="col-2 text-right">
+                                <b>$</b>
                             </div>
                             <div class="col-4 text-right">
-                                <b>{{number_format($totalCF,2)}}</b>
+                                <b>{{number_format($totalCF,2,',','.')}}</b>
                             </div>
                         </div>
                     </div>
-
                 </div>
 				@include('common.alerts')
 				<div class="table-resposive scroll">
@@ -90,8 +101,8 @@
 							@foreach($info as $r)
 							<tr>
 								<td class="text-left">{{$r->apeCli}} {{$r->nomCli}}</td>
-								<td class="text-center">{{number_format($r->importe,2)}}</td>
-                                <td class="text-left">{{$r->descripcion}}</td>
+								<td class="text-center">{{number_format($r->importe,2,',','.')}}</td>
+                                <td class="text-left">{{$r->nombreCaja}}</td>
 								<td class="text-right">
                                     <ul class="table-controls">
                                         @can('HabilitarCaja_index')
@@ -192,23 +203,29 @@
 <script>
     function ConfirmDel(id)
     {
-    	let me = this
-    	swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRow', id)    
-			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()   
-        })
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('eliminarRegistro', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
     }
     function AnularFactura(id)
     {
@@ -269,7 +286,7 @@
        let me = this
         swal({
         title: 'CONFIRMAR',
-        text: '¿Deseas COBRAR todas las facturas del Repartidor \n'+ nomRep +' y CERRAR SU CAJA?',
+        text: '¿Deseas COBRAR todas las facturas del Repartidor \n'+ nomRep +'?',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -280,7 +297,7 @@
         },
 		function() {
 			window.livewire.emit('cobrarTodas', repId)    
-			toastr.success('info', 'Facturas cobradas con éxito!! Caja Cerrada...')
+			//toastr.success('info', 'Facturas cobradas con éxito!! Caja Cerrada...')
 			swal.close()   
         })
     } 
@@ -461,5 +478,26 @@
                 swal.close()   
             })
         }
+		Livewire.on('facturas_cobradas',()=>{
+            Swal.fire(
+                'Facturas Cobradas!',
+                'Para Cerrar la Caja debes ir al Arqueo de Caja Usuarios...',
+                'success'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href="{{ url('arqueodecaja') }}";
+                }
+            });
+		})
+        Livewire.on('eliminarRegistro',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Eliminado!',
+                text: 'Tu registro se Eliminó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})  
     }
 </script>

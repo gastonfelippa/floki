@@ -5,45 +5,49 @@
 <div class="widget-content-area">
 <div class="widget-one">
     <h3 class="text-center"><b>Arqueo de Caja</b></h3>
-    @can('HabilitarCaja_index')
-    <div class="row">
-        <!-- <div class="col-sm-12 col-md-2 col-lg-2">
-            Elige Fecha
-            <div class="form-group">
-                <input wire:model.lazy="fecha" type="text" class="form-control flatpickr flatpickr-input active"
-                placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}">
+    @if($usuario_habilitado == 1)
+        @can('HabilitarCaja_index')
+        <div class="row">
+            <!-- <div class="col-sm-12 col-md-2 col-lg-2">
+                Elige Fecha
+                <div class="form-group">
+                    <input wire:model.lazy="fecha" type="text" class="form-control flatpickr flatpickr-input active"
+                    placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}">
+                </div>
+            </div> -->
+            
+            <div class="col-sm-12 col md-3 col-lg-3">
+                <div class="form-group">
+                    <select wire:model="user" class="form-control">
+                        <option value="0">Elige Operador</option>
+                        @foreach($users as $u)
+                            <option value="{{$u->id}}">{{$u->apellido}} {{$u->name}}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
-        </div> -->
-        <div class="col-sm-12 col md-3 col-lg-3">
-            <div class="form-group">Elige Operador
-                <select wire:model="user" class="form-control">
-                    <option value="0">Todos</option>
-                    @foreach($users as $u)
-                        <option value="{{$u->id}}">{{$u->apellido}} {{$u->name}}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="col-sm-12 col-md-3 col-lg-3 mb-2">
-            @if($user > 0)
-                @if($factPendiente == 1)
-                <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mt-4">Existen Facturas Pendientes..</button>
-                @else
-                <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mt-4">Cerrar Caja</button>
+            <div class="col-sm-12 col-md-6 col-lg-6">
+                @if($user > 0)
+                    @if($factPendiente == 1)
+                    <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes..</button>
+                    @else
+                    <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mb-2">Cerrar Caja</button>
+                    @endif
                 @endif
+            </div>
+        </div>
+        @else
+        <div class="row mb-4">
+            <div class="col-12">
+            @if($caja_abierta > 0)
+            <h6><b>Fecha/Hora Inicio: </b> {{$fecha_inicio->format('d-m-Y')}} - {{$fecha_inicio->format('H:i')}} hs.</h6>
             @endif
+            </div>
         </div>
-    </div>
+        @endcan
     @else
-    <div class="row mb-4">
-        <div class="col-12">
-           @if($caja_abierta > 0)
-           <h6><b>Fecha/Hora Inicio: </b> {{$fecha_inicio->format('d-m-Y')}} - {{$fecha_inicio->format('H:i')}} hs.</h6>
-           @endif
-        </div>
-    </div>
-    @endcan
-    <!-- <hr> -->
+        <hr>
+    @endif
     <div class="row">
         <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
             <div class="color-box">
@@ -124,26 +128,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 <script type="text/javascript">
- 	function Confirm(id)
-    {
-       let me = this
-       swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRow', id)
-			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()
-        })
-    }
     function cerrarCaja(factPendiente,repartidor)
     {
         if(factPendiente == 1){
@@ -174,12 +158,20 @@
                 if (result.isConfirmed) {
                     if (result.value) {
                         let cajaFinalSegunUsuario = result.value;
-                        Swal.fire(
-                            'Caja Cerrada!',
-                            'El Cierre se efectuó correctamente...',
-                            'success'
-                        );
-                        window.livewire.emit('cerrarCaja',cajaFinalSegunUsuario)
+
+                        var dato_a_comprobar = cajaFinalSegunUsuario;
+                        var valoresAceptados = /^[0-9]+$/;
+                            if (dato_a_comprobar.match(valoresAceptados)){
+                                window.livewire.emit('cerrarCaja',cajaFinalSegunUsuario)
+                            } else {
+                                Swal.fire({
+                                    position: 'center',
+                                    icon: 'error',
+                                    title: 'Ingresa solo números!!',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                })
+                            }
                     }
                 }else if (result.dismiss === Swal.DismissReason.cancel) {
                     Swal.fire(
@@ -277,21 +269,8 @@
         }
         $('#modalCajaRep').modal('show')
     }
-    function save()
-    {
-        if($.trim($('#importe').val()) == '')
-        {
-            toastr.error('Ingresa un importe válido')
-            return;
-        }
-        var data = JSON.stringify({
-            'id'        : $('#id').val(),
-            'importe'   : $('#importe').val()
-        });
-        window.livewire.emit('grabarCajaModal', data)
-    }
     window.onload = function() {
-        if($('#caja_abierta').val() == 0){   //hacer ver historial
+        if($('#caja_abierta').val() == 0){   
             swal({
                 title: 'Caja inhabilitada!',
                 text: '',
@@ -305,5 +284,15 @@
                 swal.close()
             })
         }
+        Livewire.on('cajaCerrada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Caja Cerrada!!',
+                text:'El Cierre se efectuó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})
     }
 </script>

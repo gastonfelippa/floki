@@ -5,17 +5,6 @@
 <div class="widget-content-area">
     <div class="widget-one">
         <h3 class="text-center mb-4"><b>ARQUEO GENERAL</b></h3>
-<!-- 
-        <div class="row">
-            <div class="col-12">                   
-                @if($factPendiente == 1)
-                <button onclick="cerrarCajaGral()" class="btn btn-danger btn-block mt-4" enabled>Cerrar Caja General</button> 
-                @else        
-                <button onclick="cerrarCajaGral()" class="btn btn-danger btn-block mt-4" disabled>Cerrar Caja General</button> 
-                @endif
-            </div>   
-        </div>    -->
-
         <!-- <hr> -->
         <div class="row">
             <div class="col-6 ">
@@ -50,11 +39,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="col-6 ">
-                <div>
-                    <button onclick="cerrarCajaGral()" style="height: 80px;" class="btn btn-danger btn-block">TERMINAR ARQUEO GENERAL</button> 
-                </div>
-            </div> -->
         </div>
         <div class="row">
             <div class="col-6">
@@ -81,36 +65,38 @@
                             </div>
                         </div>
                         <div class="row">
-                        
                             <div class="col-6">
                                 <h1 class="cl-title">Caja Final Según Usuarios</h1>
                             </div>
                             <div class="col-6 text-right">
-                                <span><u>$ {{number_format($cajaFinal,2,',','.')}}</u></span>
+                                <span><u>$ {{number_format($cajaFinalUsuarios,2,',','.')}}</u></span>
                             </div>
                         </div>
-                        <!-- <hr> -->
                         <div class="row" >
-                            <div class="col-6">
-                                <h1 class="cl-title" style="color: #8dbf42;">Diferencia</h1>
-                            </div>
-                            <div class="col-6 text-right">
-                                <span style="color: #8dbf42;">$ {{number_format($cajaFinal,2,',','.')}}</span>
-                            </div>
-                            <!-- <div class="col-6">
-                                <h1 class="cl-title" style="color: #F2351F;">Diferencia</h1>
-                            </div>
-                            <div class="col-6 text-right">
-                                <span style="color: #F2351F;">$ {{number_format($cajaFinal,2,',','.')}}</span>
-                            </div> -->
+                            @if($diferencia >= 0)
+                                <div class="col-6">
+                                    <h1 class="cl-title" style="color: #8dbf42;">Diferencia</h1>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <span style="color: #8dbf42;">$ {{number_format($diferencia,2,',','.')}}</span>
+                                </div>
+                            @else
+                                <div class="col-6">
+                                    <h1 class="cl-title" style="color: #F2351F;">Diferencia</h1>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <span style="color: #F2351F;">$ {{number_format($diferencia,2,',','.')}}</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
+            <input type="hidden" id="usuario_habilitado" wire:model="usuario_habilitado">  
         </div>
     </div>    
 </div>
-@include('livewire.cortes.modal')
+@include('livewire.arqueo_general.modal')
     <input type="hidden" id="id" value="0">	
 @can('ArqueoDeCajaDeOtros_index')
     <input type="hidden" id="verArqueoDeOtros" value="1">	
@@ -133,51 +119,30 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
-<script type="text/javascript">
- 	function Confirm(id)
-    {
-       let me = this
-       swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-		function() {
-			window.livewire.emit('deleteRow', id)    
-			toastr.success('info', 'Registro eliminado con éxito')
-			swal.close()   
-        })
-    }   
+<script type="text/javascript">   
     function cerrarArqueoGral()
     {
-            Swal.fire({
-                title: 'CONFIRMAR',
-                text: 'Deseas hacer el Arqueo General? No podrás deshacer esta acción...',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Aceptar',
-                cancelButtonText: 'Cancelar',
-                closeOnConfirm: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (result.value) {
-                      
-                        window.livewire.emit('cerrarArqueoGral')
-                    }
-                }else if (result.dismiss === Swal.DismissReason.cancel) {
-                    Swal.fire(
-                        'Cancelado',
-                        'El cierre no se concretó...',
-                        'error'
-                    )
+        Swal.fire({
+            title: 'CONFIRMAR',
+            text: 'Deseas hacer el Arqueo General? No podrás deshacer esta acción...',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value) {
+                    window.livewire.emit('cerrarArqueoGral')
                 }
-            })
+            }else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire(
+                    'Cancelado',
+                    'El cierre no se concretó...',
+                    'error'
+                )
+            }
+        })
 	}	
     function edit(row)
     {
@@ -189,36 +154,22 @@
     function openModal(id)
     {
         if(id == 1){
-            $('#id').show()
-            $('#importe').show()
-            $('#labelImporte').show()
-            $('#btnGuardar').show()            
-            $('#id').val(0)
-            $('#importe').val('')
             $('#modalCajaInicial').show()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()           
             $('#modalCajaFinal').hide()           
-            $('.modal-title').text('Caja Inicial')
+            $('.modal-title').text('Cajas Iniciales')
         }else if(id == 2){
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
             $('#modalCajaInicial').hide()
             $('#modalVentas').show()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
             $('#modalCajaFinal').hide() 
-            $('.modal-title').text('Listado de Ventas Diarias')
+            $('.modal-title').text('Ingresos Totales por Caja')
         }else if(id == 3){
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').show()
@@ -227,10 +178,6 @@
             $('#modalCajaFinal').hide() 
             $('.modal-title').text('Listado de Cobros de Cuenta Corriente')
         }else if(id == 4){
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
@@ -239,10 +186,6 @@
             $('#modalCajaFinal').hide() 
             $('.modal-title').text('Listado de Otros Ingresos')
         }else if(id == 5){
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
@@ -251,41 +194,46 @@
             $('#modalCajaFinal').hide() 
             $('.modal-title').text('Listado de Egresos')
         }else{
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide() 
             $('#modalCajaInicial').hide()
             $('#modalVentas').hide()
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
             $('#modalCajaFinal').show() 
-            $('.modal-title').text('Caja Final')
+            $('.modal-title').text('Cajas Finales')
         }
         $('#modalCajaRep').modal('show')
     }
-    function calcularDiferencia() {
-        window.livewire.emit('calcular_diferencia');
-    }
-    function save()
-    {
-        if($.trim($('#importe').val()) == '')
-        {
-            toastr.error('Ingresa un importe válido')
-            return;
-        }
-        var data = JSON.stringify({
-            'id'        : $('#id').val(),
-            'importe'   : $('#importe').val()            
-        });
-        window.livewire.emit('grabarCajaModal', data)
-    } 
     window.onload = function(){
+        if($('#usuario_habilitado').val() == 0){
+            swal({
+                title: 'Oops!',
+                text: 'Hoy no estás autorizado para realizar el Arqueo General...',
+                type: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Volver',
+                closeOnConfirm: false
+            },
+            function() {  
+                window.location.href="{{ url('notify') }}";
+                swal.close()   
+            })
+        };
 		Livewire.on('arqueoCerrado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Caja Cerrada!!',
+                text:'El Cierre se efectuó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            window.location.href="{{ route('home') }}";
+		})
+        Livewire.on('usuarioNoAutorizado',()=>{   //no funciona
             Swal.fire(
-                'Arqueo Cerrado!',
-                'El Cierre se efectuó correctamente...',
+                'Oops!',
+                'Hoy no estás autorizado para realizar el Arqueo General...',
                 'success'
             ).then((result) => {
                 if (result.isConfirmed) {
@@ -293,5 +241,5 @@
                 }
             });
 		})
-	}
+    }
 </script>

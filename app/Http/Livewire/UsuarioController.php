@@ -329,8 +329,7 @@ class UsuarioController extends Component
             DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos  
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }  
-    }  
-    
+    }      
     public function destroy($id, $comentario)
     {
         if ($id) {
@@ -355,17 +354,9 @@ class UsuarioController extends Component
             return;
         }
     }
-    // public function destroy($id)
-    // {
-    //     if ($id) { //si es un id válido
-    //         $record = User::where('id', $id); //buscamos el registro
-    //         $record->delete(); //eliminamos el registro
-    //         $this->resetInput(); //limpiamos las propiedades
-    //     }
-    // }
-
     public function sendEmail($user, $comercio, $admin)
     {
+        dd($user);
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
         $objDemo->demo_two = session('pass_empleado');

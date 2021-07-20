@@ -58,25 +58,71 @@
 <script type="text/javascript">
     function Confirm(id)
     {
-    	let me = this
-    	swal({
+        Swal.fire({
     		title: 'CONFIRMAR',
-    		text: '¿DESEAS ELIMINAR EL REGISTRO?',
-    		type: 'warning',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
     		showCancelButton: true,
-    		confirmButtonColor: '#3085d6',
-    		cancelButtonColor: '#d33',
     		confirmButtonText: 'Aceptar',
     		cancelButtonText: 'Cancelar',
-    		closeOnConfirm: false
-    	},
-    	function() {
-    		window.livewire.emit('deleteRow', id)
-    		swal.close()
-    	})
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('deleteRow', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
     }
+    // function Confirm(id)
+    // {
+    // 	let me = this
+    // 	swal({
+    // 		title: 'CONFIRMAR',
+    // 		text: '¿DESEAS ELIMINAR EL REGISTRO?',
+    // 		type: 'warning',
+    // 		showCancelButton: true,
+    // 		confirmButtonColor: '#3085d6',
+    // 		cancelButtonColor: '#d33',
+    // 		confirmButtonText: 'Aceptar',
+    // 		cancelButtonText: 'Cancelar',
+    // 		closeOnConfirm: false
+    // 	},
+    // 	function() {
+    // 		window.livewire.emit('deleteRow', id)
+    // 		swal.close()
+    // 	})
+    // }
     window.onload = function() {
         document.getElementById("search").focus();
+		Livewire.on('eliminarRegistro',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Tu registro no se puede eliminar!',
+                text: 'Existen Productos relacionados a esa Categoría...',
+                showConfirmButton: false,
+                timer: 3500
+            })
+		}) 
+		Livewire.on('registroEliminado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Registro Eliminado!',
+                text: 'Tu registro se eliminó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		}) 
     }
     function setfocus($id) {
         document.getElementById($id).focus();

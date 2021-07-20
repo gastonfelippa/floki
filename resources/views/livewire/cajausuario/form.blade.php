@@ -1,6 +1,6 @@
 <div class="col-sm-12 col-md-6 layout-spacing">
 	<div class="widget-content-area">
-        <div class="widget-one">
+        <div class="widget-one">	
             @include('common.messages')	
             <h5><b> @if($edit == 0) Nueva Asignación De Caja
                     @elseif($edit == 1) Editar Asignación De Caja
@@ -50,7 +50,29 @@
                     </div>			               
                 </div> 
             </div>              
-            <div class="row">                          
+            <div class="row">  
+            @if($edit == 1) 
+                <div class="col-6 layout-spacing mt-1">
+                    @if($edit == 0)
+                        <button type="button" wire:click="StoreOrUpdate()" class="btn btn-danger btn-block">
+                            HABILITAR
+                        </button>
+                    @elseif($edit == 1)
+                        <button type="button" wire:click="StoreOrUpdate()" class="btn btn-danger btn-block">
+                            EDITAR
+                        </button>
+                    @else
+                        <button type="button" wire:click="StoreOrUpdate()" class="btn btn-danger btn-block">
+                            AGREGAR
+                        </button>
+                    @endif
+                </div>
+                <div class="col-6 layout-spacing mt-1">
+                    <button type="button" wire:click="doAction(1)" class="btn btn-primary btn-block">
+                        CANCELAR
+                    </button>
+                </div>
+            @else
                 <div class="form-group col-12 col-sm-6">
                     <div class="input-group">
                         <div class="input-group-prepend">
@@ -79,49 +101,50 @@
                         CANCELAR
                     </button>
                 </div>
-
+            @endif
             </div>
+
             @if($edit != 0)
             <div class="table-responsive scrollform">
                 <table class="table table-hover table-checkable table-sm mb-4">
                     <thead>
                         <tr>
+                            <th></th>
                             <th class="text-left">FECHA/HORA</th>
                             <th class="text-right">IMPORTE</th>
+                            @if($edit != 2)
                             <th class="text-right">ACCIONES</th>
+                            @endif
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($infoImportesCaja as $r)
                         <tr>
+                            <td></td>
                             <td class="text-left">{{\Carbon\Carbon::parse($r->fecha)->format('d-m-Y H:i')}}</td>
                             <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+                            @if($edit != 2)
                             <td class="text-right">
 								<ul class="table-controls">
-									@can('HabilitarCaja_index')
-										<li>
-											<a href="javascript:void(0);" wire:click="editItem({{$r->id}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
-										</li>
-									@endcan
-									@can('HabilitarCaja_index')
-										<li>
-											<a href="javascript:void(0);"          		
-											onclick="Confirm('{{$r->id}}')"
-											data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
-										</li>
-									@endcan
+								    <li>
+									    <a href="javascript:void(0);" onclick="openModalImporte({{$r->id}},{{$r->importe}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
+								    </li>
+								    <li>
+									    <a href="javascript:void(0);"          		
+									    onclick="Confirm('{{$r->id}}')"
+									    data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
+								    </li>
 								</ul>
 							</td>
+                            @endif
+                            <td></td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>                   
             </div>
             @endif 
-
-            <!-- <div class="row">
-          
-            </div> -->
         </div>
     </div>	
 </div>

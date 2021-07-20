@@ -10,7 +10,7 @@ use DB;
 
 class GastoController extends Component
 {  
-	public $descripcion, $comentario = '', $categoria = 'Elegir', $tipo_gasto = 1;            
+	public $descripcion, $categoria = 'Elegir', $tipo_gasto = 1;            
     public $selected_id, $search; 
     public $comercioId, $action = 1;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
@@ -36,23 +36,23 @@ class GastoController extends Component
             'categorias' =>$categorias
         ]);
     }
-
+    protected $listeners = [
+        'deleteRow'=>'destroy',
+        'createFromModal' => 'createFromModal'       
+    ]; 
     public function doAction($action)
     {
         $this->action = $action;
         $this->resetInput();
     }
-
     private function resetInput()
     {
         $this->descripcion = '';
         $this->selected_id = null;    
         $this->search      = '';
-        $this->comentario  = '';
         $this->categoria   = 'Elegir';
         $this->tipo_gasto = 1;
     }
-
     public function edit($id)
     {
         $record = Gasto::findOrFail($id);
@@ -62,14 +62,12 @@ class GastoController extends Component
         
         $this->action = 2;
     }
-
     public function volver()
     {
         $this->recuperar_registro = 0;
         $this->resetInput();
         return; 
     }
-
     public function RecuperarRegistro($id)
     {
         DB::begintransaction();
@@ -80,7 +78,7 @@ class GastoController extends Component
                 'tabla'           => 'Egresos',
                 'estado'          => '1',
                 'user_delete_id'  => auth()->user()->id,
-                'comentario'      => $this->comentario,
+                'comentario'      => '',
                 'comercio_id'     => $this->comercioId
             ]);
             session()->flash('msg-ok', 'Registro recuperado');
@@ -92,7 +90,6 @@ class GastoController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-
     public function StoreOrUpdate()
     { 
         $this->validate([
@@ -165,12 +162,6 @@ class GastoController extends Component
         $this->resetInput();
         return;
     }
-
-    protected $listeners = [
-        'deleteRow'=>'destroy',
-        'createFromModal' => 'createFromModal'       
-    ];  
-
     public function createFromModal($info)
     {
         $data = json_decode($info);
@@ -188,7 +179,6 @@ class GastoController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
         }
     }
-
     public function destroy($id, $comentario)
     {
         if ($id) {

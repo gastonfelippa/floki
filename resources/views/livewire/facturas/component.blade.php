@@ -1,4 +1,4 @@
-<div class="row layout-top-spacing">
+<div class="row layout-top-spacing justify-content-center">
     @if($action == 1)	
     <div class="col-md-12 col-lg-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
@@ -306,8 +306,6 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 window.livewire.emit('elegirFormaDePago');
-                // window.livewire.emit('factura_contado')
-                // Swal.fire('Factura Cobrada!', '', 'success')
             } else if (result.isDenied) {
                 if(delivery == 0) {
                     modalCtacte()
@@ -316,15 +314,24 @@
                         'cliente_id' : idCli
                     });
                     window.livewire.emit('factura_ctacte', data)
-                    Swal.fire('Factura Cuenta Corriente', '', 'success')
                 }
             }
         })
     }
     function factura_contado()
-    {
-        window.livewire.emit('factura_contado')
-        Swal.fire('Factura Cobrada!', '', 'success')
+    { 
+        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Faltan datos, se cobrará como efectivo!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('[id="formaDePago"]').val(1)
+        }else{
+            window.livewire.emit('factura_contado')
+        }    
     }
     function AnularFactura(id)
     {
@@ -381,7 +388,6 @@
         });
         $('#modalCtacte').modal('hide')
         window.livewire.emit('factura_ctacte', data)
-        Swal.fire('Factura Cuenta Corriente', '', 'success')
     } 
     function openModal(id)
     {
@@ -411,18 +417,22 @@
     } 
     function mostrarInput(){		
 		$('[id="nroCompPago"]').val('');
+		$('[id="num"]').val('');
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-				|| $('[id="formaDePago"]').val() == '4') {
+				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
 			$('#modalNroComprobanteDePago').modal('show');
 		}else{
 			guardarDatosPago();
 		}
 	}
-
 	function guardarDatosPago(){
 		$('[id="num"]').val($('[id="nroCompPago"]').val())
-		var formaDePago = $('[id="formaDePago"]').val();
-		var nroCompPago = $('[id="nroCompPago"]').val();
+        if($('[id="num"]').val() != ''){
+            var formaDePago = $('[id="formaDePago"]').val();
+		    var nroCompPago = $('[id="nroCompPago"]').val();
+        }else{
+            $('[id="formaDePago"]').val(1)           
+        }		
 		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 	}
 
@@ -455,6 +465,24 @@
                 swal.close()   
             })
         }
+        Livewire.on('facturaCobrada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura Cobrada!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})         
+        Livewire.on('facturaCtaCte',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura enviada a Cuenta Corriente!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})
 
     } 
 </script>

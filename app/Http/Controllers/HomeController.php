@@ -60,10 +60,8 @@ class HomeController extends Controller
                 //si estamos en el mismo día 'o' es el día siguiente 
                 //y 'no' es más tarde que la hora de apertura del comercio
                 if($diff == 0 || $diff == 1 && $hora_actual <= $horaApertura->hora_apertura){
-       /////             session(['idArqueoGral' => $idArqueoGral[0]->id]); 
                     session(['estadoArqueoGral' => 'activo']); 
                 }else{    //sino, debemos hacer el arqueo 'si o si', e igualamos la variable a cero
-       /////             session(['idArqueoGral' => 0]);
                     session(['estadoArqueoGral' => 'pendiente']);
                 }     
             }else{
@@ -72,8 +70,27 @@ class HomeController extends Controller
                     //igualamos la variable a 'no_existe', para indicar que hay iniciar el arqueo al
                     //inicializar alguna Caja. 
             }               
-       /////     $this->arqueoGralId = session('idArqueoGral');
             $this->estadoAqueoGral = session('estadoArqueoGral');
+
+            //verifica si hay un arqueo cerrado con la misma fecha que hoy
+            //en tal caso, no permitimos abrir otro hasta el día siguiente, después del horario de apertura del local
+            if($this->estadoAqueoGral == 'no existe'){
+                $idArqueoGral = ArqueoGral::where('estado', '0')
+                    ->where('comercio_id', $this->comercioId)->orderBy('created_at', 'desc')->get();
+                if($idArqueoGral->count()){
+                    $date = Carbon::parse($idArqueoGral[0]->created_at);
+                    $hoy = Carbon::now();
+                    $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d');
+                    $hoy = $hoy_solo_fecha . ' 23:59:59';
+                    $diff = $date->diffInDays($hoy);
+                    $diff = $date->diffInDays($hoy);
+                    $hora_actual = Carbon::now()->format('H:i');
+                    if($diff == 0 || $diff == 1 && $hora_actual <= $horaApertura->hora_apertura){
+                        session(['estadoArqueoGral' => 'ya existe']);
+                        $this->estadoAqueoGral = session('estadoArqueoGral');
+                    }
+                }
+            }
 
             //verificaciones de planes
             $fecha_actual = Carbon::now();      
@@ -98,7 +115,6 @@ class HomeController extends Controller
 
             if($estado->estado_plan == 'activo')
             {
-       /////         if($this->arqueoGralId == 0) return view('livewire.admin.mensajes.forzar_arqueo');
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
                 else return view('home');
             }              

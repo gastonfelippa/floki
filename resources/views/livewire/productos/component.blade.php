@@ -59,8 +59,7 @@
     </div>
     @else
 	@can('Productos_create')
-	@include('livewire.productos.form')		
-	@include('livewire.productos.modal')		
+	@include('livewire.productos.form')			
 	@endif
 	@endcan
 </div>
@@ -85,47 +84,51 @@
 <script type="text/javascript">
     function Confirm(id)
     {
-        let me = this
-        swal({
-        title: 'CONFIRMAR',
-        text: '¿DESEAS ELIMINAR EL REGISTRO?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        closeOnConfirm: false
-        },
-        function() {
-            window.livewire.emit('deleteRow', id)    
-            swal.close()   
-        })       
-    }    
- 
-    function openModal()
-    { 
-        console.log(open)       
-        $('#descripcion').val('')
-        $('#margen').val('')
-        $('#modalCategorias').modal('show')
-	}
-	function saveCategoria()
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('deleteRow', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
+    }
+    function validarProducto()
     {
-        if($('#descripcion').val() == '') {
-            toastr.error('El campo Descripción no puede estar vacío')
-            return;
-        }
-        var data = JSON.stringify({
-            'descripcion': $('#descripcion').val(),
-            'margen': $('#margen').val()
-        });
-
-        $('#modalCategorias').modal('hide')
-        window.livewire.emit('createCategoriaFromModal', data)
+        window.livewire.emit('validarProducto');
     } 
-    
     window.onload = function() {
         document.getElementById("search").focus();
+        Livewire.on('registroEliminado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Registro Eliminado!',
+                text: 'Tu registro se eliminó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		}) 
+        Livewire.on('registroRepetido',()=>{
+            var producto = document.getElementById("nombre");
+			toastr.error('El Producto ya existe!', 'Info')
+			producto.focus();
+			return false;
+		})
     }
 </script>

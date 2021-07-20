@@ -5,43 +5,57 @@
                 <div class="widget-content-area">
 
                     <div class="widget-one">
-                        <h4 class="text-center mb-5">Reporte de Ventas por Fecha</h4>
+                        <h4 class="text-center">Reporte de Ventas por Fecha</h4>
+                        <hr>
                         <div class="row">
-                            <div class="col-sm-12 col-md-2 col-lg-2">
+                            <div class="col-sm-12 col-md-2">
                                 Fecha inicial
                                 <div class="form-group"> 
                                     <input wire:model.lazy="fecha_ini" type="text" class="form-control flatpickr flatpickr-input active" placeholder="Haz click">
                                 </div>
                             </div> 
-                        
-                        <!-- <div class="row"> -->
-                            <div class="col-sm-12 col-md-2 col-lg-2">
+                            <div class="col-sm-12 col-md-2">
                                 Fecha final
-                                <div class="form-group"> 
-                                    <input wire:model.lazy="fecha_fin" type="text" class="form-control flatpickr flatpickr-input active" placeholder="Haz click">
+                                <div class="form-group">
+                                <input type="month" name="fecha" id="fecha" class="form-control" value="2019-08">
+                                    <!-- <input wire:model.lazy="fecha_fin" type="text" class="form-control flatpickr flatpickr-input active" placeholder="Haz click"> -->
                                 </div>
+                            </div>
+                        <div class="row col-sm-12 col-md-5">
+                            <div class="col-7">
+                                <b>Fecha/hora Inicio Arqueo</b>
+                                <br>
+                                <b>Cantidad Registros</b> 
+                                <br>
+                                <b>Total de Ventas</b> 
+                            </div>
+                            <div class="col-5">
+                                {{\Carbon\Carbon::parse($fecha_arqueo)->format('d-m-Y')}} /
+                                {{\Carbon\Carbon::parse($hora_arqueo)->format('h:i')}}
+                                <br>
+                                {{$cantVentas}}
+                                <br>
+                                $ {{number_format($sumaTotal,2)}}
                             </div> 
-                        <!-- </div> -->
-                        <div class="col-sm-12 col-md-1 col-lg-1 text-left">
-                            <button type="submit" class="btn btn-info mt-4 mobile-only">Ver</button>
-                        </div>
-                        <div class="col-sm-12 col-md-1 col-lg-1 text-left">
-                            <button type="submit" class="btn btn-dark mt-4 mobile-only">Exportar</button>
-                        </div>
-                        <div class="col-sm-12 col-md-3 col-lg-3 offset-lg-3">
-                            <b>Fecha de Consulta</b> {{\Carbon\Carbon::now()->format('d-m-Y')}}
-                            <br>
-                            <b>Cantidad Registros</b> {{$cantVentas->count()}}
-                            <br>
-                            <b>Total de Ingresos</b> $ {{number_format($sumaTotal,2)}}
-                        </div>
+                        </div> 
+                        <div class="row col-sm-12 col-md-3 mt-2">
+                            <div class="col-7">
+                            @if($verFacturas == 0)
+                                <button type="submit" wire:click="ver_facturas()" class="btn btn-info btn-block">Ver Facturas</button>
+                            @else
+                                <button type="submit" wire:click="ver_facturas()" class="btn btn-info btn-block">Ocultar Facturas</button>
+                            @endif
+                            </div>
+                            <div class="col-5">
+                                <button type="submit" class="btn btn-dark">Exportar</button>
+                            </div>
+                        </div>    
                         </div>
                     </div>
-
-                    <div class="row">
-                    <div class="col-lg-1"></div>
-                            <div class="table-responsive mt-3 table-sm col-lg-10">
-                            <table class="table table-bordered table-hover table-striped table-checkable table-highlight mb-4">
+                    @if($verFacturas == 1)
+                    <div class="row justify-content-center">
+                        <div class="table-responsive mt-3 table-sm col-lg-8  scroll">
+                            <table class="table table-hover table-checkable table-sm">
                                 <thead>
                                     <tr>
                                         <th class="text-center">FACT N°</th>
@@ -62,18 +76,27 @@
                                     </tr>
                                     @endforeach
                                 </tbody>
-                             <!--   <tfoot>
+                               <!-- <tfoot>
                                     <tr>             
                                         <th class="text-right" colspan="9">SUMA IMPORTES:</th>
                                         <th class="text-center" colspan="1">$ {{number_format($sumaTotal,2)}}</th>
                                     </tr>
                                 </tfoot>  -->
                             </table>
-                            {{$info->links()}}
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style type="text/css" scoped>
+.scroll{
+    height: 205px;
+    position: relative;
+    margin-top: .5rem;
+    overflow: auto;
+}
+</style>

@@ -1,4 +1,5 @@
-@component('mail::message')
+<!-- mensaje que se envía al empleado agregado -->
+@component('mail::message')   
 # Hola {{$user->name}}!!<br>
 # {{$comercio}} te da la bienvenida a su equipo de trabajo!
 

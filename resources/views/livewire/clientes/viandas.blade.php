@@ -1,7 +1,6 @@
 <div class="col-12"> 
 	<div class="widget-content-area">
         <div class="widget-one">
-        @include('common.alerts') <!-- mensajes -->
         @include('common.messages')
             <!-- <h6 class="text-center"><b>VIANDAS</b></h6> -->
             <div class="row row-cols-1 row-cols-lg-4">
@@ -27,8 +26,8 @@
                                             <input class="form-control" type="time" wire:model="h_lunes_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_lunes_m">
-                                           </div>
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_lunes_m">
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -50,7 +49,7 @@
                                             <input class="form-control" type="time" wire:model="h_lunes_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_lunes_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_lunes_n">
                                            </div>
                                     </div>
                                    </td>
@@ -80,7 +79,7 @@
                                             <input class="form-control" type="time" wire:model="h_martes_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_martes_m">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_martes_m">
                                         </div>
                                     </div>
                                 </td>
@@ -103,7 +102,7 @@
                                             <input class="form-control" type="time" wire:model="h_martes_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_martes_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_martes_n">
                                         </div>
                                     </div>
                                 </td>
@@ -133,7 +132,7 @@
                                             <input class="form-control" type="time" wire:model="h_miercoles_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_miercoles_m">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_miercoles_m">
                                         </div>
                                     </div>
                                 </td>
@@ -154,11 +153,11 @@
                                         </div>
                                         <div class="col-xs-5">                
                                             <input class="form-control" type="time" wire:model="h_miercoles_n">
-                                            </div>
-                                        <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_miercoles_n">
-                                            </div>
                                         </div>
+                                        <div class="text-center ml-1" id="num">       
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_miercoles_n">
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         </div>
@@ -186,7 +185,7 @@
                                             <input class="form-control" type="time" wire:model="h_jueves_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                               <input class="form-control" type="number" placeholder="0" wire:model="c_jueves_m">
+                                               <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_jueves_m">
                                         </div>
                                     </div>
                                 </td>
@@ -209,7 +208,7 @@
                                             <input class="form-control" type="time" wire:model="h_jueves_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_jueves_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_jueves_n">
                                         </div>
                                     </div>
                                 </td>
@@ -241,7 +240,7 @@
                                             <input class="form-control" type="time" wire:model="h_viernes_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_viernes_m">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_viernes_m">
                                         </div>
                                      </div>
                                 </td>
@@ -264,7 +263,7 @@
                                                 <input class="form-control" type="time" wire:model="h_viernes_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_viernes_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_viernes_n">
                                         </div>
                                     </div>
                                 </td>
@@ -294,7 +293,7 @@
                                             <input class="form-control" type="time" wire:model="h_sabado_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_sabado_m">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_sabado_m">
                                         </div>
                                     </div>
                                 </td>
@@ -317,7 +316,7 @@
                                             <input class="form-control" type="time" wire:model="h_sabado_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_sabado_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_sabado_n">
                                         </div>
                                     </div>
                                 </td>
@@ -347,7 +346,7 @@
                                             <input class="form-control" type="time" wire:model="h_domingo_m">
                                         </div>
                                         <div class="text-center ml-1 mb-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_domingo_m">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_domingo_m">
                                         </div>
                                     </div>
                                 </td>
@@ -370,7 +369,7 @@
                                                <input class="form-control" type="time" wire:model="h_domingo_n">
                                         </div>
                                         <div class="text-center ml-1" id="num">       
-                                            <input class="form-control" type="number" placeholder="0" wire:model="c_domingo_n">
+                                            <input class="form-control" type="number" min="0" placeholder="0" wire:model="c_domingo_n">
                                         </div>
                                     </div>
                                 </td>

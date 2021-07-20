@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\CajaUsuario;
+use App\Models\Cliente;
 use App\Models\Ctacte;
 use App\Models\Detfactura;
 use App\Models\Factura;
@@ -17,7 +18,9 @@ class FacturasACobrarController extends Component
 
     public $comercioId, $salon, $action='1', $nombreCliente, $infoDetalle, $selected_id = null;
     public $producto, $productos, $cantidadEdit, $productoEdit, $precioEdit;
-    public $editFacturaId ='', $comentario = '', $caja_abierta;
+    public $editFacturaId ='', $comentario = '', $caja_abierta, $importeFactura;
+    public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
+    public $facturaId, $clienteId, $total_factura;
 
     public function render()
     {
@@ -65,7 +68,7 @@ class FacturasACobrarController extends Component
             ->where('facturas.repartidor_id', $this->salon[0]->id)
             ->where('facturas.user_id', auth()->user()->id)
             ->orderBy('facturas.id', 'asc')->get();
-//dd(auth()->user()->id);
+
         return view('livewire.facturasacobrar.component', [
             'info' => $info
         ]);
@@ -73,22 +76,25 @@ class FacturasACobrarController extends Component
     public function resetInput()
     {
         $this->cantidadEdit = '';
-        $this->productoEdit ='Elegir';
-        $this->precioEdit   ='';
+        $this->productoEdit = 'Elegir';
+        $this->precioEdit   = '';
         $this->selected_id  = 0;
         $this->comentario   = '';
+        $this->action       = 1;
     }
     protected $listeners = [
-        'factura_contado' => 'factura_contado',
-        'factura_ctacte'  => 'factura_ctacte',
-        'deleteRow'       => 'destroy',
-        'doAction'        => 'doAction',      
-        'anularFactura'   => 'anularFactura' 
+        'factura_contado'   => 'factura_contado',
+        'factura_ctacte'    => 'factura_ctacte',
+        'eliminarRegistro'  => 'eliminarRegistro',
+        'doAction'          => 'doAction',
+        'elegirFormaDePago' => 'elegirFormaDePago',
+        'enviarDatosPago'   => 'enviarDatosPago',      
+        'anularFactura'     => 'anularFactura' 
     ];
     public function doAction($action)
 	{
         $this->action = $action;
-        $this->resetInput();
+        //$this->resetInput();
     }
     public function verDet($id, $nomCli, $apeCli)
     {
@@ -142,7 +148,7 @@ class FacturasACobrarController extends Component
         $this->validate([
             'cantidadEdit' => 'required',
             'productoEdit' => 'required',
-            'precioEdit' => 'required'
+            'precioEdit'   => 'required'
         ]);
         //valida si se quiere modificar o grabar
         DB::begintransaction();       
@@ -150,9 +156,9 @@ class FacturasACobrarController extends Component
             if($this->selected_id > 0) {
                 $record = Detfactura::find($this->selected_id);
                 $record->update([
-                    'cantidad' => $this->cantidadEdit,
+                    'cantidad'    => $this->cantidadEdit,
                     'producto_id' => $this->productoEdit,
-                    'precio' => $this->precioEdit
+                    'precio'      => $this->precioEdit
                 ]);
             }else {
                 $existe = Detfactura::select('id')          //buscamos si el producto ya está cargado
@@ -167,10 +173,10 @@ class FacturasACobrarController extends Component
                     ]);
                 }else{
                     $add_item = Detfactura::create([         //creamos un nuevo detalle
-                        'factura_id' => $this->editFacturaId,
-                        'cantidad' => $this->cantidadEdit,
+                        'factura_id'  => $this->editFacturaId,
+                        'cantidad'    => $this->cantidadEdit,
                         'producto_id' => $this->productoEdit,
-                        'precio' => $this->precioEdit,
+                        'precio'      => $this->precioEdit,
                         'comercio_id' => $this->comercioId
                     ]);
                 }
@@ -184,66 +190,89 @@ class FacturasACobrarController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
         $this->verDetalle($this->editFacturaId);
-        $this->resetInput();
-    }    
-    public function factura_contado($id)
+    } 
+    public function factura_contado()
     {
         DB::begintransaction();                         //iniciar transacción para grabar
         try{
-            $record = Factura::find($id);
+            $record = Factura::find($this->facturaId);
             $record->update([
-                'estado' => 'contado',
-                'estado_pago' => '1'
+                'estado'        => 'contado',
+                'estado_pago'   => '1',
+                'importe'       => $this->total_factura,
+                'forma_de_pago' => $this->f_de_pago,
+                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                'mercadopago'   => $this->mercadopago,
+                'comentario'    => $this->comentarioPago
             ]);
             DB::commit();
+            $this->emit('facturaCobrada');
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
         $this->resetInput();
     }
-    public function factura_ctacte($id, $cliId)
+    public function factura_ctacte($data)
     {
+        $info = json_decode($data);
+        $this->facturaId = $info->factura_id;
+        $this->clienteId = $info->cliente_id;
+        $total    = $info->total;
         DB::begintransaction();                         //iniciar transacción para grabar
         try{
-            $record = Factura::find($id);
+            $record = Factura::find($this->facturaId);
             $record->update([
-                'cliente_id' => $cliId,
-                'estado' => 'ctacte',
-                'estado_pago' => '0'
+                'cliente_id'  => $this->clienteId,
+                'estado'      => 'ctacte',
+                'estado_pago' => '0',
+                'importe'     => $total
             ]);
             Ctacte::create([
-                'cliente_id' => $cliId,
-                'factura_id' => $id
+                'cliente_id' => $this->clienteId,
+                'factura_id' => $this->facturaId
             ]);
-            $record = Cliente::find($cliId);   //marca que el cliente tiene un saldo en ctacte
+            $record = Cliente::find($this->clienteId);   //marca que el cliente tiene un saldo en ctacte
             $record->update([
                 'saldo' => '1'
             ]);
-            session()->flash('msg-ok', 'La Factura fué enviada a Cuenta Corriente...');
             DB::commit();
+            $this->emit('facturaCtaCte');
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
         return;
     }
-    public function destroy($id) //elimina item
+    public function elegirFormaDePago($facturaId, $idCli, $total)
     {
+        $this->facturaId = $facturaId;
+        $this->total_factura = $total;
+        $this->f_de_pago = '1';        
+        $this->doAction(3);
+    }
+    public function enviarDatosPago($tipo,$nro)
+    {
+        $this->f_de_pago = $tipo;
+        $this->nro_comp_pago = $nro;
+    }
+    public function eliminarRegistro($id, $comentario) //elimina item
+    {
+        $this->comentario= $comentario;
         if ($id) {
             DB::begintransaction();
             try{
                 $detFactura = Detfactura::find($id)->delete();
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
-                    'tabla'           => 'Detalle de Facturas',
+                    'tabla'           => 'Detalle de Facturas Pendientes',
                     'estado'          => '0',
                     'user_delete_id'  => auth()->user()->id,
                     'comentario'      => $this->comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
-                session()->flash('msg-ok', 'Registro eliminado con éxito!!');
-                DB::commit();               
+                DB::commit();
+                $this->emit('registroEliminado');               
             }catch (\Exception $e){
                 DB::rollback();
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
@@ -265,11 +294,11 @@ class FacturasACobrarController extends Component
                 $factura = Factura::find($id)->delete();
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
-                    'tabla' => 'Facturas',
-                    'estado' => '0',
-                    'user_delete_id' => auth()->user()->id,
-                    'comentario' => $comentario,
-                    'comercio_id' => $this->comercioId
+                    'tabla'           => 'Facturas',
+                    'estado'          => '0',
+                    'user_delete_id'  => auth()->user()->id,
+                    'comentario'      => $comentario,
+                    'comercio_id'     => $this->comercioId
                 ]);
                 session()->flash('msg-ok', 'Registro Anulado con éxito!!');
                 DB::commit();               

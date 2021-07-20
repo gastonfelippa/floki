@@ -8,7 +8,6 @@ use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use App\Models\Auditoria;
 use App\Models\CajaInicial;
 use App\Models\CajaUsuario;
 use App\Models\Factura;
@@ -25,15 +24,11 @@ use DB;
 class CortesController extends Component
 {
     
-    public $fecha, $fecha_inicio, $nro_arqueo, $user = 0, $factPendiente;
-    public $cajaInicial, $ventas, $cobrosCtaCte, $otrosIngresos, $egresos, $cajaFinal, $totalIngresos, $Arqueo;
-    public $comercioId, $selected_id = null, $importe, $nro_caja = 1, $comentario='', $caja_abierta = 1;
-    public $diferencia = 0, $dif, $arqueoGralId, $estadoArqueoGral, $usuario_habilitado, $repartidor = true;
-
-    public function mount()
-    {
-
-    }
+    public $fecha, $fecha_inicio;
+    public $comercioId, $arqueoGralId, $estadoArqueoGral, $nro_arqueo, $Arqueo;
+    public $cajaInicial, $ventas, $cobrosCtaCte, $otrosIngresos, $totalIngresos, $egresos, $cajaFinal;
+    public $importe, $comentario='', $caja_abierta = 1, $factPendiente;
+    public $user = 0, $usuario_habilitado = 1, $repartidor = true;
 
     public function render()
     {
@@ -52,67 +47,76 @@ class CortesController extends Component
             //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir...
             //si es ese usuario, habilito para que vea todas las cajas
             //sino, debo averiguar si hay una Caja abierta con su Id, 
-            //y en ese caso solo le dejo ver la suya, de lo contrario muestro un mensaje y vuelvo al home
+            //y en ese caso solo le dejo ver la suya, pero no realizar el cierre de la misma,
+            //de lo contrario muestro un mensaje y vuelvo al home
             $usuarioArqueo = CajaUsuario::where('user_id', auth()->user()->id)
                     ->where('arqueo_gral_id', $this->arqueoGralId)->get();
-            if($usuarioArqueo->count()) $this->user = 0;
-            else{
+            if($usuarioArqueo->count()){
+                $this->user = 0;                //usuario habilitado para ver todo
+            }else{
+                $this->usuario_habilitado = 0;  //el usuario solo verá su arqueo
                 $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
                     ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();           
                 $this->caja_abierta = $caja_abierta->count();
-                if($caja_abierta->count() > 0){
+                if($caja_abierta->count()){
                     $this->user = auth()->user()->id;
                     $this->nro_arqueo = $caja_abierta[0]->id;
                     $this->fecha_inicio = $caja_abierta[0]->created_at;
                 }
             }
+                    //busco los usuarios con Caja abierta
+            $users = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
+            ->join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
+            ->where('c.comercio_id', $this->comercioId)
+            ->where('caja_usuarios.estado', '1')
+            ->where('caja_usuarios.user_id', auth()->user()->id)
+            ->select('u.id', 'u.name')->get();
+        }else{
+                    //busco los usuarios con Caja abierta
+            $users = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
+            ->join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
+            ->where('c.comercio_id', $this->comercioId)
+            ->where('caja_usuarios.estado', '1')
+            ->select('u.id', 'u.name')->get();
         }
-     //   dd($this->nro_arqueo);
         //muestro datos solo si hay un usuario seleccionado
         if($this->user <> 0){
             $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->user)
-                ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();           
-           // $this->caja_abierta = $caja_abierta->count();
-            if($caja_abierta->count() > 0){
-               // $this->user = auth()->user()->id;
+                ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();   
+            if($caja_abierta->count()){
                 $this->nro_arqueo = $caja_abierta[0]->id;
                 $this->fecha_inicio = $caja_abierta[0]->created_at;
             }
             $this->Arqueo(); 
         }         
-      //  if($this->user <> 0)dd($this->nro_arqueo);
         //capturo el id del repartidor Salón para asociarla a alguna Caja que tenga facturas pendientes
-        $this->salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+        $salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('uc.comercio_id', $this->comercioId)
             ->where('users.name', '...')
             ->where('users.apellido', 'Salón')
             ->where('uc.comercio_id', $this->comercioId)
             ->select('users.id')->get();    
         $factPendiente = Factura::where('estado', 'pendiente')
-            ->where('repartidor_id', $this->salon[0]->id)
+            ->where('repartidor_id', $salon[0]->id)
             ->where('user_id', $this->user)
             ->orWhere('repartidor_id', $this->user)
             ->where('estado', 'pendiente', 'repartidor_id')->get();
         if($factPendiente->count()){     //si hay facturas pendientes, cambio el valor de factPendiente
             $this->factPendiente = 1;    //luego veo si son facturas de repartidores o no
-            if($factPendiente[0]->repartidor_id == $this->salon[0]->id) $this->repartidor = false;
+            if($factPendiente[0]->repartidor_id == $salon[0]->id) $this->repartidor = false;
         }else $this->factPendiente = 0;        
 
-        //busco los usuarios con Caja abierta
-        $users = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
-            ->join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
-            ->where('c.comercio_id', $this->comercioId)
-            ->where('caja_usuarios.estado', '1')
-            ->where('caja_usuarios.user_id', auth()->user()->id)
-            ->select('u.id', 'u.name')->get();
+        // //busco los usuarios con Caja abierta
+        // $users = CajaUsuario::join('users as u', 'u.id', 'caja_usuarios.caja_usuario_id')
+        //     ->join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
+        //     ->where('c.comercio_id', $this->comercioId)
+        //     ->where('caja_usuarios.estado', '1')
+        //     ->where('caja_usuarios.user_id', auth()->user()->id)
+        //     ->select('u.id', 'u.name')->get();
 
-        $infoCajaInicial = CajaInicial::join('caja_usuarios as cu', 'cu.caja_id', 'caja_inicials.id')
-            ->where('cu.id', $this->nro_arqueo)->get(); 
-        
-        // $infoCajaInicial = CajaUsuario::join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
-        //     ->join('caja_inicials as ci', 'ci.caja_user_id', 'caja_usuarios.id')
-        //     ->where('caja_usuarios.caja_usuario_id', $this->user)
-        //     ->where('caja_usuarios.estado', '1')->sum('importe');
+        $infoCajaInicial = CajaInicial::join('caja_usuarios as cu', 'cu.id', 'caja_inicials.caja_user_id')
+            ->where('cu.id', $this->nro_arqueo)
+            ->select('caja_inicials.created_at', 'caja_inicials.importe')->get(); 
 
         $listaVentas = Factura::where('arqueo_id', $this->nro_arqueo)
             ->where('estado', 'contado')
@@ -141,18 +145,17 @@ class CortesController extends Component
             ->select('g.descripcion', 'movimiento_de_cajas.importe')->get(); 
 
         return view('livewire.cortes.component',[
-                'users' => $users,
+                'users'           => $users,
                 'infoCajaInicial' => $infoCajaInicial,
-                'listaVentas' => $listaVentas,
-                'listaCobros' => $listaCobros,
-                'listaIngresos' => $listaIngresos,
-                'listaEgresos' => $listaEgresos
+                'listaVentas'     => $listaVentas,
+                'listaCobros'     => $listaCobros,
+                'listaIngresos'   => $listaIngresos,
+                'listaEgresos'    => $listaEgresos
             ]);
     }
     public function resetInput()
     {
         $this->user = 0;
-        $this->selected_id = null;
         $this->cajaInicial = 0;
         $this->ventas = 0;
         $this->cobrosCtaCte = 0;
@@ -163,22 +166,13 @@ class CortesController extends Component
 
     protected $listeners = [
         'infoToPrintCorte'     => 'PrintCorte',
-        'grabarCajaModal'      => 'grabarCajaModal',
-        'deleteRow'            => 'destroy',
         'cambiarFecha'         => 'cambiarFecha',
-        'userArqueo'           => 'userArqueo',
         'cerrarCaja'           => 'cerrarCaja'
     ];
-    public function userArqueo($puede_ver_otros)
-    {
-        if($puede_ver_otros == 0) $this->user = auth()->user()->id;
-        else $this->user = 0;        
-    }
-    public function cambiarFecha($data)
-    {
+    public function cambiarFecha($data) //no se usa por ahora, tal vez sirva para cuando se busquen
+    {                                   //arqueos por fecha
         if($data != '') $this->fecha = date('w',strtotime($data));
     }
-
     public function Arqueo()
     {   
         $this->cajaInicial = CajaUsuario::join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
@@ -189,8 +183,7 @@ class CortesController extends Component
             ->where('cu.estado', '1')
             ->where('facturas.arqueo_id', $this->nro_arqueo)
             ->where('facturas.estado', 'contado')->sum('importe');
-        $this->cobrosCtaCte = Recibo::whereDate('created_at', Carbon::today())
-            ->where('comercio_id', $this->comercioId)->sum('importe');
+        $this->cobrosCtaCte = Recibo::where('recibos.arqueo_id', $this->nro_arqueo)->sum('importe');
         $this->otrosIngresos = MovimientoDeCaja::join('otro_ingresos as g', 'g.id', 'movimiento_de_cajas.ingreso_id')
             ->join('caja_usuarios as cu', 'cu.id', 'movimiento_de_cajas.arqueo_id')
             ->where('cu.estado', '1')
@@ -206,7 +199,6 @@ class CortesController extends Component
                            $this->otrosIngresos - $this->egresos;
         $this->totalIngresos = $this->ventas + $this->cobrosCtaCte + $this->otrosIngresos;
     }
-
     public function Consultar()  //no se usa por ahora, tal vez sirva para cuando se busquen 
     {                            //arqueos por fecha
         
@@ -253,20 +245,20 @@ class CortesController extends Component
             $this->cajaFinal = $this->cajaInicial + $this->ventas + $this->cobrosCtaCte + 
                                $this->otrosIngresos - $this->egresos;
         }
-    }
-    
+    }    
     public function cerrarCaja($cajaFinalSegunUsuario)
-    { 
+    {
         $diferenciaDeCaja = $cajaFinalSegunUsuario - $this->cajaFinal;
         DB::begintransaction();
         try{
             $record = CajaUsuario::where('id', $this->nro_arqueo);
             $record->update([
-                'estado'     => '0',
+                'estado'             => '0',
                 'caja_final_sistema' => $this->cajaFinal,  //según sistema
-                'diferencia' => $diferenciaDeCaja          //si falta dinero, el monto será negativo
+                'diferencia'         => $diferenciaDeCaja  //si falta dinero, el monto será negativo
             ]);
-            DB::commit();               
+            DB::commit();
+            $this->emit('cajaCerrada');               
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Caja no se cerró...');
@@ -303,66 +295,5 @@ class CortesController extends Component
         $impresora->feed(3);
         $impresora->cut();
         $impresora->close();
-    }     
-    public function grabarCajaModal($info)
-	{
-		$data = json_decode($info);
-		$this->selected_id = $data->id;
-        $this->importe = $data->importe;
-
-		$this->StoreOrUpdateCajaInicial();
-    }
-    public function StoreOrUpdateCajaInicial()
-    {
-        DB::begintransaction();
-        try{
-            //valida si se quiere modificar o grabar   
-            if($this->selected_id > 0) {
-                $record = CajaInicial::find($this->selected_id);
-                $record->update([
-                    'nro_caja' => $this->nro_caja,                        
-                    'importe' => $this->importe               
-                ]);
-            }else {            
-                CajaInicial::create([
-                    'nro_caja'        => $this->nro_caja,
-                    'importe'     => $this->importe,
-                    'user_id' => auth()->user()->id
-                ]);
-            }              	              
-            DB::commit();
-            if($this->selected_id > 0) session()->flash('message', 'Registro Actualizado');       
-            else session()->flash('message', 'Registro Agregado');  
-        }catch (\Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-        }     
-        $this->resetInput(); 
-        return; 
-    }
-
-    public function destroy($id) 
-    {
-        if ($id) {
-            DB::begintransaction();
-            try{
-                $cajaInicial = CajaInicial::find($id)->delete();
-                $audit = Auditoria::create([
-                    'item_deleted_id' => $id,
-                    'tabla' => 'Caja Inicial',
-                    'estado' => '0',
-                    'comentario' => $this->comentario,
-                    'user_delete_id' => auth()->user()->id,
-                    'comercio_id' => $this->comercioId
-                ]);
-                session()->flash('msg-ok', 'Registro eliminado con éxito!!');
-                DB::commit();               
-            }catch (\Exception $e){
-                DB::rollback();
-                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
-            }
-            $this->resetInput();
-            return;
-        }
-    }
+    } 
 }

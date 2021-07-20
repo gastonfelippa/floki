@@ -142,7 +142,6 @@ class FacturaController extends Component
             'encabezado' => $encabezado
 		]);
     }
-
     public function verSaldo($id)
     {            
         $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
@@ -172,7 +171,6 @@ class FacturaController extends Component
             $this->saldoCtaCte = $i->importe;
         }
     }
-
     public function facturaAfip()
     {
         include './../resources/src/Afip.php';
@@ -213,8 +211,7 @@ class FacturaController extends Component
         $res = $afip->ElectronicBilling->CreateVoucher($data);
         echo $res['CAE']; //CAE asignado el comprobante
         echo $res['CAEFchVto']; //Fecha de vencimiento del CAE (yyyy-mm-dd)
-    }
-    
+    }    
     protected $listeners = [
         'modCliRep'         => 'modCliRep',
         'deleteRow'         => 'destroy',
@@ -225,13 +222,11 @@ class FacturaController extends Component
         'enviarDatosPago'   => 'enviarDatosPago',
         'dejar_pendiente'   => 'dejar_pendiente' 
     ];
-
 	public function buscarArticulo($id)
 	{
 		$this->articulos = Producto::where('comercio_id', $this->comercioId)
                                 ->where('categoria_id', $id)->orderBy('descripcion', 'asc')->get();
-	}
-    
+	}    
     public function buscarProducto($id)
     {
         $pvta = Producto::select()->where('comercio_id', $this->comercioId)->where('codigo', $id)->get();
@@ -247,7 +242,6 @@ class FacturaController extends Component
     {
         $this->action = $action;
     }
-
     public function resetInput()
     {
         $this->cantidad = 1;
@@ -264,8 +258,7 @@ class FacturaController extends Component
         $this->mercadopago = null;
         $this->comentarioPago = '';
         $this->forzar_arqueo = 0;
-    }
-    
+    }    
     public function resetInputTodos()
     {
         $this->cantidad = 1;
@@ -284,7 +277,6 @@ class FacturaController extends Component
         $this->estado_entrega = '0';
         $this->salon = null;
     }
-
     public function edit($id)
     {
         $record = DetFactura::find($id);
@@ -292,8 +284,6 @@ class FacturaController extends Component
         $this->producto = $record->producto_id;
         $this->precio = $record->precio;
         $this->cantidad = $record->cantidad;
-
-        $this->action = 2;
     }
     public function StoreOrUpdate($id)
     {
@@ -391,15 +381,16 @@ class FacturaController extends Component
         try{
             $record = Factura::find($this->factura_id);
             $record->update([
-                'estado' => 'contado',
-                'estado_pago' => '1',
-                'importe' => $this->total,
+                'estado'        => 'contado',
+                'estado_pago'   => '1',
+                'importe'       => $this->total,
                 'forma_de_pago' => $this->f_de_pago,
                 'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
                 'mercadopago'   => $this->mercadopago,
                 'comentario'    => $this->comentarioPago
             ]);
             DB::commit();
+            $this->emit('facturaCobrada');
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -427,7 +418,7 @@ class FacturaController extends Component
             $record->update([
                 'saldo' => '1'
             ]);
-            session()->flash('msg-ok', 'La Factura fué enviada a Cuenta Corriente...');
+            $this->emit('facturaCtaCte');
             DB::commit();               
         }catch (Exception $e){
             DB::rollback();
@@ -526,11 +517,11 @@ class FacturaController extends Component
                 $factura = Factura::find($id)->delete();
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
-                    'tabla' => 'Facturas',
-                    'estado' => '0',
-                    'user_delete_id' => auth()->user()->id,
-                    'comentario' => $comentario,
-                    'comercio_id' => $this->comercioId
+                    'tabla'           => 'Facturas',
+                    'estado'          => '0',
+                    'user_delete_id'  => auth()->user()->id,
+                    'comentario'      => $comentario,
+                    'comercio_id'     => $this->comercioId
                 ]);
                 session()->flash('msg-ok', 'Registro Anulado con éxito!!');
                 DB::commit();               
