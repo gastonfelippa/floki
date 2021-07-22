@@ -28,14 +28,14 @@
 					<tr>
 						<td class="text-center">{{\Carbon\Carbon::parse($r->fecha)->format('d-m-Y')}}</td>
 						<td class="text-left">FAC-{{str_pad($r->num_factura, 6, '0', STR_PAD_LEFT)}}</td>
-						<td class="text-right mr-2">{{number_format($r->importe,2)}}</td>
+						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
 				</tbody>
 			</table> 		                  
 		</div><br>
 		<div class="text-right mr-2">
-			<b>Total Recibo: $  {{number_format($info[0]->total,2)}}</b>
+			<b>Total Recibo: $  {{number_format($info[0]->total,2,',','.')}}</b>
 		</div>
 	</div>
 @endsection

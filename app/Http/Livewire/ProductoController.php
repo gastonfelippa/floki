@@ -138,7 +138,6 @@ class ProductoController extends Component
 		]);
 		
 		$this->validate([
-			'categoria'    => 'required',
 			'descripcion'  => 'required',
 			'estado'       => 'required',
 			'tipo'         => 'required',

@@ -259,7 +259,7 @@ class RegisterController extends Controller
     }
     public function sendEmail($user, $comercio)
     {
-        dd($user);
+       // dd($user);
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
         $objDemo->demo_two = '';

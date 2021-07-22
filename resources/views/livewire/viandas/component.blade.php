@@ -29,7 +29,10 @@
     </div>
     <div class="row mt-3">        
         <div class="col-sm-12 col-md-4">                     
-            <h4><b>Cantidad Viandas: </b><span id="cViandas"></span></h4>
+            <h5><b>Cantidad Viandas a preparar: </b><span id="cV_a_preparar"></span></h5>
+            <h6><b>Cantidad Viandas a grabar: </b><span id="cV_a_grabar"></span></h6>
+            <h6><b>Cantidad Viandas cobradas: </b><span id="cV_cobradas"></span></h6>
+            <h6><b>Cantidad Viandas canceladas: </b><span id="cV_canceladas"></span></h6>
             <br>
             <h5><b>Fecha de Consulta</b></h5>          
             <input id="fecha" onchange="cambiarDiv(2)" type="text" class="form-control flatpickr flatpickr-input sm-control" placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}" autocomplete="off">             
@@ -62,25 +65,30 @@
                         <tbody>
                             @foreach($info2 as $r)
                             <tr>
-                                <td class="text-left">
-                                    <input value="{{$r->cantidad}}" id="{{$r->cliente_id}}" class="name" name="checks" type="checkbox" checked>                                                                         
-                                </td>
-                                <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>
-                                <td class="text-center">{{$r->cantidad}}</td>
-                                <td class="text-center">{{$r->descripcion}}</td>
-                                <td class="text-right">{{$r->precio_venta}}</td>
-                                <td class="text-right">{{number_format($r->importe,2)}}</td>
-                                <td class="text-center">
-                                    <ul class="table-controls">
-                                        <li>                                                                                     
-                                            <a href="javascript:void(0);" onclick="openModal('{{$r}}')" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
-                                        </li>
-                                        
-                                        <li>
-                                            <a href="javascript:void(0);" onclick="Cobrar({{$r->cliente_id}})" data-toggle="tooltip" data-placement="top" title="Cobrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                                        </li>
-                                    </ul>
-                                </td>
+                                @if($r->habilitar == 1)
+                                    <td class="text-left">                                  
+                                        <input value="{{$r->cantidad}}" id="{{$r->cliente_id}}" class="name" name="checks" type="checkbox" checked>              
+                                    </td>
+                                    <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>
+                                    <td class="text-center">{{$r->cantidad}}</td>
+                                    <td class="text-center">{{$r->descripcion}}</td>
+                                    <td class="text-right">{{$r->precio_venta}}</td>
+                                    <td class="text-right">{{number_format($r->importe,2)}}</td>
+                                    <td class="text-center">
+                                        <ul class="table-controls">
+                                            <li><a href="javascript:void(0);" onclick="openModal('{{$r}}')" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a></li>                                        
+                                            <li><a href="javascript:void(0);" onclick="Cobrar({{$r->cliente_id}})" data-toggle="tooltip" data-placement="top" title="Cobrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></li>
+                                        </ul>
+                                    </td>
+                                @else
+                                    <td class="text-left" style="background-color:#F9E79F;"></td>
+                                    <td class="text-left" style="background-color:#F9E79F;">{{$r->apellido}}, {{$r->nombre}}</td>
+                                    <td class="text-center" style="background-color:#F9E79F;">{{$r->cantidad}}</td>
+                                    <td class="text-center" style="background-color:#F9E79F;">{{$r->descripcion}}</td>
+                                    <td class="text-right" style="background-color:#F9E79F;">{{$r->precio_venta}}</td>
+                                    <td class="text-right" style="background-color:#F9E79F;">{{number_format($r->importe,2)}}</td>
+                                    <td class="text-center" style="background-color:#D4AC0D;font-weight: bold;">{{$r->estado}}</td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
@@ -134,7 +142,12 @@
         </div>
     </div>
     <input type="hidden" id="caja_abierta" wire:model="caja_abierta">
-</div></div>@include('livewire.viandas.modal')</div></div>  
+    <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
+</div>
+</div>
+@include('livewire.viandas.modal')
+</div>
+</div>  
 
 
 <style type="text/css" scoped>
@@ -157,7 +170,7 @@
     	let me = this
     	swal({
     		title: 'CONFIRMAR',
-    		text: '¿DESEAS ENVIAR A CUENTA CORRIENTE A TODOS LOS REGISTROS?',
+    		text: '¿DESEAS ENVIAR A CUENTA CORRIENTE A TODOS LOS REGISTROS SELECCIONADOS?',
     		type: 'warning',
     		showCancelButton: true,
     		confirmButtonColor: '#3085d6',
@@ -179,7 +192,7 @@
     {
         if($('#repartidor option:selected').val() == 'Elegir'){
             Swal.fire('Elige una opción válida para el Repartidor')
-            return;
+            return; 
         } 
         Swal.fire({
             title: 'Elige una opción...',
@@ -190,11 +203,9 @@
             denyButtonText: `Cuenta Corriente`,
         }).then((result) => {
             if (result.isConfirmed) {
-                    window.livewire.emit('factura_contado', id)
-                Swal.fire('Factura Cobrada!', '', 'success')
+                window.livewire.emit('factura_contado', id)
             } else if (result.isDenied) {
-                   window.livewire.emit('factura_ctacte', id)
-                Swal.fire('Factura Cuenta Corriente', '', 'success')                 
+                window.livewire.emit('factura_ctacte', id)                
             }
         })
     }
@@ -249,7 +260,9 @@
                     if(document.getElementById("btn_grabar").disabled == true){
                         document.getElementById("btn_grabar").removeAttribute("disabled");
                     }
-                }
+
+                    contarViandas();
+                }                
                 break;
             case 2:              //Ver Lista Cocina
                 div1.style.display = 'none';
@@ -260,6 +273,7 @@
                 if(document.getElementById("btn_imp_viandas").disabled == true){
                     document.getElementById("btn_imp_viandas").removeAttribute("disabled");
                 }
+                contarViandas();
                 break;
             case 3:               //Ver Comentarios
                 div1.style.display = 'none';
@@ -270,20 +284,25 @@
                 if(document.getElementById("btn_imp_comentarios").disabled == true){
                     document.getElementById("btn_imp_comentarios").removeAttribute("disabled");
                 }
+                contarViandas();
                 break;
             default:
         }
-    }             
-    window.onload = function() {  
-        cambiarDiv(2);         
-        var arr = $('[name="checks"]:checked').map(function(){            
+    }  
+    function contarViandas()
+    {
+        var arr = $('[name="checks"]:checked').map(function(){ 
             return this.value;           
         }).get();
 
         var total =0;
-        for(var i of arr) total = parseInt(total) + parseInt(i);    
-        $('#cViandas').text(total);
-    };  
+        for(var i of arr) total = parseInt(total) + parseInt(i); 
+
+        $('#cV_a_preparar').text(total);
+        $('#cV_a_grabar').text(total);
+        $('#cV_cobradas').text(total);
+        $('#cV_canceladas').text(total);
+    }  
     $(document).ready(function() {
         $('[name="checks"]').click(function() {            
             var arr = $('[name="checks"]:checked').map(function(){            
@@ -292,7 +311,10 @@
                             
             var total =0;
             for(var i of arr) total = parseInt(total) + parseInt(i);    
-            $('#cViandas').text(total);
+            $('#cV_a_grabar').text(total);
+            if($('#cV_a_grabar').text() > 0) $('#btn_grabar').show();
+            else $('#btn_grabar').hide();           
+
         });
     });  
     $(document).ready(function() {
@@ -301,7 +323,57 @@
             $('#fechaConsulta').text(data);
             window.livewire.emit('cambiarFecha', data);
         });
-    });
+    });    
+    window.onload = function() {  
+        if($('#forzar_arqueo').val() == 1){		
+            swal({
+                title: 'Cajas inhabilitadas!',
+                text: 'Existe un Arqueo General pendiente de cierre...',
+                type: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Volver',
+                closeOnConfirm: false
+            },
+            function() {  
+                window.location.href="{{ url('notify') }}";
+                swal.close()
+		    })
+        }
+        Livewire.on('facturaCobrada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura Cobrada!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            location.reload();
+		})         
+        Livewire.on('facturaCtaCte',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura enviada a Cuenta Corriente!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            location.reload();
+		})
+        Livewire.on('facturasCreateCtaCte',()=>{
+            Swal.fire({
+                title: 'Facturas creadas exitosamente!',
+                text: "Fueron enviadas a Cuenta Corriente...",
+                icon: 'success',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok!'
+                }).then((result) => {
+                if (result.isConfirmed) {
+                    location.reload();
+                }
+            })            
+		})
+    };
 </script>
 
 

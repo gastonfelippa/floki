@@ -24,17 +24,17 @@
 				<tbody style="font-size:12px">
 					@foreach($infoDetalle as $r)
 					<tr>
-						<td class="text-center">{{number_format($r->cantidad,2)}}</td>
+						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
 						<td class="text-right mr-2">{{$r->precio}}</td>
-						<td class="text-right mr-2">{{number_format($r->importe,2)}}</td>
+						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
 				</tbody>
 			</table> 		                  
 		</div><br>
 		<div class="text-right mr-2">
-			<b>TOTAL: $  {{number_format($info[0]->importe,2)}}</b>
+			<b>TOTAL: $  {{number_format($info[0]->importe,2,',','.')}}</b>
 		</div>
 		<br>
 		<div class="text-center font-italic" style="font-size:14px">

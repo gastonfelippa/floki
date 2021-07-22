@@ -14,7 +14,7 @@
                         <label >Categoría</label>
                         <div class="input-group">
                             <select wire:model="categoria" class="form-control text-center">
-                                <option value="Elegir" disabled="">Elegir</option>
+                                <option value="Elegir">Elegir</option>
                                 @foreach($categorias as $t)
                                 <option value="{{ $t->id }}">
                                     {{$t->descripcion}}
@@ -62,10 +62,11 @@
     </div>
 </div>
 
+
 <script type="text/javascript">
-    window.onload = function() {
+    $(document).ready(function() {
         document.getElementById("nombre").focus();
-    }
+    });
 </script>
 
 

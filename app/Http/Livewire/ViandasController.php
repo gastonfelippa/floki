@@ -12,6 +12,7 @@ use App\Models\Detfactura;
 use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\Vianda;
+use App\Models\ViandasContado;
 use App\Models\User;
 use Carbon\Carbon;
 use DB;
@@ -19,16 +20,22 @@ use DB;
 class ViandasController extends Component
 {
 
-    public $comercioId, $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
+    public $comercioId, $arqueoGralId, $estadoAqueoGral ,$forzar_arqueo;
+    public $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
     public $numero, $cliente_id, $importe, $factura_id, $producto_id, $cantidad, $precio, $nro_arqueo;
-    public $caja_abierta, $arqueoGralId, $mostrar_facturas = true;
+    public $caja_abierta, $mostrar_facturas = true;
     public $estado, $estado_pago, $estado_entrega = '3';
+    public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
 
     public function render()
     {
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
-
+        //necesario para controlar que no se grabe más de una vez la misma vianda
+        $this->arqueoGralId = session('idArqueoGral');
+        $this->estadoAqueoGral = session('estadoArqueoGral');      
+        if($this->estadoAqueoGral == 'pendiente') $this->forzar_arqueo = 1;
+   
         //vemos si tenemos una caja habilitada con nuestro comercioId
         //este dato lo utizamos a la hora de Ver lista Facturas
         //además de ver si hay que hacer el arqueo gral.
@@ -37,8 +44,8 @@ class ViandasController extends Component
             ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();
         $this->caja_abierta = $caja_abierta->count();
         if($caja_abierta->count()){    
-            $this->arqueoGralId = session('idArqueoGral');//busca si hay que hacer el arqueo gral.
-            if($this->arqueoGralId == 0){                 //debe hacer el arqueo gral.
+            //busca si hay que hacer el arqueo gral.
+            if($this->arqueoGralId == 0){     //debe hacer el arqueo gral.
                 return view('arqueodecaja');
             }
         }
@@ -66,7 +73,7 @@ class ViandasController extends Component
             case '0': $this->dia = 'domingo'; break;
             default:
         }
-        
+        //trae info para las viandas
         $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
             ->join('productos as p', 'p.id', 'viandas.producto_id')
             ->where('c.vianda', '1')
@@ -78,6 +85,7 @@ class ViandasController extends Component
         foreach ($info as $i){
             $i->importe = $i->cantidad * $i->precio_venta;
         }
+        //treae info para las facturas
         $info2 = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
             ->join('productos as p', 'p.id', 'viandas.producto_id')
             ->where('c.vianda', '1')
@@ -85,15 +93,23 @@ class ViandasController extends Component
             ->where('c.comercio_id', $this->comercioId)
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
             'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta', 
-            DB::RAW("'' as importe"))->orderBy('c.apellido')->get(); 
+            DB::RAW("'' as importe"), DB::RAW("'' as habilitar"), DB::RAW("'' as estado"))->orderBy('c.apellido')->get(); 
         foreach ($info2 as $i){
-            $i->importe = $i->cantidad * $i->precio_venta;
+            $i->importe = $i->cantidad * $i->precio_venta;      //calculo el importe de cada factura
+            //verifico si no se hizo esta factura en el Arqueo Gral actual para no repetir la acción
+            $record = ViandasContado::where('cliente_id', $i->cliente_id) 
+                ->where('arqueo_gral_id', $this->arqueoGralId)->get();   
+            if($record->count()){
+                $i->habilitar = 0; 
+                $i->estado = $record[0]->estado;   
+            }                       
+            else $i->habilitar = 1;
         }
         return view('livewire.viandas.component', [
             'info'         => $info,
             'info2'        => $info2,
             'productos'    => $productos,
-            'repartidores' => $repartidores,
+            'repartidores' => $repartidores
         ]);
     }
     
@@ -104,7 +120,15 @@ class ViandasController extends Component
         'factura_contado'     => 'factura_contado',         
         'factura_ctacte'      => 'factura_ctacte'         
     ];
-
+    public function resetInput()
+    {
+        $this->repartidor     = 'Elegir';
+        $this->f_de_pago      = null;
+        $this->nro_comp_pago  = null;
+        $this->comentarioPago = '';
+        $this->mercadopago    = null;
+        $this->forzar_arqueo = 0;
+    }
     public function grabar($data)
     { 
         $data = json_decode($data); 
@@ -158,7 +182,13 @@ class ViandasController extends Component
                     Ctacte::create([
                         'cliente_id' => $i->cliente_id,
                         'factura_id' => $factura->id
-                    ]); 
+                    ]);                    
+                    ViandasContado::create([             //guardamos la factura cobrada 
+                        'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
+                        'cliente_id'     => $i->cliente_id,
+                        'arqueo_gral_id' => $this->arqueoGralId,
+                        'estado'         => 'Cta cte'
+                    ]);
                     $record = Cliente::find($i->cliente_id);//marca que el cliente tiene un saldo en ctacte
                     $record->update([
                         'saldo' => '1'
@@ -166,17 +196,18 @@ class ViandasController extends Component
                 }
             }
             DB::commit();
-            session()->flash('message', 'Facturas de Viandas creadas exitosamente!!');
-            return;
+            $this->emit('facturasCreateCtaCte');
         }catch (\Exception $e){
             DB::rollback();    
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! Las Facturas no se grabaron...');
-            return;          
         }
-    }    
-        
+        $this->resetInput();
+        return;          
+    }   
     public function cambiarFecha($data)
     {
+        //esta función inhabilita la vista 'Ver Lista Facturas' 
+        //cuando estamos fuera del Arqueo Gral activo
         $fecha_consulta = Carbon::parse($data);
         if($data != '') $this->fecha = date('w',strtotime($data));
 
@@ -208,8 +239,7 @@ class ViandasController extends Component
         }else{    //sino, no permitimos grabar viandas
             $this->mostrar_facturas = false;
         }
-    }
-       
+    }       
     public function createFactFromModal($infoMod)
     {
         $data = json_decode($infoMod);
@@ -284,8 +314,8 @@ class ViandasController extends Component
             ->where('cu.estado', '1')
             ->select('users.id')->orderBy('apellido')->get();
      
-        foreach($repartidores as $repartidor){
-            if($repartidor->id == $this->repartidor){
+        foreach($repartidores as $r){
+            if($r->id == $this->repartidor){
                 $this->estado = 'pendiente';    
                 $this->estado_pago = '0';    
             }
@@ -327,7 +357,12 @@ class ViandasController extends Component
                         'estado_entrega' => $this->estado_entrega,
                         'user_id'        => auth()->user()->id,
                         'comercio_id'    => $this->comercioId,
-                        'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
+                        'arqueo_id'      => $this->nro_arqueo,   //nro. de arqueo de caja de quien cobra la factura
+                        
+                        'forma_de_pago' => $this->f_de_pago,
+                        'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                        'mercadopago'   => $this->mercadopago,
+                        'comentario'    => $this->comentarioPago
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
                         'factura_id'  => $factura->id,
@@ -336,14 +371,21 @@ class ViandasController extends Component
                         'precio'      => $i->precio_venta,
                         'comercio_id' => $this->comercioId
                     ]);	
+                    ViandasContado::create([             //guardamos la factura cobrada 
+                        'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
+                        'cliente_id'     => $i->cliente_id,
+                        'arqueo_gral_id' => $this->arqueoGralId,
+                        'estado'         => 'Cobrada'
+                    ]);	
                 }
             }      
             DB::commit();
-            session()->flash('message', 'La Factura se creó exitosamente!!');
+            $this->emit('facturaCobrada');
         }catch (Exception $e){
             DB::rollback();    
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
+        $this->resetInput();
         return;
     }
 
@@ -383,7 +425,7 @@ class ViandasController extends Component
                         'importe'        => $i->importe,
                         'estado'         => 'ctacte',
                         'estado_pago'    => '0',
-                        'estado_entrega' => '3',
+                        'estado_entrega' => $this->estado_entrega,
                         'user_id'        => auth()->user()->id,
                         'comercio_id'    => $this->comercioId,
                         'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
@@ -399,19 +441,21 @@ class ViandasController extends Component
                         'cliente_id' => $cliId,
                         'factura_id' => $factura->id
                     ]);
+                    ViandasContado::create([             //guardamos la factura cobrada 
+                        'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
+                        'cliente_id'     => $i->cliente_id,
+                        'arqueo_gral_id' => $this->arqueoGralId,
+                        'estado'         => 'Cta cte'
+                    ]);
                 }
             }
-            DB::commit();     
+            DB::commit();
+            $this->emit('facturaCotaCte');     
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
+        $this->resetInput();
         return;
-    }    
-
-    // public function contar_viandas($data)
-    // {
-    //     $data = json_decode($data);
-    //     $this->cViandas = $data->cantidad;
-    // }
+    } 
 }
