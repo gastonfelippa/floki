@@ -20,12 +20,13 @@ use DB;
 class ViandasController extends Component
 {
 
-    public $comercioId, $arqueoGralId, $estadoAqueoGral ,$forzar_arqueo;
-    public $fecha, $check, $producto, $dia, $repartidor = 'Elegir';
+    public $comercioId, $arqueoGralId, $estadoAqueoGral ,$forzar_arqueo, $action='1';
+    public $fecha = null, $check, $producto, $dia, $repartidor = 'Elegir', $cantidad_a_preparar, $cantidad_grabadas;
     public $numero, $cliente_id, $importe, $factura_id, $producto_id, $cantidad, $precio, $nro_arqueo;
     public $caja_abierta, $mostrar_facturas = true;
     public $estado, $estado_pago, $estado_entrega = '3';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
+    public $total_factura;
 
     public function render()
     {
@@ -60,9 +61,12 @@ class ViandasController extends Component
             ->where('cu.estado', '1')
             ->select('users.*')->orderBy('apellido')->get();
 
+        if($this->repartidor != 'Elegir') $this->emit('mostrar_vista_facturas');
+
         $diaDeLaSemana = '';
-        if($this->fecha != '') $diaDeLaSemana = $this->fecha;
+        if($this->fecha != null) $diaDeLaSemana = $this->fecha;
         else $diaDeLaSemana = date('w');
+
         switch ($diaDeLaSemana) {
             case '1': $this->dia = 'lunes'; break;
             case '2': $this->dia = 'martes'; break;
@@ -73,7 +77,7 @@ class ViandasController extends Component
             case '0': $this->dia = 'domingo'; break;
             default:
         }
-        //trae info para las viandas
+        //trae info para las vistas de Cocina y Comentarios
         $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
             ->join('productos as p', 'p.id', 'viandas.producto_id')
             ->where('c.vianda', '1')
@@ -82,28 +86,32 @@ class ViandasController extends Component
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
             'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta', 
             DB::RAW("'' as importe"))->orderBy('h_'. $this->dia .'_m')->get(); 
+        $this->cantidad_a_preparar = 0;
         foreach ($info as $i){
             $i->importe = $i->cantidad * $i->precio_venta;
+            $this->cantidad_a_preparar = $this->cantidad_a_preparar + $i->cantidad;
         }
-        //treae info para las facturas
+        //treae info para la vista Facturas
         $info2 = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
             ->join('productos as p', 'p.id', 'viandas.producto_id')
             ->where('c.vianda', '1')
             ->where('viandas.c_'. $this->dia .'_m', '<>', '')
             ->where('c.comercio_id', $this->comercioId)
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
-            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta', 
-            DB::RAW("'' as importe"), DB::RAW("'' as habilitar"), DB::RAW("'' as estado"))->orderBy('c.apellido')->get(); 
-        foreach ($info2 as $i){
+            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.id', 'p.descripcion', 'p.precio_venta', 
+            DB::RAW("'' as importe"), DB::RAW("'' as habilitar_facturas"), DB::RAW("'' as estado"))->orderBy('c.apellido')->get(); 
+        $this->cantidad_grabadas = 0;
+            foreach ($info2 as $i){
             $i->importe = $i->cantidad * $i->precio_venta;      //calculo el importe de cada factura
             //verifico si no se hizo esta factura en el Arqueo Gral actual para no repetir la acción
             $record = ViandasContado::where('cliente_id', $i->cliente_id) 
                 ->where('arqueo_gral_id', $this->arqueoGralId)->get();   
             if($record->count()){
-                $i->habilitar = 0; 
-                $i->estado = $record[0]->estado;   
+                $i->habilitar_facturas = 0; 
+                $i->estado = $record[0]->estado;
+                $this->cantidad_grabadas = $this->cantidad_grabadas + $i->cantidad;   
             }                       
-            else $i->habilitar = 1;
+            else $i->habilitar_facturas = 1;
         }
         return view('livewire.viandas.component', [
             'info'         => $info,
@@ -111,15 +119,21 @@ class ViandasController extends Component
             'productos'    => $productos,
             'repartidores' => $repartidores
         ]);
-    }
-    
+    }    
     protected $listeners = [       
         'grabar'              =>'grabar',         
         'cambiarFecha'        =>'cambiarFecha',         
         'createFactFromModal' => 'createFactFromModal',
         'factura_contado'     => 'factura_contado',         
-        'factura_ctacte'      => 'factura_ctacte'         
+        'factura_ctacte'      => 'factura_ctacte',
+        'elegirFormaDePago'   => 'elegirFormaDePago',
+        'enviarDatosPago'     => 'enviarDatosPago',    
+        'doAction'            => 'doAction'
     ];
+    public function doAction($action)
+	{
+        $this->action = $action;
+    }
     public function resetInput()
     {
         $this->repartidor     = 'Elegir';
@@ -127,7 +141,8 @@ class ViandasController extends Component
         $this->nro_comp_pago  = null;
         $this->comentarioPago = '';
         $this->mercadopago    = null;
-        $this->forzar_arqueo = 0;
+        $this->forzar_arqueo  = 0;
+        $this->action         = 1;
     }
     public function grabar($data)
     { 
@@ -204,10 +219,8 @@ class ViandasController extends Component
         $this->resetInput();
         return;          
     }   
-    public function cambiarFecha($data)
-    {
-        //esta función inhabilita la vista 'Ver Lista Facturas' 
-        //cuando estamos fuera del Arqueo Gral activo
+    public function cambiarFecha($data)  //esta función inhabilita la vista 'Ver Lista Facturas' 
+    {                                    //cuando estamos fuera del Arqueo Gral activo
         $fecha_consulta = Carbon::parse($data);
         if($data != '') $this->fecha = date('w',strtotime($data));
 
@@ -239,6 +252,8 @@ class ViandasController extends Component
         }else{    //sino, no permitimos grabar viandas
             $this->mostrar_facturas = false;
         }
+        $this->emit('mostrar_viandas');
+
     }       
     public function createFactFromModal($infoMod)
     {
@@ -278,26 +293,31 @@ class ViandasController extends Component
                 'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
             ]);
             Detfactura::create([         //creamos un nuevo detalle
-                'factura_id' => $factura->id,
+                'factura_id'  => $factura->id,
                 'producto_id' => $data->producto_id,
-                'cantidad' => $data->cantidad,
-                'precio' => $preVta[0]->precio_venta,
+                'cantidad'    => $data->cantidad,
+                'precio'      => $preVta[0]->precio_venta,
                 'comercio_id' => $this->comercioId
             ]);	
             Ctacte::create([
                 'cliente_id' => $data->cliente_id,
                 'factura_id' => $factura->id
-            ]);                    
-         
+            ]);
+            ViandasContado::create([             //guardamos la factura cobrada 
+                'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
+                'cliente_id'     => $data->cliente_id,
+                'arqueo_gral_id' => $this->arqueoGralId,
+                'estado'         => 'Cta cte'
+            ]); 
             DB::commit();
-            session()->flash('message', 'Factura creada exitosamente!!');
+            $this->emit('facturaCtaCte'); 
         }catch (Exception $e){
             DB::rollback();      
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');           
         }         
     } 
-
-    public function factura_contado($cliId)
+    // public function factura_contado($cliId)
+    public function factura_contado()
     {
         $this->estado = 'contado';    
         $this->estado_pago = '1';       
@@ -327,7 +347,7 @@ class ViandasController extends Component
         $this->nro_arqueo = $nroArqueo[0]->id;
 
         DB::begintransaction();
-        try{
+        try{            
             $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                 ->join('productos as p', 'p.id', 'viandas.producto_id')
                 ->where('c.vianda', '1')
@@ -336,7 +356,7 @@ class ViandasController extends Component
                 ->select('viandas.c_'. $this->dia .'_m as cantidad', 'c.id as cliente_id', 'p.id as producto_id',
                          'p.precio_venta', DB::RAW("'' as importe"))->get();
             foreach($info as $i){
-                if ($i->cliente_id == $cliId) {
+                if ($i->cliente_id == $this->cliente_id) {
                     $i->importe=$i->cantidad * $i->precio_venta;
                     $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
                     if(!$primerFactura->count()){
@@ -357,12 +377,11 @@ class ViandasController extends Component
                         'estado_entrega' => $this->estado_entrega,
                         'user_id'        => auth()->user()->id,
                         'comercio_id'    => $this->comercioId,
-                        'arqueo_id'      => $this->nro_arqueo,   //nro. de arqueo de caja de quien cobra la factura
-                        
-                        'forma_de_pago' => $this->f_de_pago,
-                        'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
-                        'mercadopago'   => $this->mercadopago,
-                        'comentario'    => $this->comentarioPago
+                        'arqueo_id'      => $this->nro_arqueo,   //nro. de arqueo de caja de quien cobra la factura                        
+                        'forma_de_pago'  => $this->f_de_pago,
+                        'nro_comp_pago'  => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                        'mercadopago'    => $this->mercadopago,
+                        'comentario'     => $this->comentarioPago
                     ]);
                     Detfactura::create([         //creamos un nuevo detalle
                         'factura_id'  => $factura->id,
@@ -381,14 +400,13 @@ class ViandasController extends Component
             }      
             DB::commit();
             $this->emit('facturaCobrada');
-        }catch (Exception $e){
+        }catch (\Exception $e){
             DB::rollback();    
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
         }
         $this->resetInput();
         return;
     }
-
     public function factura_ctacte($cliId)
     {
         //busco el nro_arqueo del repartidor
@@ -438,7 +456,7 @@ class ViandasController extends Component
                         'comercio_id' => $this->comercioId
                     ]);	
                     Ctacte::create([
-                        'cliente_id' => $cliId,
+                        'cliente_id' => $i->cliente_id,
                         'factura_id' => $factura->id
                     ]);
                     ViandasContado::create([             //guardamos la factura cobrada 
@@ -450,7 +468,7 @@ class ViandasController extends Component
                 }
             }
             DB::commit();
-            $this->emit('facturaCotaCte');     
+            $this->emit('facturaCtaCte');     
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La Factura no se grabó...');
@@ -458,4 +476,16 @@ class ViandasController extends Component
         $this->resetInput();
         return;
     } 
+    public function elegirFormaDePago($idCli, $total)
+    {
+        $this->cliente_id = $idCli;
+        $this->total_factura = $total;
+        $this->f_de_pago = '1';        
+        $this->doAction(2);
+    }
+    public function enviarDatosPago($tipo,$nro)
+    {
+        $this->f_de_pago = $tipo;
+        $this->nro_comp_pago = $nro;
+    }
 }

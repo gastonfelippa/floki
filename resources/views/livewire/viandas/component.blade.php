@@ -1,4 +1,5 @@
-<div class="row layout-top-spacing">
+<div class="row layout-top-spacing justify-content-center">
+@if($action == 1)
 <div class="col-12 layout-spacing">
 @include('common.alerts') 
 <div class="widget-content-area">
@@ -21,23 +22,26 @@
         <div class="btn-group col-12 col-md-4 ">
         @if($mostrar_facturas)
             <button type="submit" onclick="cambiarDiv(1)" class="btn btn-info mt-1" enabled>Ver Lista Facturas</button>
+            <button id="btn_grabar" name="grabarTodas" type="submit" onclick="ConfirmGrabar()" class="btn btn-danger mt-1" enabled>Grabar todas</button>
         @else
             <button type="submit" onclick="cambiarDiv(1)" class="btn btn-info mt-1" disabled>Ver Lista Facturas</button>
-        @endif
             <button id="btn_grabar" name="grabarTodas" type="submit" onclick="ConfirmGrabar()" class="btn btn-danger mt-1" disabled>Grabar todas</button>
+            @endif
         </div>
     </div>
-    <div class="row mt-3">        
+    <div class="row mt-2">        
         <div class="col-sm-12 col-md-4">                     
-            <h5><b>Cantidad Viandas a preparar: </b><span id="cV_a_preparar"></span></h5>
-            <h6><b>Cantidad Viandas a grabar: </b><span id="cV_a_grabar"></span></h6>
-            <h6><b>Cantidad Viandas cobradas: </b><span id="cV_cobradas"></span></h6>
-            <h6><b>Cantidad Viandas canceladas: </b><span id="cV_canceladas"></span></h6>
-            <br>
-            <h5><b>Fecha de Consulta</b></h5>          
+            <h5 class="text-center py-1" style="background-color:#1A5276;color:white;">Cantidad de Viandas a preparar: <span id="cV_a_preparar">{{$cantidad_a_preparar}}</span></h5>
+        <div class="px-2 pt-1" style="background-color:#2471A3;" id="cVFactura">
+            <h6 style="color:white;">Cantidad de Viandas a grabar: <span id="cV_a_grabar"></span></h6>
+            <h6 style="color:white;">Cantidad de Viandas grabadas: <span id="cV_grabadas">{{$cantidad_grabadas}}</span></h6>
+            <h6 style="color:white;">Cantidad de Viandas canceladas: <span id="cV_canceladas"></span></h6>
+        </div>
+            <h6><b>Fecha de Consulta</b></h6>
+            <!-- <label for="fecha">Fecha de Consulta</label>           -->
             <input id="fecha" onchange="cambiarDiv(2)" type="text" class="form-control flatpickr flatpickr-input sm-control" placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}" autocomplete="off">             
-            <br>
-            <h5><b>Repartidor/Caja Salón</b></h5>           
+            <h6 class="mt-1"><b>Repartidor/Caja Salón</b></h6> 
+            <!-- <label for="repartidor">Repartidor/Caja Salón</label>             -->
             <select id="repartidor" wire:model="repartidor" class="form-control text-center">
                 <option value="Elegir">Elegir</option>
                 @foreach($repartidores as $r)
@@ -65,7 +69,7 @@
                         <tbody>
                             @foreach($info2 as $r)
                             <tr>
-                                @if($r->habilitar == 1)
+                                @if($r->habilitar_facturas == 1)
                                     <td class="text-left">                                  
                                         <input value="{{$r->cantidad}}" id="{{$r->cliente_id}}" class="name" name="checks" type="checkbox" checked>              
                                     </td>
@@ -77,7 +81,7 @@
                                     <td class="text-center">
                                         <ul class="table-controls">
                                             <li><a href="javascript:void(0);" onclick="openModal('{{$r}}')" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a></li>                                        
-                                            <li><a href="javascript:void(0);" onclick="Cobrar({{$r->cliente_id}})" data-toggle="tooltip" data-placement="top" title="Cobrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></li>
+                                            <li><a href="javascript:void(0);" onclick="Cobrar({{$r->cliente_id}},{{$r->importe}})" data-toggle="tooltip" data-placement="top" title="Cobrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></li>
                                         </ul>
                                     </td>
                                 @else
@@ -145,8 +149,12 @@
     <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
 </div>
 </div>
-@include('livewire.viandas.modal')
 </div>
+@include('livewire.viandas.modal')
+@else    
+    @include('livewire.viandas.formaDePago')  
+    @include('livewire.viandas.modalNroCompPago')  
+@endif 
 </div>  
 
 
@@ -162,7 +170,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
 <script type="text/javascript">
-    function ConfirmGrabar() {
+    function ConfirmGrabar() 
+    {
         if($('#repartidor option:selected').val() == 'Elegir'){
             Swal.fire('Elige una opción válida para el Repartidor')
             return;
@@ -188,12 +197,12 @@
     		swal.close();
     	})
     }
-    function Cobrar(id)
+    function Cobrar(idCli,total)    //fact pendientes
     {
         if($('#repartidor option:selected').val() == 'Elegir'){
             Swal.fire('Elige una opción válida para el Repartidor')
             return; 
-        } 
+        }
         Swal.fire({
             title: 'Elige una opción...',
             showDenyButton: true,
@@ -202,12 +211,47 @@
             confirmButtonText: `Contado`,
             denyButtonText: `Cuenta Corriente`,
         }).then((result) => {
-            if (result.isConfirmed) {
-                window.livewire.emit('factura_contado', id)
-            } else if (result.isDenied) {
-                window.livewire.emit('factura_ctacte', id)                
+            if(result.isConfirmed) {
+                window.livewire.emit('elegirFormaDePago',idCli, total);
+            }else if (result.isDenied) {
+                window.livewire.emit('factura_ctacte', idCli)                                  
             }
         })
+    }
+    function mostrarInput(){		
+		$('[id="nroCompPago"]').val('');
+		$('[id="num"]').val('');
+		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
+				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+			$('#modalNroComprobanteDePago').modal('show');
+		}else{
+			guardarDatosPago();
+		}
+	}
+	function guardarDatosPago(){
+		$('[id="num"]').val($('[id="nroCompPago"]').val())
+        if($('[id="num"]').val() != ''){
+            var formaDePago = $('[id="formaDePago"]').val();
+            var nroCompPago = $('[id="nroCompPago"]').val();
+        }else{
+            $('[id="formaDePago"]').val(1)           
+        }    
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+	}
+    function factura_contado()
+    {
+        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Faltan datos, se cobrará como efectivo!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('[id="formaDePago"]').val(1)
+        }else{
+            window.livewire.emit('factura_contado')
+        }
     }
     function openModal(row) 
     {
@@ -219,8 +263,8 @@
         $('.modal-title').text('Cliente: '+ info.apellido +' '+ info.nombre)
         $('#cliente_id').val(info.cliente_id)
         $('#cliente_id').hide()
-        $('#cantidad').val('')
-        $('#producto').val('Elegir')
+        $('#cantidad').val(info.cantidad)
+        $('#producto').val(info.id)
         $('#modalVianda').modal('show')
     }
     function save()
@@ -249,61 +293,77 @@
         switch(idButton) {
             case 1:              //Ver Lista Facturas
                 if($('#caja_abierta').val() == '0'){
-                    Swal.fire('Oops!','No tenés una Caja Habilitada...')
+                    Swal.fire('Oops!','No hay ninguna Caja Habilitada...')
                     return;
                 }else{
-                    div1.style.display = 'block';
-                    div2.style.display = 'none';
-                    div3.style.display = 'none';
+                    document.getElementById('div1').style.display = 'block';
+                    document.getElementById('div2').style.display = 'none';
+                    document.getElementById('div3').style.display = 'none';
+                    document.getElementById('cVFactura').style.display = 'block';
                     document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
                     document.getElementById("btn_imp_comentarios").setAttribute("disabled",false);
                     if(document.getElementById("btn_grabar").disabled == true){
                         document.getElementById("btn_grabar").removeAttribute("disabled");
                     }
-
+                    if(document.getElementById("repartidor").disabled == true){
+                        document.getElementById("repartidor").removeAttribute("disabled");
+                    }
                     contarViandas();
                 }                
                 break;
             case 2:              //Ver Lista Cocina
-                div1.style.display = 'none';
-                div2.style.display = 'block';
-                div3.style.display = 'none';
+                document.getElementById('div1').style.display = 'none';
+                document.getElementById('div2').style.display = 'block';
+                document.getElementById('div3').style.display = 'none';
+                document.getElementById('cVFactura').style.display = 'none';
+                document.getElementById("repartidor").setAttribute("disabled",false);
                 document.getElementById("btn_grabar").setAttribute("disabled",false);
                 document.getElementById("btn_imp_comentarios").setAttribute("disabled",false);
                 if(document.getElementById("btn_imp_viandas").disabled == true){
                     document.getElementById("btn_imp_viandas").removeAttribute("disabled");
                 }
-                contarViandas();
                 break;
             case 3:               //Ver Comentarios
-                div1.style.display = 'none';
-                div2.style.display = 'none';
-                div3.style.display = 'block';
+                document.getElementById('div1').style.display = 'none';
+                document.getElementById('div2').style.display = 'none';
+                document.getElementById('div3').style.display = 'block';
+                document.getElementById('cVFactura').style.display = 'none';
+                document.getElementById("repartidor").setAttribute("disabled",false);
                 document.getElementById("btn_grabar").setAttribute("disabled",false);
                 document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
                 if(document.getElementById("btn_imp_comentarios").disabled == true){
                     document.getElementById("btn_imp_comentarios").removeAttribute("disabled");
                 }
-                contarViandas();
                 break;
             default:
         }
     }  
     function contarViandas()
     {
-        var arr = $('[name="checks"]:checked').map(function(){ 
-            return this.value;           
+        var viandas_a_preparar = $('#cV_a_preparar').text();
+        var viandas_grabadas   = $('#cV_grabadas').text();
+        var viandas_a_grabar   = 0;
+        var viandas_canceladas = 0;
+
+        //verifico las viandas que están chequeadas para grabar
+        var arr_a_grabar = $('[name="checks"]:checked').map(function(){ 
+            return this.value;          
         }).get();
+        //recorro el array para calcular el total de cV_a_grabar
+        for(var i of arr_a_grabar) viandas_a_grabar = parseInt(viandas_a_grabar) + parseInt(i);         
 
-        var total =0;
-        for(var i of arr) total = parseInt(total) + parseInt(i); 
+        //calculo las viandas canceladas
+        viandas_canceladas = viandas_a_preparar - viandas_grabadas - parseInt(viandas_a_grabar); 
 
-        $('#cV_a_preparar').text(total);
-        $('#cV_a_grabar').text(total);
-        $('#cV_cobradas').text(total);
-        $('#cV_canceladas').text(total);
-    }  
-    $(document).ready(function() {
+        $('#cV_a_grabar').text(viandas_a_grabar);
+        $('#cV_canceladas').text(viandas_canceladas);
+
+        //muestra u oculta el btn_grabar
+        if($('#cV_a_grabar').text() > 0) $('#btn_grabar').show();
+        else $('#btn_grabar').hide(); 
+        //cambiarDiv(1);
+    }
+    $(document).ready(function() {  //esta función se utiliza para ocultar el btn_grabar cuando no haya nada seleccionado
         $('[name="checks"]').click(function() {            
             var arr = $('[name="checks"]:checked').map(function(){            
                 return this.value;           
@@ -312,19 +372,33 @@
             var total =0;
             for(var i of arr) total = parseInt(total) + parseInt(i);    
             $('#cV_a_grabar').text(total);
-            if($('#cV_a_grabar').text() > 0) $('#btn_grabar').show();
-            else $('#btn_grabar').hide();           
 
+            contarViandas();   
         });
     });  
     $(document).ready(function() {
         $('[id="fecha"]').change(function() {
-            var data =  $('#fecha').val();         
-            $('#fechaConsulta').text(data);
+            var data =  $('#fecha').val(); 
             window.livewire.emit('cambiarFecha', data);
         });
-    });    
+    });   
     window.onload = function() {  
+        cambiarDiv(2);
+        flatpickr("#fecha", {
+            minDate: "today",
+            dateFormat: "d-m-Y",
+            locale: {
+                firstDayOfWeek: 1,
+                weekdays: {
+                shorthand: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+                longhand: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],         
+                }, 
+                months: {
+                shorthand: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Оct', 'Nov', 'Dic'],
+                longhand: ['Enero', 'Febreo', 'Мarzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                },
+            }, 
+        }); 
         if($('#forzar_arqueo').val() == 1){		
             swal({
                 title: 'Cajas inhabilitadas!',
@@ -373,7 +447,13 @@
                 }
             })            
 		})
-    };
+        Livewire.on('mostrar_viandas',()=>{
+          cambiarDiv(2);           
+		})
+        Livewire.on('mostrar_vista_facturas',()=>{
+          cambiarDiv(1);           
+		})
+    }
 </script>
 
 

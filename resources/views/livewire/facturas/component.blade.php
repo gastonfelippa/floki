@@ -236,6 +236,7 @@
             </div>
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta">  
             <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
+            <input type="hidden" id="ultima_factura" wire:model="ultima_factura">  
         </div> 
     </div>
     @include('livewire.facturas.modal')  
@@ -415,7 +416,8 @@
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
     } 
-    function mostrarInput(){		
+    function mostrarInput()
+    {		
 		$('[id="nroCompPago"]').val('');
 		$('[id="num"]').val('');
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
@@ -425,7 +427,8 @@
 			guardarDatosPago();
 		}
 	}
-	function guardarDatosPago(){
+	function guardarDatosPago()
+    {
 		$('[id="num"]').val($('[id="nroCompPago"]').val())
         if($('[id="num"]').val() != ''){
             var formaDePago = $('[id="formaDePago"]').val();
@@ -435,7 +438,6 @@
         }		
 		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 	}
-
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		
             swal({
@@ -473,7 +475,10 @@
                 showConfirmButton: false,
                 timer: 1500
             })
-		})         
+            if($('#ultima_factura').val() == 1){
+                window.location.href="{{ url('notify') }}";
+            }
+		})          
         Livewire.on('facturaCtaCte',()=>{
             Swal.fire({
                 position: 'center',
@@ -482,7 +487,9 @@
                 showConfirmButton: false,
                 timer: 1500
             })
+            if($('#ultima_factura').val() == 1){
+                window.location.href="{{ url('notify') }}";
+            }
 		})
-
     } 
 </script>

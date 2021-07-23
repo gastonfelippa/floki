@@ -94,7 +94,6 @@ class FacturasACobrarController extends Component
     public function doAction($action)
 	{
         $this->action = $action;
-        //$this->resetInput();
     }
     public function verDet($id, $nomCli, $apeCli)
     {
@@ -122,7 +121,7 @@ class FacturasACobrarController extends Component
     }
     public function verDetalle($id)
     {
-        $this->action = 2;
+        $this->doAction(2);
         $this->editFacturaId = $id;
         $this->infoDetalle = Detfactura::join('facturas as f','f.id','detfacturas.factura_id')
             ->join('productos as p','p.id','detfacturas.producto_id')

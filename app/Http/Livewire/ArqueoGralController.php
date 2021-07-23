@@ -178,7 +178,7 @@ class ArqueoGralController extends Component
                 ->sum('importe');
         //suma las diferencias de caja del día
         $this->cajaFinalUsuarios = CajaUsuario::where('arqueo_gral_id', $this->arqueoGralId)->sum('diferencia');
-
+   // dd($this->cajaFinalUsuarios);
         $this->cajaFinal = $this->cajaInicial + $this->ventas + $this->cobrosCtaCte + 
                            $this->otrosIngresos - $this->egresos;                 
         $this->totalIngresos = $this->ventas + $this->cobrosCtaCte + $this->otrosIngresos;

@@ -99,10 +99,14 @@ class CortesController extends Component
         $factPendiente = Factura::where('estado', 'pendiente')
             ->where('repartidor_id', $salon[0]->id)
             ->where('user_id', $this->user)
+            ->orWhere('estado', 'abierta')
+            ->where('user_id', $this->user)
             ->orWhere('repartidor_id', $this->user)
             ->where('estado', 'pendiente', 'repartidor_id')->get();
-        if($factPendiente->count()){     //si hay facturas pendientes, cambio el valor de factPendiente
-            $this->factPendiente = 1;    //luego veo si son facturas de repartidores o no
+        if($factPendiente->count()){     //si hay facturas pendientes, cambio el valor de factPendiente a 1
+            if($factPendiente[0]->estado == 'abierta') $this->factPendiente = 1;
+            else $this->factPendiente = 2; //si hay facturas pendientes, cambio el valor de factPendiente a 2
+                //luego veo si son facturas de repartidores o no
             if($factPendiente[0]->repartidor_id == $salon[0]->id) $this->repartidor = false;
         }else $this->factPendiente = 0;        
 

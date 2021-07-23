@@ -28,7 +28,7 @@ class FacturaController extends Component
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
-    public $estadoAqueoGral, $forzar_arqueo = 0;
+    public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
 	
 	public function render()
 	{
@@ -37,8 +37,17 @@ class FacturaController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
-        $this->estadoAqueoGral = session('estadoArqueoGral');      
-        if($this->estadoAqueoGral == 'pendiente') $this->forzar_arqueo = 1;
+        //busco el estado del Arqueo Gral
+        $this->estadoAqueoGral = session('estadoArqueoGral');
+        if($this->estadoAqueoGral == 'pendiente'){
+            //busco si hay alguna factura abierta para la Caja del usuario logueado
+            $record = Factura::where('estado', 'abierta')
+                ->where('comercio_id', $this->comercioId)
+                ->where('user_id', auth()->user()->id);
+            //si hay alguna, la dejo terminar, pero al finalizar vuelvo al home   
+            if($record->count()) $this->ultima_factura = 1;  
+            else $this->forzar_arqueo = 1;
+        }
 
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)

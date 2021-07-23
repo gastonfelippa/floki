@@ -29,7 +29,9 @@
             <div class="col-sm-12 col-md-6 col-lg-6">
                 @if($user > 0)
                     @if($factPendiente == 1)
-                    <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes..</button>
+                    <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Abiertas...</button>
+                    @elseif($factPendiente == 2)
+                    <button onclick="cerrarCaja(2,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes...</button>
                     @else
                     <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mb-2">Cerrar Caja</button>
                     @endif
@@ -131,6 +133,8 @@
     function cerrarCaja(factPendiente,repartidor)
     {
         if(factPendiente == 1){
+            window.location = "{{url('facturas')}}";
+        }else if(factPendiente == 2){    
             if(repartidor == true)
             window.location = "{{url('cajarepartidor')}}";
             else

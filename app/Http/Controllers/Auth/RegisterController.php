@@ -259,15 +259,16 @@ class RegisterController extends Controller
     }
     public function sendEmail($user, $comercio)
     {
-       // dd($user);
+        //dd($user);
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
         $objDemo->demo_two = '';
         $objDemo->sender = 'El equipo de FlokI';
         $objDemo->receiver = $user->name;
 
-      //  $email = 'admin@floki.com';
+        $email = 'floki.adm@gmail.com';
  
-        Mail::to(env('MAIL_FROM_ADDRESS'))->send(new NuevoAbonado($user, $comercio));
+        Mail::to($email)->send(new NuevoAbonado($user, $comercio));
+        // Mail::to(env('MAIL_FROM_ADDRESS'))->send(new NuevoAbonado($user, $comercio));
     }
 }
