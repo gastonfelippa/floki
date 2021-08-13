@@ -29,13 +29,17 @@
                 <input type="file" class="form-control" id="image"
                 wire:change="$emit('fileChoosen',this)" accept="image/x-png, image/gif, image/jpeg">
             </div>
-            <div class="col-sm-12">
-                <button type="button"
-                wire:click.prevent="Guardar"
-                class="btn btn-primary ml-2">
-                    <i class="mbri-succes"></i>
-                Guardar
+        </div>
+        <div class="row ">
+            <div class="col-12">
+                <button type="button" onclick="salir()"  class="btn btn-dark mr-1">
+                    <i class="mbri-left"></i> Cancelar
                 </button>
+                <button type="button"
+                    wire:click.prevent="Guardar"   
+                    class="btn btn-primary">
+                    <i class="mbri-success"></i> Guardar
+                </button>       
             </div>
         </div>
     </div>
@@ -52,6 +56,20 @@
 				window.livewire.emit('logoUpload', reader.result, nombreLogo)
 			}
 			reader.readAsDataURL(file);
-		});	
+		});
+        Livewire.on('grabado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Información de Empresa registrada!!',
+                showConfirmButton: false,
+                timer: 12000
+            });
+            window.location.href="{{ url('home') }}";
+		})    
 	});
+    function salir()
+    {
+        window.location.href="{{ url('home') }}";
+    }
 </script>

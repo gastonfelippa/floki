@@ -66,7 +66,7 @@ class ClienteController extends Component
         }
 
         return view('livewire.clientes.component', [
-            'info'        =>$info,
+            'info'        => $info,
             'localidades' => $localidades,
             'provincias'  => $provincias,
             'productos'   => $productos

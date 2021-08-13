@@ -172,17 +172,18 @@ class UsuarioController extends Component
         $existe = Localidad::where('descripcion', ucwords($data->localidad))
             ->where('provincia_id', $data->provincia_id)
             ->where('comercio_id', $this->comercioId)->get();  
-        if($existe->count() > 0 ) {
+        if($existe->count()) {
             session()->flash('info', 'La Localidad ingresada ya existe!!!');
             return;
         }else{
             DB::begintransaction();
             try{   
-                Localidad::create([
+                $localidad = Localidad::create([
                     'descripcion' => ucwords($data->localidad),
                     'provincia_id' => $data->provincia_id,
                     'comercio_id' => $this->comercioId
                 ]);
+                $this->localidad = $localidad->id;
                 session()->flash('msg-ok', 'Localidad creada exitosamente!!!'); 
                 DB::commit();               
             }catch (\Exception $e){
@@ -356,7 +357,6 @@ class UsuarioController extends Component
     }
     public function sendEmail($user, $comercio, $admin)
     {
-        //dd($user);
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
         $objDemo->demo_two = session('pass_empleado');

@@ -88,8 +88,8 @@ class EmpresaController extends Component
             // $empresa->save();
         
         }
-
-        session()->flash('message', 'Información de Empresa registrada');
+        $this->emit('grabado');
+        //session()->flash('message', 'Información de Empresa registrada');
 
     }
 } 

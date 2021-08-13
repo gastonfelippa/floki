@@ -159,6 +159,31 @@
                                     <a href="{{ url('usuarios') }}"> EMPLEADOS  </a>
                                 </li>
                             @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('salsas') }}"> SALSAS  </a>
+                                </li>
+                            @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('guarniciones') }}"> GUARNICIONES  </a>
+                                </li>
+                            @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('sectorcomanda') }}"> SECTOR COMANDA  </a>
+                                </li>
+                            @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('textobasecomanda') }}"> TEXTO BASE COMANDA  </a>
+                                </li>
+                            @endcan
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('comandas') }}"> COMANDAS  </a>
+                                </li>
+                            @endcan
                         </ul>                         
                     </li>
                 @endif

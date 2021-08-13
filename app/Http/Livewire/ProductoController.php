@@ -4,16 +4,22 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Auditoria;
-use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Producto;
+use App\Models\TextoBaseComanda;
+use App\Models\SectorComanda;
 use DB;
 
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $descripcion, $estado='DISPONIBLE', $precio_costo=null, $precio_venta, $stock, $tipo = 'Art. Venta';
-	public $codigo = null, $codigo_sugerido, $selected_id = null, $search, $categorias;
-	public $comercioId, $action = 1;
+	public $categoria ='Elegir', $tipo = 'Art. Venta', $sector ='Elegir', $texto ='Elegir', $estado='DISPONIBLE';
+	public $codigo = null, $codigo_sugerido, $descripcion, $stock, $habilitar_model = false;
+	public $salsa = false, $guarnicion = false;
+	// public $pc_salon, $pv_salon, $pc_del, $pv_del;
+	public $pc_salon, $pv_salon, $precio_costo, $precio_venta;
+	public $selected_id = null, $categorias, $sectores, $textos;
+	public $comercioId, $action = 1, $search;
 	public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
 	
 	public function render()
@@ -22,6 +28,8 @@ class ProductoController extends Component
 		$this->comercioId = session('idComercio');
 		
 		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
+		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
+		$this->textos = TextoBaseComanda::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
 
 		if($this->selected_id == null) {
 			$nuevo_codigo = Producto::select('*')->where('comercio_id', $this->comercioId)->get();
@@ -69,7 +77,9 @@ class ProductoController extends Component
 	protected $listeners = [
 		'deleteRow'             => 'destroy',
 		'calcular_precio_venta' => 'calcular_precio_venta',
-		'validarProducto'       => 'validarProducto' 
+		'validarProducto'       => 'validarProducto',
+		'guardar'               => 'StoreOrUpdate', 
+		'grabar_texto_base'     => 'grabar_texto_base' 
 	];
 	public function doAction($action)
 	{
@@ -78,16 +88,21 @@ class ProductoController extends Component
 	}
 	public function resetInput()
 	{
-		$this->codigo = null;
-		$this->descripcion = '';
-		$this->precio_costo = null;
-		$this->precio_venta = '';
-		$this->stock = null;
-		$this->tipo = 'Art. Venta';
-		$this->categoria = 'Elegir';
-		$this->estado = 'DISPONIBLE';
-		$this->selected_id = null;
-		$this->search ='';
+		$this->codigo          = null;
+		$this->descripcion     = '';
+		$this->precio_costo    = null;
+		$this->precio_venta    = '';
+		$this->stock           = null;
+		$this->tipo            = 'Art. Venta';
+		$this->categoria       = 'Elegir';
+		$this->sector          = 'Elegir';
+		$this->texto           = 'Elegir';
+		$this->estado          = 'DISPONIBLE';
+		$this->selected_id     = null;
+		$this->search          = '';
+		$this->salsa           = false;
+		$this->guarnicion      = false;
+		$this->habilitar_model = false;
 	}	
 	public function edit($id)
 	{
@@ -102,6 +117,10 @@ class ProductoController extends Component
 		$this->stock = $record->stock;
 		$this->tipo = $record->tipo;
 		$this->estado = $record->estado;
+		$this->sector = $record->sectorcomanda_id;
+		$this->texto = $record->texto_base_comanda_id;
+		if($record->guarnicion == 1) $this->guarnicion = true; else $this->guarnicion = false;
+		if($record->salsa == 1) $this->salsa = true; else $this->salsa = false;
 	}	
 	public function volver()
     {
@@ -131,10 +150,39 @@ class ProductoController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-	public function StoreOrUpdate()
+	public function grabar_texto_base($texto)
+	{
+		$this->texto = ucwords($texto);
+        $this->validate([
+            'texto' => 'required'
+        ]);
+        DB::begintransaction();
+        try{
+			$existe = TextoBaseComanda::where('descripcion', $this->texto)
+				->where('comercio_id', $this->comercioId)->withTrashed()->get();
+				if($existe->count()) {
+				$this->emit('texto_existe');
+				return;
+			}
+			$texto = TextoBaseComanda::create([
+				'descripcion' => ucwords($this->texto), 
+				'comercio_id' => $this->comercioId            
+			]);
+			$this->texto = $texto->id;	
+			$this->emit('texto_creado');  
+            DB::commit(); 
+        }catch (\Exception $e){
+            DB::rollback();
+			$this->emit('registro_no_grabado');
+        }
+		return;
+	}
+	public function StoreOrUpdate($salsa, $guarnicion)
 	{
 		$this->validate([
-			'categoria' => 'not_in:Elegir'
+			'categoria' => 'not_in:Elegir',
+			'sector'    => 'not_in:Elegir',
+			'texto'     => 'not_in:Elegir'
 		]);
 		
 		$this->validate([
@@ -151,23 +199,23 @@ class ProductoController extends Component
 				->where('id', '<>', $this->selected_id)
 				->where('comercio_id', $this->comercioId)				
 				->withTrashed()->get();
-                if($existeProducto->count() > 0 && $existeProducto[0]->deleted_at != null) {
+                if($existeProducto->count() && $existeProducto[0]->deleted_at != null) {
 					session()->flash('info', 'El Producto que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
                     $this->descripcion_soft_deleted = $existeProducto[0]->descripcion;
                     $this->id_soft_deleted = $existeProducto[0]->id;
                     return;				
-				}elseif( $existeProducto->count() > 0) {
+				}elseif($existeProducto->count()) {
 					session()->flash('info', 'El Producto ya existe...');
 					$this->resetInput();
 					return;
 				}
 				
 				$existeCodigo = Producto::where('codigo', $this->codigo)
-				->where('id', '<>', $this->selected_id)
-				->where('comercio_id', $this->comercioId)
-				->withTrashed()->get();
+					->where('id', '<>', $this->selected_id)
+					->where('comercio_id', $this->comercioId)
+					->withTrashed()->get();
                 if($existeCodigo->count() > 0 && $existeCodigo[0]->deleted_at != null) {
 					session()->flash('info', 'El Código que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
@@ -175,7 +223,7 @@ class ProductoController extends Component
                     $this->descripcion_soft_deleted = $existeCodigo[0]->descripcion;
                     $this->id_soft_deleted = $existeCodigo[0]->id;
                     return;				
-				}elseif( $existeCodigo->count() > 0) {
+				}elseif($existeCodigo->count()) {
 					session()->flash('info', 'El Código ya existe...');
 					return;
 				}
@@ -190,7 +238,7 @@ class ProductoController extends Component
 					$this->descripcion_soft_deleted = $existeProducto[0]->descripcion;
 					$this->id_soft_deleted = $existeProducto[0]->id;
 					return;
-				}elseif($existeProducto->count() > 0 ) {
+				}elseif($existeProducto->count()) {
 					session()->flash('info', 'El Producto ya existe...');
 					$this->resetInput();
 					return;
@@ -206,33 +254,41 @@ class ProductoController extends Component
                     $this->descripcion_soft_deleted = $existeCodigo[0]->descripcion;
                     $this->id_soft_deleted = $existeCodigo[0]->id;
                     return;				
-				}elseif($existeCodigo->count() > 0 ) {
+				}elseif($existeCodigo->count()) {
 					session()->flash('info', 'El Código ya existe...');
 					return;
 				}
 			}
 			if($this->selected_id <=0) {
 				$producto = Producto::create([
-					'codigo' => $this->codigo_sugerido,
-					'descripcion' => ucwords($this->descripcion),
-					'precio_costo' => $this->precio_costo,
-					'precio_venta' => $this->precio_venta,
-					'stock' => $this->stock,
-					'tipo' => $this->tipo,
-					'categoria_id' => $this->categoria,
-					'estado' => $this->estado,
-					'comercio_id' => $this->comercioId
+					'codigo'                => $this->codigo_sugerido,
+					'descripcion'           => ucwords($this->descripcion),
+					'precio_costo'          => $this->precio_costo,
+					'precio_venta'          => $this->precio_venta,
+					'stock'                 => $this->stock,
+					'tipo'                  => $this->tipo,
+					'categoria_id'          => $this->categoria,
+					'estado'                => $this->estado,
+					'comercio_id'           => $this->comercioId,
+					'salsa'                 => $salsa,
+					'guarnicion'            => $guarnicion,
+					'sectorcomanda_id'      => $this->sector,
+					'texto_base_comanda_id' => $this->texto
 				]);
 			}else {				
 				$record = Producto::find($this->selected_id);
 				$record->update([
-					'descripcion' => ucwords($this->descripcion),
-					'precio_costo' => $this->precio_costo,			
-					'precio_venta' => $this->precio_venta,				
-					'stock' => $this->stock,
-					'tipo' => $this->tipo,
-					'categoria_id' => $this->categoria,
-					'estado' => $this->estado
+					'descripcion'  	        => ucwords($this->descripcion),
+					'precio_costo' 	        => $this->precio_costo,			
+					'precio_venta' 	        => $this->precio_venta,				
+					'stock'        	        => $this->stock,
+					'tipo'         	        => $this->tipo,
+					'categoria_id' 	        => $this->categoria,
+					'estado'       	        => $this->estado,
+					'salsa'                 => $salsa,
+					'guarnicion'            => $guarnicion,
+					'sectorcomanda_id'      => $this->sector,
+					'texto_base_comanda_id' => $this->texto
 				]);
 				$this->action = 1;
 			}
@@ -281,19 +337,38 @@ class ProductoController extends Component
 	}	
 	public function validarProducto()
 	{
-		$existe = Producto::where('descripcion', $this->descripcion)
-			->where('comercio_id', $this->comercioId)
-			->withTrashed()->get();
-		if($existe->count() && $existe[0]->deleted_at != null) {
-			session()->flash('info', 'El Producto que desea crear ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
-			$this->action = 1;
-			$this->recuperar_registro = 1;
-			$this->descripcion_soft_deleted = $existe[0]->descripcion;
-			$this->id_soft_deleted = $existe[0]->id;
-			return;
-		}elseif( $existe->count()) {
-			$this->emit('registroRepetido');
-			return;
+		if($this->selected_id > 0) {
+			$existe = Producto::where('descripcion', $this->descripcion)
+				->where('id', '<>', $this->selected_id)
+				->where('comercio_id', $this->comercioId)
+				->withTrashed()->get();
+			if($existe->count() && $existe[0]->deleted_at != null) {
+				session()->flash('info', 'El Producto que desea crear ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+				$this->action = 1;
+				$this->recuperar_registro = 1;
+				$this->descripcion_soft_deleted = $existe[0]->descripcion;
+				$this->id_soft_deleted = $existe[0]->id;
+				return;
+			}elseif($existe->count()) {
+				$this->emit('registroRepetido');
+				return;
+			}else $this->habilitar_model = true; //habilito la presentación del model para agregar Texto Base
+		}else{
+			$existeProducto = Producto::where('descripcion', $this->descripcion)
+			->where('comercio_id', $this->comercioId)->withTrashed()->get();
+			
+			if($existeProducto->count() && $existeProducto[0]->deleted_at != null) {
+				session()->flash('info', 'El Producto que desea agregar fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
+				$this->action = 1;
+				$this->recuperar_registro = 1;
+				$this->descripcion_soft_deleted = $existeProducto[0]->descripcion;
+				$this->id_soft_deleted = $existeProducto[0]->id;
+				return;
+			}elseif($existeProducto->count()) {
+				session()->flash('info', 'El Producto ya existe...');
+				$this->resetInput();
+				return;
+			}else $this->habilitar_model = true; //habilito la presentación del model para agregar Texto Base
 		}
 	}
 }

@@ -13,5 +13,5 @@ class Factura extends Model
     protected $table = 'facturas';
     protected $fillable = ['numero', 'cliente_id', 'repartidor_id', 'user_id', 'importe', 'estado', 
                           'estado_pago', 'forma_de_pago', 'mercadopago', 'nro_comp_pago', 'estado_entrega', 
-                          'user_id_delete', 'comentario', 'comercio_id', 'arqueo_id'];
+                          'user_id_delete', 'comentario', 'comercio_id', 'arqueo_id', 'mesa_id', 'mozo_id'];
 }

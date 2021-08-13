@@ -100,7 +100,7 @@
                 </div> 
             </div>
             <div id="div2" class="col-sm-12 col-md-6" style="display:block;">
-                <div  class="table-resposive scroll">
+                <div class="table-resposive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
                             <tr>
@@ -128,7 +128,7 @@
                             <tr>
                                 <th class="text-center">CLIENTE</th>
                                 <th class="text-center">COMENTARIO</th>
-                                </tr>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach($info as $r)
@@ -136,7 +136,7 @@
                                     <tr> 
                                         <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>                                        
                                         <td class="text-center">{{$r->comentarios}}</td>
-                                       </tr>
+                                    </tr>
                                 @endif
                             @endforeach
                         </tbody>
@@ -382,7 +382,7 @@
             window.livewire.emit('cambiarFecha', data);
         });
     });   
-    window.onload = function() {  
+    window.onload = function() { 
         cambiarDiv(2);
         flatpickr("#fecha", {
             minDate: "today",

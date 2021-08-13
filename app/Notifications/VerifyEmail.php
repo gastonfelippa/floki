@@ -41,13 +41,7 @@ class VerifyEmail extends Notification implements ShouldQueue
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
-    {
-    //     //dd(session('pass_empleado'),session('empleado'));
-    //     if($notifiable)
-    //    $pass = session('pass_empleado'); //sesion que obtiene el password random generado
-    //    else
-    //    $pass = session('pass'); //sesion que obtiene el password random generado
-       
+    {       
         $verificationUrl = $this->verificationUrl($notifiable);
 
         if (static::$toMailCallback) {
@@ -58,8 +52,6 @@ class VerifyEmail extends Notification implements ShouldQueue
             ->greeting('Hola ' . $notifiable->name . '!')
             ->subject(Lang::get('Verify Email Address'))
             ->line(Lang::get('Please click the button below to verify your email address.'))
-            ->line(Lang::get('Usuario: ' . $notifiable->username))
-            ->line(Lang::get('Contraseña: ' . $notifiable->pass))
             ->action(Lang::get('Verify Email Address'), $verificationUrl)
             ->line(Lang::get('If you did not create an account, no further action is required.'));
     }

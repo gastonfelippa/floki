@@ -259,7 +259,6 @@ class RegisterController extends Controller
     }
     public function sendEmail($user, $comercio)
     {
-        //dd($user);
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
         $objDemo->demo_two = '';
@@ -269,6 +268,5 @@ class RegisterController extends Controller
         $email = 'floki.adm@gmail.com';
  
         Mail::to($email)->send(new NuevoAbonado($user, $comercio));
-        // Mail::to(env('MAIL_FROM_ADDRESS'))->send(new NuevoAbonado($user, $comercio));
     }
 }

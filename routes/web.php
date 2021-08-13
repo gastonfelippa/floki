@@ -48,6 +48,12 @@ Route::view('proveedores', 'proveedores')->middleware('permission:Proveedores_in
 Route::view('gastos', 'gastos')->middleware('permission:Gastos_index');
 Route::view('usuarios', 'usuarios')->middleware('permission:Usuarios_index');
 
+Route::view('salsas', 'salsas');
+Route::view('guarniciones', 'guarniciones');
+Route::view('sectorcomanda', 'sectorcomanda');
+Route::view('textobasecomanda', 'textobasecomanda');
+Route::view('comandas', 'comandas');
+
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('compras', 'compras')->middleware('permission:Compras_index');
 Route::view('facturasacobrar', 'facturasacobrar')->middleware('permission:Facturas_index');

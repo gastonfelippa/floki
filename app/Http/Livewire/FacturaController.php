@@ -4,14 +4,18 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Auditoria;
-use App\Models\Detfactura;
-use App\Models\Producto;
-use App\Models\Factura;
-use App\Models\Cliente;
-use App\Models\Empleado;
-use App\Models\Categoria;
-use App\Models\Ctacte;
 use App\Models\CajaUsuario;
+use App\Models\Categoria;
+use App\Models\Cliente;
+use App\Models\Comanda;
+use App\Models\Ctacte;
+use App\Models\Detcomanda;
+use App\Models\Detfactura;
+use App\Models\Empleado;
+use App\Models\Factura;
+use App\Models\Guarnicion;
+use App\Models\Producto;
+use App\Models\Salsa;
 use App\Models\User;
 use DB;
 
@@ -29,11 +33,13 @@ class FacturaController extends Component
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
+    public $salsas, $guarniciones, $salsa = 0, $guarnicion = 0, $texto_base = null, $comentario_comanda='null';
+    public $comanda_id, $inicio_comanda, $sector_comanda, $texto_comanda, $cantidad_comanda;
 	
 	public function render()
 	{
         // $this->facturaAfip();
-        
+ 
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
@@ -66,6 +72,8 @@ class FacturaController extends Component
         $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         $this->clientes = Cliente::select()->where('comercio_id', $this->comercioId)->orderBy('apellido', 'asc')->get();
         $this->categorias = Categoria::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
+        $this->salsas = Salsa::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
+        $this->guarniciones = Guarnicion::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         //muestro solo los repartidores que tienen caja abierta
         $this->empleados = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
             ->join('roles as r', 'r.id', 'mhr.role_id')
@@ -83,14 +91,13 @@ class FacturaController extends Component
             ->select('users.id')->get();
 
         if(strlen($this->barcode) > 0) $this->buscarProducto($this->barcode); 
-        else $this->precio = '';
-        
+        else $this->precio = '';        
+
         $dProducto = Producto::find($this->producto);
         if($dProducto != null) $this->precio = $dProducto->precio_venta; 
         else $this->precio = '';
         
-        
-        $encabezado = Factura::select('*')->where('comercio_id', $this->comercioId)->withTrashed()->get();                        // ->where('estado','like','abierta')->get();
+        $encabezado = Factura::select('*')->where('comercio_id', $this->comercioId)->withTrashed()->get(); 
         //si es la primera factura, le asigno el nro: 1
         if($encabezado->count() == 0){
             $this->numFactura = 1;
@@ -146,6 +153,20 @@ class FacturaController extends Component
             $i->importe=$i->cantidad * $i->precio;
             $this->total += $i->importe;
         }
+
+    //COMANDAS/////
+
+        $encComanda = Comanda::select('*')->where('factura_id', $this->factura_id)->where('estado','not like','terminado')->get();
+        //si es la primera factura, le asigno el nro: 1
+        if(!$encComanda->count()) $this->inicio_comanda = true;       
+        else{
+            $this->comanda_id = $encComanda[0]->id;
+            $this->inicio_comanda = false;
+        } 
+
+
+    ///////////////    
+
 		return view('livewire.facturas.component', [
             'info' => $info,
             'encabezado' => $encabezado
@@ -229,7 +250,8 @@ class FacturaController extends Component
         'anularFactura'     => 'anularFactura',
         'elegirFormaDePago' => 'elegirFormaDePago',
         'enviarDatosPago'   => 'enviarDatosPago',
-        'dejar_pendiente'   => 'dejar_pendiente' 
+        'dejar_pendiente'   => 'dejar_pendiente', 
+        'StoreOrUpdate'     => 'StoreOrUpdate' 
     ];
 	public function buscarArticulo($id)
 	{
@@ -253,20 +275,24 @@ class FacturaController extends Component
     }
     public function resetInput()
     {
-        $this->cantidad = 1;
-        $this->barcode ='';
-        $this->precio = '';
-        $this->producto = 'Elegir';
-        $this->selected_id = null;
-        $this->action = 1;
-        $this->search ='';
-        $this->estado_entrega = 0;
-        $this->salon = null;
-        $this->f_de_pago = null;
-        $this->nro_comp_pago = null;
-        $this->mercadopago = null;
-        $this->comentarioPago = '';
-        $this->forzar_arqueo = 0;
+        $this->cantidad           = 1;
+        $this->barcode            = '';
+        $this->precio             = '';
+        $this->producto           = 'Elegir';
+        $this->selected_id        = null;
+        $this->action             = 1;
+        $this->search             = '';
+        $this->estado_entrega     = 0;
+        $this->salon              = null;
+        $this->f_de_pago          = null;
+        $this->nro_comp_pago      = null;
+        $this->mercadopago        = null;
+        $this->comentarioPago     = '';
+        $this->forzar_arqueo      = 0;
+        $this->salsa              = 0;
+        $this->guarnicion         = 0;
+        $this->texto_base         = null;
+        $this->comentario_comanda = null;
     }    
     public function resetInputTodos()
     {
@@ -294,13 +320,29 @@ class FacturaController extends Component
         $this->precio = $record->precio;
         $this->cantidad = $record->cantidad;
     }
-    public function StoreOrUpdate($id)
+    public function verSalsaGuarn($id)
     {
-        if($id != '0'){
-            $producto = Producto::where('id', $id)->get();
-            $this->producto = $id;
+        $this->producto = $id;
+        $record = Producto::join('texto_base_comandas as tbc', 'tbc.id', 'productos.texto_base_comanda_id')
+            ->where('productos.id', $id)
+            ->select('productos.guarnicion', 'productos.salsa', 'productos.sectorcomanda_id', 'tbc.descripcion')
+            ->get();
+        if($record[0]->sectorcomanda_id == 1){    
+            $this->guarnicion = $record[0]->guarnicion;
+            $this->salsa      = $record[0]->salsa;
+            $this->texto_base = $record[0]->descripcion;  
+            $this->emit('modal_comanda');
+        } 
+    }
+    public function StoreOrUpdate($texto_comanda, $comanda)
+    {
+        $this->texto_comanda = $texto_comanda;
+        if($this->producto != '0'){
+            $producto = Producto::where('id', $this->producto)->get();
+            //$this->producto = $id;
             $this->precio = $producto[0]->precio_venta;
             $this->cantidad = 1;
+            $this->sector_comanda = $producto[0]->sectorcomanda_id;
         }else {
             $this->validate([
                 'producto' => 'not_in:Elegir'
@@ -319,11 +361,10 @@ class FacturaController extends Component
                 $record = DetFactura::find($this->selected_id);  
                 $record->update([                       //actualizamos el registro
                     'producto_id' => $this->producto,
-                    'cantidad' => $this->cantidad,
-                    'precio' => $this->precio
+                    'cantidad'    => $this->cantidad,
+                    'precio'      => $this->precio
                 ]); 
             }else {
-                
                 if($this->cliente == 'Elegir') $this->cliente = null; else $this->delivery = 1;
                 if($this->empleado == 'Elegir'){
                     $this->empleado = null;  
@@ -331,7 +372,7 @@ class FacturaController extends Component
                     $this->estado_entrega = 1;    
                     $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->empleado)
                         ->where('caja_usuarios.estado', '1')->get();
-                    if($nroArqueo->count() > 0){
+                    if($nroArqueo->count()){
                         $this->nro_arqueo = $nroArqueo[0]->id;  //este es el nro_arqueo del delivery
                     }  
                 }   
@@ -350,13 +391,12 @@ class FacturaController extends Component
                     ]);
                     $this->inicio_factura = false;
                     $this->factura_id = $factura->id;
-                }   
-
+                }  
                 $existe = Detfactura::select('id')              //buscamos si el producto ya está cargado
-                    ->where('factura_id', 'like', $this->factura_id)
+                    ->where('factura_id', $this->factura_id)
                     ->where('comercio_id', $this->comercioId)
-                    ->where('producto_id', 'like', $this->producto)->get();
-                if ($existe->count() > 0){
+                    ->where('producto_id', $this->producto)->get();
+                if ($existe->count()){
                     $edit_cantidad = Detfactura::find($existe[0]->id); 
                     $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
                     $edit_cantidad->update([                //actualizamos solo la cantidad                                      
@@ -373,11 +413,47 @@ class FacturaController extends Component
                 }
                 $record = Factura::find($this->factura_id);  //actualizamos el encabezado
                 $record->update(['importe' => $this->totalAgrabar]); 
+
+                //COMANDA////
+                if($comanda == 1){
+                    if($this->inicio_comanda) {
+                        $comanda = Comanda::create([
+                            'factura_id'       => $this->factura_id,
+                            'estado'           => 'cargado',
+                            'sectorcomanda_id' => $this->sector_comanda
+                        ]);
+                        $this->inicio_comanda = false;
+                        $this->comanda_id = $comanda->id;
+                    }  
+                    $existe = Detcomanda::select('id')              //buscamos si el producto ya está cargado
+                        ->where('comanda_id', $this->comanda_id)
+                        ->where('producto_id', $this->producto)
+                        ->where('descripcion', $this->texto_comanda)
+                        ->where('comercio_id', $this->comercioId)->get();
+                    if ($existe->count()){
+                        $edit_cantidad = Detcomanda::find($existe[0]->id); 
+                        $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
+                        $edit_cantidad->update([                //actualizamos solo la cantidad                                      
+                            'cantidad' => $nueva_cantidad
+                        ]);
+                    }else{
+                        $add_item = Detcomanda::create([         //creamos un nuevo detalle
+                            'comanda_id'  => $this->comanda_id,
+                            'producto_id' => $this->producto,
+                            'cantidad'    => $this->cantidad,
+                            'descripcion' => $this->texto_comanda,
+                            'comercio_id' => $this->comercioId
+                        ]);	
+                    }                    
+                }
+
+
+                /////////////
             }
             DB::commit();
             if($this->selected_id > 0) session()->flash('message', 'Registro Actualizado');       
             else session()->flash('message', 'Registro Agregado');  
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }     

@@ -184,8 +184,10 @@ class ArqueoGralController extends Component
         $this->totalIngresos = $this->ventas + $this->cobrosCtaCte + $this->otrosIngresos;
         if($this->cajaFinalUsuarios != 0){
             $this->cajaFinalUsuarios = $this->cajaFinal + $this->cajaFinalUsuarios;
-            $this->diferencia = $this->cajaFinalUsuarios - $this->cajaFinal;
+        }else{
+            $this->cajaFinalUsuarios = $this->cajaFinal;
         }
+        $this->diferencia = $this->cajaFinalUsuarios - $this->cajaFinal;
     }    
     public function cerrarArqueoGral()
     { 

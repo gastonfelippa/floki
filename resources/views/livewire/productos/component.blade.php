@@ -55,11 +55,13 @@
                     </div>
                 @endif
             </div>
-        </div> 
+        </div>
     </div>
     @else
+    <input type="hidden" id="habilitar_model" wire:model="habilitar_model"> 
 	@can('Productos_create')
 	@include('livewire.productos.form')			
+	@include('livewire.productos.modal')			
 	@endif
 	@endcan
 </div>
@@ -80,6 +82,8 @@
     }
 </script>
 @endsection
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 <script type="text/javascript">
     function Confirm(id)
@@ -110,7 +114,29 @@
     }
     function validarProducto()
     {
-        window.livewire.emit('validarProducto');
+        if($('#nombre').val() != '') window.livewire.emit('validarProducto');
+    } 
+    function guardar()
+    {
+        var salsa, guarn;
+        if(document.getElementById('salsa_si').checked) salsa = true;
+        if(document.getElementById('salsa_no').checked) salsa = false;
+        if(document.getElementById('guarn_si').checked) guarn = true;
+        if(document.getElementById('guarn_no').checked) guarn = false;
+        window.livewire.emit('guardar',salsa,guarn);
+    }
+    function openModal()
+    {     
+        if($('#habilitar_model').val() == 'true'){
+            $('#texto').val($('#nombre').val());
+            $('#modal').modal('show');  
+        }  
+	}
+	function save()
+    {
+        var texto = $('#texto').val();
+        if(texto != '') window.livewire.emit('grabar_texto_base', texto);
+        else $('#modal').modal('hide'); 
     } 
     window.onload = function() {
         document.getElementById("search").focus();
@@ -129,6 +155,37 @@
 			toastr.error('El Producto ya existe!', 'Info')
 			producto.focus();
 			return false;
+		})
+        Livewire.on('texto_creado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Texto creado!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('#modal').modal('hide');
+		})
+        Livewire.on('texto_existe',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Texto ya existe!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('#modal').modal('hide');
+		})
+        Livewire.on('registro_no_grabado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: 'El registro no se grabó...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            $('#modal').modal('hide');
 		})
     }
 </script>
