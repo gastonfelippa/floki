@@ -29,47 +29,18 @@
     <link href="{{ asset('plugins/flatpickr/flatpickr.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('plugins/flatpickr/material_red.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
-    <!-- <style>
-        body {
-            background: url('../images/arte.jpg') no-repeat center center fixed;
-            background-size: cover;
-        }
-    </style> -->
 
-
-    <!-- Sección para incluír estilos personalizados en los módulos del sistema  -->
      @yield('styles')
-
-    <!-- Necesario para el funcionamiento de Livewire -->
     <livewire:styles />
-
-
-
 </head>
 <body class="alt-menu sidebar-noneoverflow" onkeydown="keyEvent(event)" onkeyup="metaKeyUp(event)">
-
-    <!--  BEGIN MAIN CONTAINER  -->
     <div class="main-container" id="container">
-
-        
-        <!--  BEGIN CONTENT PART  -->
         <div id="content" class="main-content">
             <div class="layout-px-spacing">
-
-                @yield('content')                  
-            
+                @yield('content')           
             </div>
-            <!-- <div class="ml-3 mr-3">
-                @include('footer.footer')
-            </div> -->
-
         </div>
-        <!--  END CONTENT PART  -->
-
     </div>
-    <!-- END MAIN CONTAINER -->
-
-
 
     <!-- SCRIPTS GENERALES -->
     <script src="{{ asset('assets/js/libs/jquery-3.1.1.min.js') }}"></script>

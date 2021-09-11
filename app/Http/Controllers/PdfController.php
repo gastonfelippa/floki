@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 // use Livewire\Component;
-use App\Models\Factura;
 use App\Models\Cliente;
+use App\Models\Comercio;
 use App\Models\Ctacte;
-use App\Models\Recibo;
-use App\Models\Producto;
 use App\Models\Detfactura;
+use App\Models\DetRemito;
+use App\Models\Factura;
+use App\Models\Producto;
+use App\Models\Recibo;
 use App\Models\ReciboFactura;
+use App\Models\Remito;
 use App\Models\Vianda;
 use Carbon\Carbon;
 use PDF;
@@ -21,17 +24,15 @@ class PdfController extends Controller
 {
     public $comercioId, $entrega = 0, $suma;
     
-    public function PDF() {
+    public function PDF() 
+    {
         $pdf = PDF::loadView('prueba');
         return $pdf->stream('prueba.pdf');
     }
-
-    public function PDFFacturas() {
-
+    public function PDFFacturas() 
+    {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio'); 
-
-        $clientes  = Cliente::all();
    
         $info = Factura::leftjoin('clientes as c','c.id','facturas.cliente_id')
             ->leftjoin('empleados as r','r.id','facturas.repartidor_id')
@@ -44,8 +45,8 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfFacturas', compact('info'));
         return $pdf->stream('facturas.pdf');
     }
-
-    public function PDFRecibos($id) {
+    public function PDFRecibos($id) 
+    {
         $info = ReciboFactura::leftjoin('facturas as f','f.id','recibo_facturas.factura_id')
             ->leftjoin('recibos as r','r.id','recibo_facturas.recibo_id')
             ->leftjoin('clientes as c','c.id','f.cliente_id')
@@ -64,13 +65,17 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfRecibos', compact('info'));
         return $pdf->stream('facturas.pdf');
     }
-
-    public function PDFFactDel($id) {
+    public function PDFFactDel($id) 
+    {
         //busca el comercio que está en sesión
-        $this->comercioId = session('idComercio'); 
+        $this->comercioId = session('idComercio');
 
-        $clientes  = Cliente::select()->where('comercio_id', $this->comercioId)->get();
-        $productos = Producto::select()->where('comercio_id', $this->comercioId)->get();
+        $leyenda_factura = Comercio::select('leyenda_factura', 'imp_por_hoja', 'imp_duplicado')
+            ->where('id', $this->comercioId)->get();
+            //dd($leyendaFactura[0]->imp_por_hoja);
+        $leyendaFactura = $leyenda_factura[0]->leyenda_factura;
+        $impPorHoja     = $leyenda_factura[0]->imp_por_hoja;
+        $impDuplicado   = $leyenda_factura[0]->imp_duplicado;
       
         $infoDetalle = Detfactura::leftjoin('facturas as f','f.id','detfacturas.factura_id')
           ->leftjoin('productos as p','p.id','detfacturas.producto_id')
@@ -79,15 +84,15 @@ class PdfController extends Controller
           ->where('detfacturas.comercio_id', $this->comercioId)
           ->orderBy('detfacturas.id', 'asc')->get(); 
 
-      $this->importeFactura = 0;  
-
-      foreach ($infoDetalle as $i)
-      {
-          $i->importe=$i->cantidad * $i->precio;
-          $this->importeFactura += $i->importe;
-      }
+        $this->importeFactura = 0;  
+        foreach ($infoDetalle as $i)
+        {
+            $i->importe=$i->cantidad * $i->precio;
+            $this->importeFactura += $i->importe;
+        }
+        
         $info = Factura::leftjoin('clientes as c','c.id','facturas.cliente_id')
-            ->leftjoin('empleados as r','r.id','facturas.repartidor_id')
+            ->leftjoin('users as u','u.id','facturas.repartidor_id')
             ->select('facturas.*', 'facturas.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
                      'c.calle as calleCli', 'c.numero as numCli')
             ->where('facturas.id','like',$id)->get();
@@ -97,11 +102,39 @@ class PdfController extends Controller
         }else {              
             $delivery = true;
         }
-        $pdf = PDF::loadView('livewire.pdf.pdfFactDel', compact(['infoDetalle','info','delivery']));
+        $pdf = PDF::loadView('livewire.pdf.pdfFactDel', compact([
+            'infoDetalle','info','delivery','leyendaFactura', 'impPorHoja' ,'impDuplicado']));
         return $pdf->stream('fact.pdf');
     }
+    public function PDFRemito($id) 
+    {
+        //busca el comercio que está en sesión
+        $this->comercioId = session('idComercio');
+      
+        $infoDetalle = DetRemito::join('productos as p','p.id','det_remitos.producto_id')
+            ->where('det_remitos.remito_id', $id)
+            ->where('det_remitos.comercio_id', $this->comercioId)
+            ->select('det_remitos.*', 'p.codigo', 'p.descripcion as producto')
+            ->orderBy('det_remitos.id')->get(); 
+        $info = Remito::join('clientes as c','c.id','remitos.cliente_id')
+            ->join('users as u','u.id','remitos.repartidor_id')
+            ->select('remitos.*', 'remitos.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
+                     'c.calle as calleCli', 'c.numero as numCli')
+            ->where('remitos.id','like',$id)->get();
 
-    public function PDFViandas() {
+        if($info[0]->nomCli == null) {
+            $delivery = false;
+        }else {              
+            $delivery = true;
+        }
+        $pdf = PDF::loadView('livewire.pdf.pdfRemito', compact([
+                             'infoDetalle','info','delivery']));
+        return $pdf->stream('fact.pdf');
+        
+       
+    }
+    public function PDFViandas() 
+    {
 
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio'); 
@@ -165,7 +198,6 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfViandas', compact('info'));
         return $pdf->stream('viandas.pdf');
     }
-
     public function PDFListadoCtaCte()
     {
         //busca el comercio que está en sesión
@@ -279,4 +311,21 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfResumenDeCuenta', compact('info','importeEntrega','totalCli','saldo'));
         return $pdf->stream();
     }
+    public function PDFListaDePrecios($numero)
+    {
+		$this->comercioId = session('idComercio');
+		$listaNumero = $numero;
+
+        if($numero == 1){
+            $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')
+                ->where('comercio_id', $this->comercioId)->orderBy('codigo', 'asc')->get();
+        }else{
+            $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
+                ->where('comercio_id', $this->comercioId)->orderBy('codigo', 'asc')->get();
+        }
+        $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
+        return $pdf->stream();
+    }
+
+
 }

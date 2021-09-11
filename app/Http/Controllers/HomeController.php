@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ArqueoGral;
 use App\Models\Comercio;
+use App\Models\Mesa;
+use App\Models\User;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
 use Carbon\Carbon;
@@ -12,7 +14,8 @@ use Carbon\Carbon;
 class HomeController extends Controller
 {
 
-    public $comercioId, $arqueoGralId;
+    public $comercioId, $comercioTipo, $arqueoGralId, $periodoArqueo;
+ 
     /**
      * Create a new controller instance.
      *
@@ -20,7 +23,6 @@ class HomeController extends Controller
      */
     public function __construct()
     {     
-        
         $this->middleware('auth');
     }
     
@@ -34,10 +36,15 @@ class HomeController extends Controller
         if(Auth()->user()->id != 1)
         {
             //inicializa la variable de session idComercio con el comercio asignado al usuario actual
-            $userComercio = UsuarioComercio::select('id','comercio_id')
-                ->where('usuario_id', Auth()->user()->id)->get();
+            $userComercio = UsuarioComercio::join('comercios as c', 'c.id', 'usuario_comercio.comercio_id')
+                ->select('usuario_comercio.id','usuario_comercio.comercio_id', 'c.tipo_id', 'c.periodo_arqueo')
+                ->where('usuario_comercio.usuario_id', Auth()->user()->id)->get();
             session(['idComercio' => $userComercio[0]->comercio_id]); 
             $this->comercioId = session('idComercio'); 
+            session(['tipoComercio' => $userComercio[0]->tipo_id]); 
+            $this->comercioTipo = session('tipoComercio'); 
+            session(['periodoArqueo' => $userComercio[0]->periodo_arqueo]); 
+            $this->periodoArqueo = session('periodoArqueo'); 
             
             //averiguamos la hora de apertura del comercio para comprobar el arqueo
             $horaApertura = Comercio::select('hora_apertura')
@@ -92,6 +99,10 @@ class HomeController extends Controller
                 }
             }
 
+            //averiguamos el tipo de comercio para derivarlo al template que le corresponda
+            $tipo = Comercio::select('tipo_id')
+            ->where('id', $this->comercioId)->first();
+
             //verificaciones de planes
             $fecha_actual = Carbon::now();      
             $estado = UsuarioComercioPlanes::select('*')
@@ -115,8 +126,13 @@ class HomeController extends Controller
 
             if($estado->estado_plan == 'activo')
             {
+                
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
-                else return view('home');
+                else{
+                    // if($estado->plan_id == 1) return view('home');
+                    if($tipo->tipo_id != 11) return view('home');
+                    else return view('home_consignatario');
+                }
             }              
             
             if($estado->estado_plan == 'suspendido')

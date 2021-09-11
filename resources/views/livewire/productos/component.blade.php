@@ -20,9 +20,15 @@
                                     <th class="">ID</th>
                                     <th class="">DESCRIPCIÓN</th>
                                     @can('Productos_create')
-                                    <th class="text-right">P/COSTO</th>
+                                    <th class="text-center">P/COSTO</th>
                                     @endcan
-                                    <th class="text-right">P/VENTA</th>
+                                    @if($comercioTipo == 11)
+                                    <th class="text-center">P/VENTA <br>LISTA 1</th>
+                                    <th class="text-center">P/VENTA <br>LISTA 2</th>
+                                    @else
+                                    <th class="text-center">P/VENTA <br>LISTA SALÓN</th>
+                                    <th class="text-center">P/VENTA <br>LISTA DELIVERY</th>
+                                    @endif
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">STOCK</th>
                                     @can('Productos_create')
@@ -34,12 +40,13 @@
                             <tbody>
                                 @foreach($info as $r)
                                 <tr>                     
-                                    <td class="text-center"><p class="mb-0">{{$r->codigo}}</p></td>
+                                    <td class="text-center">{{$r->codigo}}</td>
                                     <td>{{$r->descripcion}}</td>
                                     @can('Productos_create')
-                                    <td class="text-right">{{$r->precio_costo}}</td>
+                                    <td class="text-center">{{$r->precio_costo}}</td>
                                     @endcan
-                                    <td class="text-right">{{$r->precio_venta}}</td>                               
+                                    <td class="text-center">{{$r->precio_venta_l1}}</td>                               
+                                    <td class="text-center">{{$r->precio_venta_l2}}</td>                               
                                     <td class="text-center">{{$r->estado}}</td>
                                     <td class="text-center">{{$r->stock}}</td>
                                     @can('Productos_create')
@@ -60,8 +67,7 @@
     @else
     <input type="hidden" id="habilitar_model" wire:model="habilitar_model"> 
 	@can('Productos_create')
-	@include('livewire.productos.form')			
-	@include('livewire.productos.modal')			
+	@include('livewire.productos.form')				
 	@endif
 	@endcan
 </div>
@@ -115,29 +121,7 @@
     function validarProducto()
     {
         if($('#nombre').val() != '') window.livewire.emit('validarProducto');
-    } 
-    function guardar()
-    {
-        var salsa, guarn;
-        if(document.getElementById('salsa_si').checked) salsa = true;
-        if(document.getElementById('salsa_no').checked) salsa = false;
-        if(document.getElementById('guarn_si').checked) guarn = true;
-        if(document.getElementById('guarn_no').checked) guarn = false;
-        window.livewire.emit('guardar',salsa,guarn);
-    }
-    function openModal()
-    {     
-        if($('#habilitar_model').val() == 'true'){
-            $('#texto').val($('#nombre').val());
-            $('#modal').modal('show');  
-        }  
-	}
-	function save()
-    {
-        var texto = $('#texto').val();
-        if(texto != '') window.livewire.emit('grabar_texto_base', texto);
-        else $('#modal').modal('hide'); 
-    } 
+    }  
     window.onload = function() {
         document.getElementById("search").focus();
         Livewire.on('registroEliminado',()=>{
@@ -161,16 +145,6 @@
                 position: 'center',
                 icon: 'success',
                 title: 'Texto creado!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-            $('#modal').modal('hide');
-		})
-        Livewire.on('texto_existe',()=>{
-            Swal.fire({
-                position: 'center',
-                icon: 'success',
-                title: 'El Texto ya existe!',
                 showConfirmButton: false,
                 timer: 1500
             })

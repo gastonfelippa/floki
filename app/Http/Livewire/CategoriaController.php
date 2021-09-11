@@ -10,14 +10,15 @@ use DB;
 
 class CategoriaController extends Component
 {
-	public  $descripcion, $margen, $descripcion_soft_deleted, $id_soft_deleted;
-    public  $selected_id, $search;  
-    public $comercioId, $action = 1, $recuperar_registro = 0;
+	public $descripcion, $margen_1, $margen_2, $descripcion_soft_deleted, $id_soft_deleted;
+    public $selected_id, $search;  
+    public $comercioId, $comercioTipo, $action = 1, $recuperar_registro = 0;
 
     public function render()
     {
          //busca el comercio que está en sesión
          $this->comercioId = session('idComercio');
+         $this->comercioTipo = session('tipoComercio');
 
         if(strlen($this->search) > 0)
         {
@@ -46,7 +47,8 @@ class CategoriaController extends Component
     private function resetInput()
     {
         $this->descripcion = '';
-        $this->margen = '';
+        $this->margen_1 = '';
+        $this->margen_2 = '';
         $this->selected_id = null;    
         $this->search = '';
     }
@@ -56,7 +58,8 @@ class CategoriaController extends Component
         $record = Categoria::findOrFail($id);
         $this->selected_id = $id;
         $this->descripcion = $record->descripcion;
-        $this->margen = $record->margen;
+        $this->margen_1 = $record->margen_1;
+        $this->margen_2 = $record->margen_2;
     }
     public function volver()
     {
@@ -130,14 +133,16 @@ class CategoriaController extends Component
             if($this->selected_id <= 0) {
                 $category =  Categoria::create([
                     'descripcion' => strtoupper($this->descripcion),            
-                    'margen' => $this->margen,
+                    'margen_1'    => $this->margen_1,
+                    'margen_2'    => $this->margen_2,
                     'comercio_id' => $this->comercioId            
                 ]);
             }else {   
                 $record = Categoria::find($this->selected_id);
                 $record->update([
                     'descripcion' => strtoupper($this->descripcion),
-                    'margen' => $this->margen
+                    'margen_1'    => $this->margen_1,
+                    'margen_2'    => $this->margen_2
                 ]);
                 $this->action = 1;              
             }

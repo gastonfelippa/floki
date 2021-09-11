@@ -33,6 +33,13 @@ class CreateFacturasTable extends Migration
             $table->enum('mercadopago', ['0','1'])->nullable(); //no,si
             $table->string('nro_comp_pago')->nullable();         //nro ticket tarjeta o transferencia 
             $table->enum('estado_entrega', ['0','1','2','3']);    //no delivery,delivery o en espera,en camino,entregado
+            $table->enum('lista', ['1','2','3']);      //nro de lista para buscar precios de venta
+
+            $table->unsignedBigInteger('mesa_id')->nullable();
+            $table->foreign('mesa_id')->references('id')->on('mesas');
+
+            $table->unsignedBigInteger('mozo_id')->nullable();
+            $table->foreign('mozo_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('user_id_delete')->nullable();
             $table->foreign('user_id_delete')->references('id')->on('users');

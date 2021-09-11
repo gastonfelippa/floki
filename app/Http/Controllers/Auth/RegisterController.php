@@ -94,9 +94,15 @@ class RegisterController extends Controller
         DB::begintransaction();                 //iniciar transacción para grabar
         try{    
             $comercio = Comercio::create([
-                'nombre'        => strtoupper($data['nombreComercio']),            
-                'tipo_id'       => $data['tipo'],
-                'hora_apertura' => '08:00:00'            
+                'nombre'          => strtoupper($data['nombreComercio']),            
+                'tipo_id'         => $data['tipo'],
+                'hora_apertura'   => '08:00:00',
+                'telefono'        => null,
+                'email'           => strtolower($data['email']),
+                'direccion'       => null,
+                'logo'            => null,
+                'leyenda_factura' => null,
+                'periodo_arqueo'  => 1            
             ]);
             $this->comercio = $comercio->nombre;
             $this->comercioId = $comercio->id;

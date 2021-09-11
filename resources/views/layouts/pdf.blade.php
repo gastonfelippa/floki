@@ -9,13 +9,11 @@
 
 </head>
 <body>
-<!-- <div id="content" class="main-content">
-            <div class="layout-px-spacing"> -->
-    <div class="col-5 offset-3">
+    <!-- <div class="col-5 offset-3"> -->
+    <div>
         @yield('content')               
     </div>
-    <!-- </div>
-    </div> -->
+    
     <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
 </body>
 </html>

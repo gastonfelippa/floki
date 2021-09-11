@@ -32,7 +32,7 @@
                         </div> 
                         <div class="form-group row">
                             <div class="col-12">
-                                <select name="sexo" class="form-control text-center @error('sexo') is-invalid @enderror">
+                                <select name="sexo" class="form-control text-left @error('sexo') is-invalid @enderror">
                                     <option value="0">Sexo</option>
                                     <option value="1">Femenino</option>
                                     <option value="2">Masculino</option>                                
@@ -56,7 +56,7 @@
                         </div>
                         <div class="form-group row">
                             <div class="col-12">
-                                <select name="tipo" class="form-control text-center">
+                                <select name="tipo" class="form-control text-left">
                                     <option value="2">Bar/Pub/Restó</option>
                                     <option value="3">Restaurante</option>
                                     <option value="4">Pizzería</option>

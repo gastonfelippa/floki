@@ -167,7 +167,6 @@ class CortesController extends Component
         $this->egresos = 0;
         $this->cajaFinal = 0;
     }
-
     protected $listeners = [
         'infoToPrintCorte'     => 'PrintCorte',
         'cambiarFecha'         => 'cambiarFecha',

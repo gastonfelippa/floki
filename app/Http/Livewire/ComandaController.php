@@ -33,10 +33,10 @@ class ComandaController extends Component
             ->where('comandas.estado', 'en espera')
             ->where('sectorcomanda_id', 1)
             ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-            ->orderBy('comandas.created_at', 'asc')->get(); 
+            ->orderBy('comandas.sent_at', 'asc')->get(); 
         foreach($this->infoEnEspera as $i){
             $this->contadorEE = $this->contadorEE + 1;
-            $date = Carbon::parse($i->created_at);
+            $date = Carbon::parse($i->sent_at);
             $now = Carbon::now();
             $diff = $date->diff($now);
             if ($diff->format('%h') > 0) $diff = $diff->format("%h h %i min");
@@ -52,10 +52,10 @@ class ComandaController extends Component
         ->where('comandas.estado', 'procesando')
         ->where('sectorcomanda_id', 1)
         ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-        ->orderBy('comandas.created_at')->get();
+        ->orderBy('comandas.sent_at')->get();
         foreach($this->infoProcesando as $i){
             $this->contadorP = $this->contadorP + 1;
-            $date = Carbon::parse($i->created_at);
+            $date = Carbon::parse($i->sent_at);
             $now = Carbon::now();
             $diff = $date->diff($now);
             if ($diff->format('%h') > 0) $diff = $diff->format("%h h %i min");
@@ -141,10 +141,10 @@ class ComandaController extends Component
                 ->where('comandas.estado', 'en espera')
                 ->where('sectorcomanda_id', 1)
                 ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-                ->orderBy('comandas.created_at', 'asc')->get(); 
+                ->orderBy('comandas.sent_at', 'asc')->get(); 
                 foreach($this->infoEnEspera as $i){
                     $this->contadorEE = $this->contadorEE + 1;
-                    $date = Carbon::parse($i->created_at);
+                    $date = Carbon::parse($i->sent_at);
                     $now = Carbon::now();
                     $diff = $date->diff($now);
                     if ($diff->format('%h') > 0) $diff = $diff->format("%h h %i min");
@@ -160,10 +160,10 @@ class ComandaController extends Component
                 ->where('comandas.estado', 'procesando')
                 ->where('sectorcomanda_id', 1)
                 ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-                ->orderBy('comandas.created_at')->get();
+                ->orderBy('comandas.sent_at')->get();
                 foreach($this->infoProcesando as $i){
                     $this->contadorP = $this->contadorP + 1;
-                    $date = Carbon::parse($i->created_at);
+                    $date = Carbon::parse($i->sent_at);
                     $now = Carbon::now();
                     $diff = $date->diff($now);
                     if ($diff->format('%h') > 0) $diff = $diff->format("%h h %i min");

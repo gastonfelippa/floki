@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-     
+
   @livewire('factura-controller')
 
 @endsection

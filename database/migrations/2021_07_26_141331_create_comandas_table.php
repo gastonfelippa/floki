@@ -24,6 +24,9 @@ class CreateComandasTable extends Migration
             $table->unsignedBigInteger('sectorcomanda_id');
             $table->foreign('sectorcomanda_id')->references('id')->on('sector_comandas');
 
+            $table->datetime('sent_at')->nullable();
+            $table->datetime('finished_at')->nullable();
+
             $table->timestamps();
         });
     }

@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+
 <div class="row layout-top-spacing">
     <div class="col-12 layout-spacing">
         <div class="widget-content-area">
@@ -20,3 +21,12 @@
     </div>
 </div>
 @endsection
+
+<script type="text/javascript">
+    window.onkeydown=PulsarTecla;
+    function PulsarTecla(event)
+    {
+        tecla = event.keyCode;
+        if(tecla==13) window.location.href="{{ url('mesas') }}";
+    }
+</script>

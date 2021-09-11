@@ -9,8 +9,8 @@
     </div>
     @can($create)
     <div class="col-4 mt-1">
-        <button type="button" wire:click="doAction(2)" class="btn btn-danger btn-block">
-            Nuevo
+        <button id="btnNuevo" type="button" wire:click="doAction(2)" class="btn btn-danger btn-block">
+            <span style="text-decoration: underline;">N</span>uevo
         </button>
     </div>
     @endcan

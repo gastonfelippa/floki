@@ -25,6 +25,8 @@ class CreateViandasContadosTable extends Migration
             $table->unsignedBigInteger('arqueo_gral_id');
             $table->foreign('arqueo_gral_id')->references('id')->on('arqueo_grals');
 
+            $table->enum('estado', ['Cobrada','Cta Cte', 'Anulada']);
+
             $table->timestamps();
         });
     }

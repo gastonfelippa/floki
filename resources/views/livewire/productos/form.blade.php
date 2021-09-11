@@ -40,20 +40,25 @@
                 </div>
                 <div class="row">
                     <div class="form-group col-md-3 col-sm-12">
-                        <label >Precio/Costo Salón</label>
+                        <label >Precio/Costo</label>
                         <input wire:model.lazy="precio_costo" onblur="calcularPrecioVenta()" type="text" class="form-control">
                     </div>
+
                     <div class="form-group col-md-3 col-sm-12">
-                        <label >Precio/Venta Salón</label>
-                        <input wire:model.lazy="precio_venta" type="text" class="form-control">
-                    </div>                        
+                        @if($comercioTipo == 11)
+                        <label >Precio/Venta Lista 1</label>
+                        @else
+                        <label >Precio/Venta Lista Salón</label>
+                        @endif
+                        <input wire:model.lazy="precio_venta_l1" type="text" class="form-control">
+                    </div>  
                     <div class="form-group col-md-3 col-sm-12">
-                        <label >Precio/Costo Del.</label>
-                        <input wire:model.lazy="precio_costo" onblur="calcularPrecioVenta()" type="text" class="form-control">
-                    </div>
-                    <div class="form-group col-md-3 col-sm-12">
-                        <label >Precio/Venta Del.</label>
-                        <input wire:model.lazy="precio_venta" type="text" class="form-control">
+                        @if($comercioTipo == 11)
+                        <label >Precio/Venta Lista 2</label>
+                        @else
+                        <label >Precio/Venta Lista Delivery</label>
+                        @endif
+                        <input wire:model.lazy="precio_venta_l2" type="text" class="form-control">
                     </div>                        
                 </div>
                 <div class="row">
@@ -61,77 +66,9 @@
                         <label >Stock</label>
                         <input wire:model.lazy="stock" type="text" class="form-control">
                     </div>
-                    <div class="form-group col-12 col-md-2">
-                        <label >Sector Comanda</label>
-                        <div class="input-group">
-                            <select wire:model="sector" class="form-control text-center">
-                                <option value="Elegir">Elegir</option>
-                                @foreach($sectores as $t)
-                                <option value="{{ $t->id }}">
-                                    {{$t->descripcion}}
-                                </option>                                       
-                                @endforeach                              
-                            </select>			               
-                        </div>
-                    </div>
-                    <div class="form-group col-12 col-md-3 text-center">
-                        <label >Texto Base Comanda</label>
-                        <div class="input-group">
-                            <select wire:model="texto" class="form-control text-center">
-                                <option value="Elegir">Elegir</option>
-                                @foreach($textos as $t)
-                                <option value="{{ $t->id }}">
-                                    {{$t->descripcion}}
-                                </option>                                       
-                                @endforeach                              
-                            </select>		               
-                            <div class="input-group-append">
-                                <span class="input-group-text" onclick="openModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group col-9 col-md-2">
-                        <label>¿Lleva salsa?</label>
-                        <div class="input-group">
-                            <div class="form-check form-check-inline">
-                                @if($salsa)
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="salsa_si" checked>
-                                @else
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="salsa_si">
-                                @endif
-                                <label class="form-check-label" for="inlineRadio1">Si</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                @if($salsa)
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="salsa_no">
-                                @else
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="salsa_no" checked>
-                                @endif
-                                <label class="form-check-label" for="inlineRadio2">No</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group col-9 col-md-3">
-                        <label>¿Lleva guarnición?</label>
-                        <div class="input-group">
-                            <div class="form-check form-check-inline">
-                                @if($guarnicion)
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="guarn_si" checked>
-                                @else
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="guarn_si">
-                                @endif
-                                <label class="form-check-label" for="inlineRadio1">Si</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                @if($guarnicion)
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="guarn_no">
-                                @else
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="guarn_no" checked>
-                                @endif
-                                <label class="form-check-label" for="inlineRadio2">No</label>
-                            </div>
-                        </div>
+                    <div class="form-group col-md-2 col-sm-12">
+                        <label >Stock Mínimo</label>
+                        <input wire:model.lazy="stock_minimo" type="text" class="form-control">
                     </div>
                 </div>
             </form>
@@ -141,7 +78,7 @@
                         <i class="mbri-left"></i> Cancelar
                     </button>
                     <button type="button" id="btnGuardar"
-                        onclick="guardar()"   
+                        wire:click="StoreOrUpdate()"   
                         class="btn btn-primary">
                         Guardar
                     </button>       

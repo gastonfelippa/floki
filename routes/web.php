@@ -36,6 +36,8 @@ Route::get('/pdfViandas', 'PdfController@PDFViandas');
 Route::get('/pdfRecibos/{id}', 'PdfController@PDFRecibos');
 Route::get('/pdfListadoCtaCte', 'PdfController@PDFListadoCtaCte');
 Route::get('/pdfResumenDeCuenta/{id}', 'PdfController@PDFResumenDeCuenta');
+Route::get('/pdfRemito/{id}', 'PdfController@PDFRemito');
+Route::get('/pdfListaDePrecios/{numero}', 'PdfController@PDFListaDePrecios');
 
 Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
 Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
@@ -53,6 +55,11 @@ Route::view('guarniciones', 'guarniciones');
 Route::view('sectorcomanda', 'sectorcomanda');
 Route::view('textobasecomanda', 'textobasecomanda');
 Route::view('comandas', 'comandas');
+Route::view('mesas', 'mesas');
+Route::view('configuraciones', 'configuraciones');
+Route::view('remitos', 'remitos');
+Route::view('stock', 'stock');
+Route::view('listadeprecios', 'listadeprecios');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('compras', 'compras')->middleware('permission:Compras_index');

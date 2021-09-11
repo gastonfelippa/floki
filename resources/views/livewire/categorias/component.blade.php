@@ -18,7 +18,13 @@
 							<thead>
 								<tr>
 									<th class="text-center">DESCRIPCIÓN</th>
-									<th class="text-center">MARGEN DE GANANCIA</th>
+									@if($comercioTipo == 11)
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 1</th>
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 2</th>
+									@else
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA SALÓN</th>
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA DELIVERY</th>
+									@endif
 									<th class="text-center">ACCIONES</th>
 								</tr>
 							</thead>
@@ -26,7 +32,8 @@
 								@foreach($info as $r)
 								<tr>
 									<td>{{$r->descripcion}}</td>
-									<td class="text-center">{{$r->margen}} %</td>
+									<td class="text-center">{{$r->margen_1}} %</td>
+									<td class="text-center">{{$r->margen_2}} %</td>
 									<td class="text-center">
 										@include('common.actions', ['edit' => 'Categorias_edit', 'destroy' => 'Categorias_destroy'])
 									</td>
@@ -82,25 +89,15 @@
             }
 		})
     }
-    // function Confirm(id)
-    // {
-    // 	let me = this
-    // 	swal({
-    // 		title: 'CONFIRMAR',
-    // 		text: '¿DESEAS ELIMINAR EL REGISTRO?',
-    // 		type: 'warning',
-    // 		showCancelButton: true,
-    // 		confirmButtonColor: '#3085d6',
-    // 		cancelButtonColor: '#d33',
-    // 		confirmButtonText: 'Aceptar',
-    // 		cancelButtonText: 'Cancelar',
-    // 		closeOnConfirm: false
-    // 	},
-    // 	function() {
-    // 		window.livewire.emit('deleteRow', id)
-    // 		swal.close()
-    // 	})
-    // }
+    window.onkeydown = PulsarTecla;
+	function PulsarTecla(e)
+    {
+        tecla = e.keyCode;
+        if(e.altKey == 1 && tecla == 78) document.getElementById("btnNuevo").click();
+        else if(e.altKey == 1 && tecla == 71) document.getElementById("btnGuardar").click();
+        else if(tecla == 27) document.getElementById("btnCancelar").click();
+    }
+
     window.onload = function() {
         document.getElementById("search").focus();
 		Livewire.on('eliminarRegistro',()=>{
@@ -127,4 +124,5 @@
     function setfocus($id) {
         document.getElementById($id).focus();
     }
+
 </script>

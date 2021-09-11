@@ -110,8 +110,34 @@ class UserSeeder extends Seeder
         
  
         //creamos un comercio ficticio para poder crear el rol SuperAdmin
-        $comercio = Comercio::create(['nombre' => 'SUPERADMIN', 'tipo_id' => '1', 'hora_apertura' => null]);
-        $comercio = Comercio::create(['nombre' => 'ABONADO', 'tipo_id' => '2', 'hora_apertura' => null]);
+        // $comercio = Comercio::create(['nombre' => 'SUPERADMIN', 'tipo_id' => '1', 'hora_apertura' => null]);
+        // $comercio = Comercio::create(['nombre' => 'ABONADO', 'tipo_id' => '2', 'hora_apertura' => null]);
+        $comercio = Comercio::create([
+            'nombre'          => 'SUPERADMIN', 
+            'tipo_id'         => 1, 
+            'hora_apertura'   => null,
+            'telefono'        => null,
+            'email'           => null,
+            'direccion'       => null,
+            'logo'            => null,
+            'leyenda_factura' => null,
+            'periodo_arqueo'  => 1,
+            'imp_por_hoja'    => '1',
+            'imp_duplicado'   => false
+        ]);
+        $comercio = Comercio::create([
+            'nombre'          => 'ABONADO', 
+            'tipo_id'         => 2, 
+            'hora_apertura'   => null,
+            'telefono'        => null,
+            'email'           => null,
+            'direccion'       => null,
+            'logo'            => null,
+            'leyenda_factura' => null,
+            'periodo_arqueo'  => 1,
+            'imp_por_hoja'    => '1',
+            'imp_duplicado'   => false
+        ]);
 
         // //lista de roles        
         $superadmin = Role::create([

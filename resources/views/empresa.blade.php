@@ -8,6 +8,6 @@
 
 @section('content')
      
-  @livewire('empresa-controller')
+  @livewire('comercio-controller')
 
 @endsection

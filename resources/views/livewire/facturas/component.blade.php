@@ -4,7 +4,7 @@
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 text-left">
                         <h3>Factura N°: {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}}</h3>
                     </div>
                     <div class="col-md-6 text-center">
@@ -12,13 +12,55 @@
                     </div>
                 </div>  
                 <div class="row">
-                    <div class="col-md-3">
+                    <!-- <div class="col-md-3">
                         <p style="font-size:14px;">Fecha {{\Carbon\Carbon::now()->format('d-m-Y')}} <p>
-                    </div>                    
+                    </div>  -->
+                    <div class="col-md-3">
+                        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                            @if($inicio_factura)
+                                @if($lista == '1')
+                                    <button id="btn1" type="button" class="btn btn-danger"
+                                        wire:click="usarLista('1')">L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('2')">L2</button>
+                                    <button id="btn3" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('3')">LC</button>
+                                @elseif($lista == '2')
+                                    <button id="btn1" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('1')">L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-danger"
+                                        wire:click="usarLista('2')">L2</button>
+                                    <button id="btn3" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('3')">LC</button>
+                                @else
+                                    <button id="btn1" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('1')">L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-outline-danger"
+                                        wire:click="usarLista('2')">L2</button>
+                                    <button id="btn3" type="button" class="btn btn-danger"
+                                        wire:click="usarLista('3')">LC</button>
+                                @endif
+                            @else
+                                @if($lista == '1')
+                                    <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                @elseif($lista == '2')
+                                    <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
+                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                @else
+                                    <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
+                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                    <button id="btn2" type="button" class="btn btn-danger" disabled>LC</button>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
                     <div class="col-md-9 text-right">
                         <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
                             @if($total == 0)
-                                <button type="button" onclick="openModal({{$factura_id}})" onclick="setfocus('barcode')" 
+                                <button type="button" onclick="openModal({{$factura_id}})"
                                     class="btn btn-dark" enabled>
                                     Delivery   
                                 </button>        
@@ -60,54 +102,53 @@
                         </div>
                     </div>
                 </div>
-                <!-- si es delivery y es inicio de factura -->
-            @if($delivery == 1)          
-                @if($total == 0)   
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <h6>Cliente:  {{$apeNomCli}}</h6>
+                <!-- si es delivery --> 
+                @if($delivery == 1)          
+                    @if($total == 0)   <!-- si es inicio de factura -->
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <h6>Cliente:  {{$apeNomCli}}</h6>
+                            </div>
+                            <div class="col-6">
+                                <h6>Rep:  {{$apeNomRep}}</h6>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <h6>Rep:  {{$apeNomRep}}</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>Dirección:  {{$dirCliente}}</h6>
+                            </div>
+                            <div class="col-6">
+                                @if($saldoCtaCte < 0)
+                                    <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
+                                @else
+                                    <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
+                                @endif
+                            </div>
+                        </div>       
+                    @else
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <h6>Cliente:  {{$encabezado[0]->apeCli}} {{$encabezado[0]->nomCli}}</h6>
+                            </div>
+                            <div class="col-6">
+                                <h6>Rep:  {{$encabezado[0]->apeRep}} {{$encabezado[0]->nomRep}}</h6>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6>Dirección:  {{$dirCliente}}</h6>
-                        </div>
-                        <div class="col-6">
-                            @if($saldoCtaCte < 0)
-                                <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
-                            @else
-                                <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
-                            @endif
-                        </div>
-                    </div>       
-                @else
-                <!-- si muestra datos en BD de la factura -->
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <h6>Cliente:  {{$encabezado[0]->apeCli}} {{$encabezado[0]->nomCli}}</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6>Rep:  {{$encabezado[0]->apeRep}} {{$encabezado[0]->nomRep}}</h6>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}}</h6>
-                        </div>
-                        <div class="col-6">
-                            @if($saldoCtaCte < 0)
-                                <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
-                            @else
-                                <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
-                            @endif
-                        </div>
-                    </div>                
-                @endif          
-            @endif
-            @if($mostrar_datos == 1)
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}}</h6>
+                            </div>
+                            <div class="col-6">
+                                @if($saldoCtaCte < 0)
+                                    <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
+                                @else
+                                    <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
+                                @endif
+                            </div>
+                        </div>                
+                    @endif          
+                @endif
+                @if($mostrar_datos == 1)
                     <div class="row mt-2">
                         <div class="col-6">
                             <h6>Cliente:  {{$apeNomCli}}</h6>
@@ -128,35 +169,34 @@
                             @endif
                         </div>
                     </div>   
-            @endif
-
-			@include('common.alerts')
-				<div class="table-responsive scroll">
-					<table class="table table-hover table-checkable table-sm mb-4">
-						<thead>
-							<tr>
-								<th class="text-center">CANTIDAD</th>
-								<th class="text-center">DESCRIPCIÓN</th>
-								<th class="text-right">P/UNITARIO</th>
-								<th class="text-right">IMPORTE</th>
-								<th class="text-center">ACCIONES</th>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($info as $r)
-							<tr class="">
-								<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
-								<td class="text-left">{{$r->producto}}</td>
-								<td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
-								<td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
-								<td class="text-center">
-									@include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
-								</td>
-							</tr>
-							@endforeach
-						</tbody>
-					</table>                   
-				</div>
+                @endif
+                @include('common.alerts')
+                <div class="table-responsive scroll">
+                    <table class="table table-hover table-checkable table-sm mb-4">
+                        <thead>
+                            <tr>
+                                <th class="text-center">CANTIDAD</th>
+                                <th class="text-center">DESCRIPCIÓN</th>
+                                <th class="text-right">P/UNITARIO</th>
+                                <th class="text-right">IMPORTE</th>
+                                <th class="text-center">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($info as $r)
+                            <tr class="">
+                                <td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
+                                <td class="text-left">{{$r->producto}}</td>
+                                <td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
+                                <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+                                <td class="text-center">
+                                    @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>                   
+                </div>  
 			</div>			
 		</div>
 	</div>
@@ -194,7 +234,7 @@
                         </div>
                         <div class="form-group col-sm-12 col-md-2 mt-2">
                             <label></label>
-                            <button id="guardar" type="button" wire:click="StoreOrUpdate('0','')" class="btn btn-primary mt-4">
+                            <button id="guardar" type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary mt-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>                                
                             </button>
                         </div>
@@ -227,7 +267,7 @@
                         <div class="scrollContent"> 
                             @if($articulos != null)
                             @foreach($articulos as $a)                    
-                                <button style="width: 30%;height: 75px;" wire:click="verSalsaGuarn('{{$a->id}}')" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
+                                <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
                             @endforeach 
                             @endif                   
                         </div>
@@ -237,12 +277,11 @@
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta">  
             <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
             <input type="hidden" id="ultima_factura" wire:model="ultima_factura"> 
-            <input type="hidden" id="tiene_comentario" value="{{$comentario_comanda}}">  
+            <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
         </div> 
     </div>
     @include('livewire.facturas.modal')  
-    @include('livewire.facturas.modalCtacte')  
-    @include('livewire.facturas.modalSalsas')   
+    @include('livewire.facturas.modalCtacte')    
     @else    
     @include('livewire.facturas.formaDePago')  
     @include('livewire.facturas.modalNroCompPago')  
@@ -451,74 +490,6 @@
         }		
 		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 	}
-    function openModalComandas()
-    {
-        if($('#tiene_salsa').val() == 1) $('#divSalsas').show();
-        else $('#divSalsas').hide(); 
-        if($('#tiene_guarnicion').val() == 1) $('#divGuarniciones').show();
-        else $('#divGuarniciones').hide();
-        $('#texto_comanda').val($('#texto_base').val());
-        $('#texto_comentario').val('');
-        $('#modalSalsas').modal('show')
-	}
-    function crear_descripcion(descripcion, concepto)
-    {
-        var tGuarnicion = '';
-        var tSalsa      = '';
-        var texto_base  = $('#texto_base').val();
-        var texto_comanda;
-        var tComentario = $('#texto_comentario').val();
-
-        if(concepto == 'salsa'){
-            $('#texto_salsa').val(descripcion);
-            tSalsa      = $('#texto_salsa').val();
-            tGuarnicion = $('#texto_guarnicion').val();
-            if(tGuarnicion == ''){
-                texto_comanda = texto_base +' c/'+ tSalsa; 
-                if(tComentario != '') texto_comanda = texto_comanda +' ('+ tComentario + ')';   
-            }else{
-                texto_comanda = texto_base +' c/'+ tSalsa +' y '+ tGuarnicion; 
-                if(tComentario != '') texto_comanda = texto_comanda +' ('+ tComentario + ')';
-            }   
-        }else{
-            $('#texto_guarnicion').val(descripcion);
-            tGuarnicion = $('#texto_guarnicion').val();
-            tSalsa      = $('#texto_salsa').val();
-            if(tSalsa == ''){
-                texto_comanda = texto_base +' c/'+ tGuarnicion; 
-                if(tComentario != '') texto_comanda = texto_comanda +' ('+ tComentario + ')';
-            }else{
-                texto_comanda = texto_base +' c/'+ tSalsa +' y '+ tGuarnicion;
-                if(tComentario != '') texto_comanda = texto_comanda +' ('+ tComentario + ')';
-            }   
-        }
-        $('#texto_comanda').val(texto_comanda); 
-    }
-    function agregarComentario()
-    {
-        var texto_base    = $('#texto_base').val();
-        var tGuarnicion   = $('#texto_guarnicion').val();
-        var tSalsa        = $('#texto_salsa').val();
-        var tComentario   = $('#texto_comentario').val();
-        var texto_comanda = '';
-        
-        if(tComentario != ''){
-            if(tSalsa != '') texto_comanda = texto_base +' c/'+ tSalsa +' y '+ tGuarnicion +' ('+ tComentario + ')';
-            else texto_comanda = texto_base +' c/'+ tGuarnicion +' ('+ tComentario + ')';
-        }else{
-            if(tSalsa != '') texto_comanda = texto_base +' c/'+ tSalsa +' y '+ tGuarnicion;
-            else texto_comanda = texto_base +' c/'+ tGuarnicion;
-        }
-        if(tGuarnicion == '' && tSalsa == '') texto_comanda = texto_base +' ('+ tComentario + ')';
-
-        $('#texto_comanda').val(texto_comanda);
-    }
-    function StoreOrUpdate()
-    {
-        var texto_comanda = $('#texto_comanda').val();
-        $('#modalSalsas').modal('hide')
-        window.livewire.emit('StoreOrUpdate', texto_comanda,1);
-    }
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		
             swal({
@@ -572,8 +543,45 @@
                 window.location.href="{{ url('notify') }}";
             }
 		})
-        Livewire.on('modal_comanda',()=>{
-            openModalComandas();
+        Livewire.on('limite_10',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                iconColor: 'orange',
+                title: 'Tabla con límite de filas completado!!',
+                text: 'Para seguir agregardo filas debes configurar la impresión a 1 hoja',
+                showConfirmButton: true
+            })
 		})
+        Livewire.on('limite_20',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                iconColor: 'orange',
+                title: 'Tabla on límite de filas completado!!',
+                text: 'Has llegado al límite máximo de filas por factura. Para continuar deberás iniciar una factura nueva.',
+                showConfirmButton: true
+            })
+        })
+        Livewire.on('listaNro',(nro, texto)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'En uso Lista ' + nro,
+                text: texto,
+                showConfirmButton: true
+            })
+        })
+        Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
+            var texto = 'Solo restan ';
+            if(stock == 0) texto = 'Restan ';
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Stock ' + ubicacion_stock + ' no disponible',
+                text: texto + stock + ' unidades',
+                showConfirmButton: true
+            })
+        })
     } 
 </script>
