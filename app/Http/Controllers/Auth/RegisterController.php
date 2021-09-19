@@ -255,7 +255,7 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-            $this->sendEmail($user, $this->comercio);
+          //  $this->sendEmail($user, $this->comercio);
             DB::commit();
             
             return $user;
