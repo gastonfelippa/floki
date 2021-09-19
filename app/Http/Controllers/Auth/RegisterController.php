@@ -7,6 +7,7 @@ use App\Providers\RouteServiceProvider;
 use Spatie\Permission\Models\Role;
 use App\Models\Comercio;
 use App\Models\ModelHasRole;
+use App\Models\Modulo;
 use App\Models\Plan;
 use App\Models\User;
 use App\Models\UsuarioComercio;
@@ -133,6 +134,15 @@ class RegisterController extends Controller
             UsuarioComercio::create([
                 'usuario_id'  => $userRepartidor->id,            
                 'comercio_id' => $this->comercioId            
+            ]);
+
+            //asigno los módulos bàsicos
+            $modulos = Modulo::create([
+                'modViandas'        => '0',
+                'modComandas'       => '0',
+                'modDelivery'       => '0',
+                'modConsignaciones' => '0',
+                'comercio_id'       => $this->comercioId
             ]);
 
             //creo los roles Admin, No Usuario, Encargado, Cajero y Repartidor            
