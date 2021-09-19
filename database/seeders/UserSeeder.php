@@ -86,6 +86,7 @@ class UserSeeder extends Seeder
         Permission::create(['name' => 'Planes_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Abonados_index', 'alias' => 'Ver']);
         Permission::create(['name' => 'Procedimientos_index', 'alias' => 'Ver']);
+        Permission::create(['name' => 'ModViandas', 'alias' => 'Ver']);
         
         //creamos tipos de comercio
         TipoComercio::create(['descripcion' => 'Tipo SuperAdmin']);

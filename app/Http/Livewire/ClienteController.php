@@ -14,7 +14,7 @@ use DB;
 class ClienteController extends Component
 {
     public $nombre, $apellido, $documento, $calle, $numero, $localidad = 'Elegir', $provincia = 'Elegir';
-    public $telefono, $vianda = '0', $viandaSi, $viandaNo, $comercioId; 
+    public $telefono, $vianda = null, $consignatario = null;  
     public $selected_id, $search, $action = 1, $caja_abierta; 
     public $nomCliV, $apeCliV, $producto = 'Elegir', $comentarios;
     public $h_lunes_m, $h_lunes_n, $h_martes_m, $h_martes_n, $h_miercoles_m, $h_miercoles_n, $h_jueves_m, $h_jueves_n;
@@ -22,11 +22,14 @@ class ClienteController extends Component
     public $c_lunes_m, $c_lunes_n, $c_martes_m, $c_martes_n, $c_miercoles_m, $c_miercoles_n, $c_jueves_m, $c_jueves_n;
     public $c_viernes_m, $c_viernes_n, $c_sabado_m, $c_sabado_n, $c_domingo_m, $c_domingo_n;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
+    public $comercioId, $modViandas, $modConsignaciones;
 
     public function render()
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        $this->modViandas = session('modViandas');
+        $this->modConsignaciones = session('modConsignaciones');
 
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
@@ -71,8 +74,12 @@ class ClienteController extends Component
             'provincias'  => $provincias,
             'productos'   => $productos
         ]);
-    }
-
+    }  
+    protected $listeners = [
+        'deleteRow'       =>'destroy',
+        'createFromModal' => 'createFromModal',
+        'guardar'         => 'StoreOrUpdate'      
+    ]; 
     public function verViandas($id, $action)
     {
         $this->action = $action;
@@ -119,28 +126,26 @@ class ClienteController extends Component
             $this->c_domingo_n   = $viandas[0]->c_domingo_n;
         }       
     }
-        //activa la vista edición o creación
     public function doAction($action)
     {
         $this->action = $action;
         $this->resetInput();
-    }
-
-        //método para reiniciar variables
+    }        
     private function resetInput()
     {
-        $this->nombre      = '';
-        $this->apellido    = '';
-        $this->documento   = '';
-        $this->calle       = '';
-        $this->numero      = '';
-        $this->localidad   = 'Elegir';
-        $this->provincia   = 'Elegir';
-        $this->producto    = 'Elegir';
-        $this->telefono    = '';
-        $this->vianda      = '0';
-        $this->selected_id = null;       
-        $this->search      = '';
+        $this->nombre        = '';
+        $this->apellido      = '';
+        $this->documento     = '';
+        $this->calle         = '';
+        $this->numero        = '';
+        $this->localidad     = 'Elegir';
+        $this->provincia     = 'Elegir';
+        $this->producto      = 'Elegir';
+        $this->telefono      = '';
+        $this->vianda        = null;
+        $this->consignatario = null;
+        $this->selected_id   = null;       
+        $this->search        = '';
 
         $this->producto   = 'Elegir';
         $this->comentarios   = '';
@@ -173,30 +178,28 @@ class ClienteController extends Component
         $this->c_domingo_m   = null;   
         $this->c_domingo_n   = null;
     }
-
     public function edit($id)
     {
         $record = Cliente::findOrFail($id);
-        $this->selected_id = $id;
-        $this->nombre      = $record->nombre;
-        $this->apellido    = $record->apellido;
-        $this->documento   = $record->documento;
-        $this->calle       = $record->calle;
-        $this->numero      = $record->numero;
-        $this->localidad   = $record->localidad_id;
-        $this->telefono    = $record->telefono;
-        $this->vianda      = $record->vianda;
+        $this->selected_id   = $id;
+        $this->nombre        = $record->nombre;
+        $this->apellido      = $record->apellido;
+        $this->documento     = $record->documento;
+        $this->calle         = $record->calle;
+        $this->numero        = $record->numero;
+        $this->localidad     = $record->localidad_id;
+        $this->telefono      = $record->telefono;
+		if($record->vianda == '1') $this->vianda = true; else $this->vianda = false;
+		if($record->consignatario == '1') $this->consignatario = true; else $this->consignatario = false;
 
         $this->action = 2;
     }
-    
     public function volver()
     {
         $this->recuperar_registro = 0;
         $this->resetInput();
         return; 
     }
-
     public function RecuperarRegistro($id)
     {
         DB::begintransaction();
@@ -211,13 +214,12 @@ class ClienteController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-
-    public function StoreOrUpdate()
+    public function StoreOrUpdate($vianda, $consignatario)
     {
-        $this->validate([
-            'vianda' => 'not_in:0',
-            'localidad' => 'not_in:Elegir'
-        ]);     
+        if($vianda) $vianda = '1'; else $vianda = '0';
+        if($consignatario) $consignatario = '1'; else $consignatario = '0';
+        $this->validate(['localidad' => 'not_in:Elegir']);
+           
         $this->validate([
             'nombre' => 'required', 
             'apellido' => 'required',
@@ -273,26 +275,28 @@ class ClienteController extends Component
             }        
             if($this->selected_id <= 0) {
                 Cliente::create([
-                    'nombre'       => strtoupper($this->nombre),            
-                    'apellido'     => strtoupper($this->apellido),     
-                    'calle'        => ucwords($this->calle),            
-                    'numero'       => $this->numero,            
-                    'localidad_id' => $this->localidad,            
-                    'telefono'     => $this->telefono,
-                    'vianda'       => $this->vianda,
-                    'saldo'        => '0',
-                    'comercio_id'  => $this->comercioId            
+                    'nombre'        => strtoupper($this->nombre),            
+                    'apellido'      => strtoupper($this->apellido),     
+                    'calle'         => ucwords($this->calle),            
+                    'numero'        => $this->numero,            
+                    'localidad_id'  => $this->localidad,            
+                    'telefono'      => $this->telefono,
+                    'vianda'        => $vianda,
+                    'consignatario' => $consignatario,
+                    'saldo'         => '0',
+                    'comercio_id'   => $this->comercioId            
                 ]);
             }else {   
                 $record = Cliente::find($this->selected_id);
                 $record->update([
-                    'nombre'       => strtoupper($this->nombre),            
-                    'apellido'     => strtoupper($this->apellido),     
-                    'calle'        => ucwords($this->calle),            
-                    'numero'       => $this->numero,            
-                    'localidad_id' => $this->localidad,            
-                    'telefono'     => $this->telefono,
-                    'vianda'       => $this->vianda
+                    'nombre'        => strtoupper($this->nombre),            
+                    'apellido'      => strtoupper($this->apellido),     
+                    'calle'         => ucwords($this->calle),            
+                    'numero'        => $this->numero,            
+                    'localidad_id'  => $this->localidad,            
+                    'telefono'      => $this->telefono,
+                    'vianda'        => $vianda,
+                    'consignatario' => $consignatario
                 ]); 
                 $this->action = 1;             
             }
@@ -307,7 +311,6 @@ class ClienteController extends Component
         $this->resetInput();
         return;
     }
-        
     public function grabarViandas()
     {   //creo un array con las cantidades y otro con los horarios de todos los días
         $arrayCantidad = [$this->c_lunes_m, $this->c_lunes_n, $this->c_martes_m, $this->c_martes_n, $this->c_miercoles_m,
@@ -471,13 +474,7 @@ class ClienteController extends Component
         }
         $this->resetInput();
         $this->action = 1;
-    }
-        
-    protected $listeners = [
-        'deleteRow'=>'destroy',
-        'createFromModal' => 'createFromModal'       
-    ];  
-    
+    } 
     public function destroy($id)
     {
         if ($id) {
@@ -494,7 +491,6 @@ class ClienteController extends Component
             return;
         }    
     }
-
     public function createFromModal($info)
     {
         $data = json_decode($info);

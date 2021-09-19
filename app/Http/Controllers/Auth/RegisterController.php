@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 use App\Models\Comercio;
+use App\Models\ModelHasRole;
+use App\Models\Plan;
+use App\Models\User;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
-use App\Models\Plan;
-use App\Models\ModelHasRole;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
@@ -194,6 +194,7 @@ class RegisterController extends Controller
                 'Compras_index','Compras_create_producto','Compras_edit_item','Compras_destroy_item',
                 'HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index','MovimientosDiarios_index',                
                 'VentasDiarias_index','VentasPorFechas_index',                                
+                'Ctacte_index','OtroIngreso_index',
                 'Viandas_index','Ctacte_index','OtroIngreso_index'           
             ]);                                    
             //asigno permisos al rol Encargado
@@ -208,7 +209,7 @@ class RegisterController extends Controller
                 'Facturas_imp','Fact_delivery_imp',
                 'Compras_index','Compras_create_producto','Compras_edit_item','Compras_destroy_item',
                 'HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index','MovimientosDiarios_index',                
-                'VentasDiarias_index',                               
+                'VentasDiarias_index',
                 'Viandas_index','Ctacte_index','OtroIngreso_index'           
             ]);                                    
             //asigno permisos al rol Cajero

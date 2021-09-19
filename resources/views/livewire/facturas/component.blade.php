@@ -23,36 +23,48 @@
                                         wire:click="usarLista('1')">L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('2')">L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn3" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('3')">LC</button>
+                                    @endif
                                 @elseif($lista == '2')
                                     <button id="btn1" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('1')">L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-danger"
                                         wire:click="usarLista('2')">L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn3" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('3')">LC</button>
+                                    @endif
                                 @else
                                     <button id="btn1" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('1')">L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger"
                                         wire:click="usarLista('2')">L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn3" type="button" class="btn btn-danger"
                                         wire:click="usarLista('3')">LC</button>
+                                    @endif
                                 @endif
                             @else
                                 @if($lista == '1')
                                     <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                    @endif
                                 @elseif($lista == '2')
                                     <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                    @endif
                                 @else
                                     <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                    @if($modConsignaciones == "1")
                                     <button id="btn2" type="button" class="btn btn-danger" disabled>LC</button>
+                                    @endif
                                 @endif
                             @endif
                         </div>
@@ -219,7 +231,7 @@
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label>Producto</label>
-                            <select id="producto" wire:model="producto" class="form-control form-control-sm text-center">
+                            <select id="producto" wire:model="producto" class="form-control form-control-sm">
                                 <option value="Elegir" >Elegir</option>
                                 @foreach($productos as $t)
                                 <option value="{{ $t->id }}">
@@ -490,6 +502,21 @@
         }		
 		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 	}
+    /////código para prolongar la session
+    var keep_alive = false;
+    $(document).bind("click keydown keyup mousemove", function() {
+        keep_alive = true;
+    });
+    setInterval(function() {
+        if ( keep_alive ) {
+            pingServer();
+            keep_alive = false;
+        }
+    }, 1200000 );
+    function pingServer() {
+        $.ajax('/keepAlive');
+    }
+    /////
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		
             swal({

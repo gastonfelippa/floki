@@ -22,12 +22,12 @@
                                     @can('Productos_create')
                                     <th class="text-center">P/COSTO</th>
                                     @endcan
-                                    @if($comercioTipo == 11)
-                                    <th class="text-center">P/VENTA <br>LISTA 1</th>
-                                    <th class="text-center">P/VENTA <br>LISTA 2</th>
-                                    @else
+                                    @if($modDelivery == "1")
                                     <th class="text-center">P/VENTA <br>LISTA SALÓN</th>
                                     <th class="text-center">P/VENTA <br>LISTA DELIVERY</th>
+                                    @else
+                                    <th class="text-center">P/VENTA <br>LISTA 1</th>
+                                    <th class="text-center">P/VENTA <br>LISTA 2</th>
                                     @endif
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">STOCK</th>
@@ -43,10 +43,10 @@
                                     <td class="text-center">{{$r->codigo}}</td>
                                     <td>{{$r->descripcion}}</td>
                                     @can('Productos_create')
-                                    <td class="text-center">{{$r->precio_costo}}</td>
+                                    <td class="text-center">{{number_format($r->precio_costo,2,',','.')}}</td>
                                     @endcan
-                                    <td class="text-center">{{$r->precio_venta_l1}}</td>                               
-                                    <td class="text-center">{{$r->precio_venta_l2}}</td>                               
+                                    <td class="text-center">{{number_format($r->precio_venta_l1,2,',','.')}}</td>                               
+                                    <td class="text-center">{{number_format($r->precio_venta_l2,2,',','.')}}</td>                               
                                     <td class="text-center">{{$r->estado}}</td>
                                     <td class="text-center">{{$r->stock}}</td>
                                     @can('Productos_create')
@@ -65,11 +65,13 @@
         </div>
     </div>
     @else
-    <input type="hidden" id="habilitar_model" wire:model="habilitar_model"> 
-	@can('Productos_create')
-	@include('livewire.productos.form')				
+        <input type="hidden" id="cliComanda" wire:model="modComandas">
+        <input type="hidden" id="habilitar_model" wire:model="habilitar_model"> 
+        @can('Productos_create')
+            @include('livewire.productos.form')			
+            @include('livewire.productos.modal')			
+        @endcan
 	@endif
-	@endcan
 </div>
 
 <style type="text/css" scoped>
@@ -80,14 +82,6 @@
     overflow: auto;
 }
 </style>
-
-@section('content_script_head')   
-<script>
-    function calcularPrecioVenta() {
-        window.livewire.emit('calcular_precio_venta');
-    }
-</script>
-@endsection
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
@@ -118,10 +112,49 @@
             }
 		})
     }
+    function calcularPrecioVenta() {
+        window.livewire.emit('calcular_precio_venta');
+    }
+
     function validarProducto()
     {
         if($('#nombre').val() != '') window.livewire.emit('validarProducto');
     }  
+    function guardar()
+    {
+        var salsa = false, guarn = false;
+        if(document.getElementById('cliComanda').value == 1 && document.getElementById('salsa_si').checked) salsa = true;
+        if(document.getElementById('cliComanda').value == 1 && document.getElementById('guarn_si').checked) guarn = true;
+        window.livewire.emit('guardar',salsa,guarn);
+    }
+    function openModal()
+    {     
+        if($('#habilitar_model').val() == 'true'){
+            $('#texto').val($('#nombre').val());
+            $('#modal').modal('show');  
+        }  
+	}
+	function save()
+    {
+        var texto = $('#texto').val();
+        if(texto != '') window.livewire.emit('grabar_texto_base', texto);
+        $('#modal').modal('hide'); 
+    } 
+    /////código para prolongar la session
+    var keep_alive = false;
+    $(document).bind("click keydown keyup mousemove", function() {
+        keep_alive = true;
+    });
+    setInterval(function() {
+        if ( keep_alive ) {
+            pingServer();
+            keep_alive = false;
+        }
+    }, 1200000 );
+    function pingServer() {
+        $.ajax('/keepAlive');
+    }
+    /////
     window.onload = function() {
         document.getElementById("search").focus();
         Livewire.on('registroEliminado',()=>{

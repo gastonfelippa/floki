@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ArqueoGral;
 use App\Models\Comercio;
 use App\Models\Mesa;
+use App\Models\Modulo;
 use App\Models\User;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
@@ -39,12 +40,24 @@ class HomeController extends Controller
             $userComercio = UsuarioComercio::join('comercios as c', 'c.id', 'usuario_comercio.comercio_id')
                 ->select('usuario_comercio.id','usuario_comercio.comercio_id', 'c.tipo_id', 'c.periodo_arqueo')
                 ->where('usuario_comercio.usuario_id', Auth()->user()->id)->get();
+                
             session(['idComercio' => $userComercio[0]->comercio_id]); 
             $this->comercioId = session('idComercio'); 
             session(['tipoComercio' => $userComercio[0]->tipo_id]); 
             $this->comercioTipo = session('tipoComercio'); 
             session(['periodoArqueo' => $userComercio[0]->periodo_arqueo]); 
             $this->periodoArqueo = session('periodoArqueo'); 
+
+            //verifica los módulos que tiene disponible este comercio
+            $modulos = Modulo::where('comercio_id', $this->comercioId)->first();
+            session(['modViandas'        => $modulos->modViandas]);
+            session(['modComandas'       => $modulos->modComandas]);
+            session(['modDelivery'       => $modulos->modDelivery]);
+            session(['modConsignaciones' => $modulos->modConsignaciones]);
+            $modViandas        = session('modViandas');
+            $modComandas       = session('modComandas');
+            $modDelivery       = session('modDelivery');
+            $modConsignaciones = session('modConsignaciones');
             
             //averiguamos la hora de apertura del comercio para comprobar el arqueo
             $horaApertura = Comercio::select('hora_apertura')
@@ -126,12 +139,9 @@ class HomeController extends Controller
 
             if($estado->estado_plan == 'activo')
             {
-                
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
                 else{
-                    // if($estado->plan_id == 1) return view('home');
-                    if($tipo->tipo_id != 11) return view('home');
-                    else return view('home_consignatario');
+                    return view('home');
                 }
             }              
             

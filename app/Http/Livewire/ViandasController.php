@@ -84,7 +84,7 @@ class ViandasController extends Component
             ->where('viandas.c_'. $this->dia .'_m', '<>', '')
             ->where('c.comercio_id', $this->comercioId)
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
-            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta', 
+            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.descripcion', 'p.precio_venta_l1', 
             DB::RAW("'' as importe"))->orderBy('h_'. $this->dia .'_m')->get(); 
         $this->cantidad_a_preparar = 0;
         foreach ($info as $i){
@@ -98,7 +98,7 @@ class ViandasController extends Component
             ->where('viandas.c_'. $this->dia .'_m', '<>', '')
             ->where('c.comercio_id', $this->comercioId)
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
-            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.id', 'p.descripcion', 'p.precio_venta', 
+            'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.id', 'p.descripcion', 'p.precio_venta_l1', 
             DB::RAW("'' as importe"), DB::RAW("'' as habilitar_facturas"), DB::RAW("'' as estado"))->orderBy('c.apellido')->get(); 
         $this->cantidad_grabadas = 0;
             foreach ($info2 as $i){
@@ -155,7 +155,7 @@ class ViandasController extends Component
                 ->where('viandas.c_'. $this->dia .'_m', '<>', '')
                 ->where('c.comercio_id', $this->comercioId)
                 ->select('viandas.c_'. $this->dia .'_m as cantidad', 'c.id as cliente_id', 'p.id as producto_id',
-                         'p.precio_venta', DB::RAW("'' as importe"))->get(); 
+                         'p.precio_venta_l1', DB::RAW("'' as importe"))->get(); 
             foreach ($info as $i){
                 $i->importe=$i->cantidad * $i->precio_venta;
             } 
@@ -354,7 +354,7 @@ class ViandasController extends Component
                 ->where('viandas.c_'. $this->dia .'_m', '<>', '')
                 ->where('c.comercio_id', $this->comercioId)
                 ->select('viandas.c_'. $this->dia .'_m as cantidad', 'c.id as cliente_id', 'p.id as producto_id',
-                         'p.precio_venta', DB::RAW("'' as importe"))->get();
+                         'p.precio_venta_l1', DB::RAW("'' as importe"))->get();
             foreach($info as $i){
                 if ($i->cliente_id == $this->cliente_id) {
                     $i->importe=$i->cantidad * $i->precio_venta;
@@ -422,7 +422,7 @@ class ViandasController extends Component
                 ->where('viandas.c_'. $this->dia .'_m', '<>', '')
                 ->where('c.comercio_id', $this->comercioId)
                 ->select('viandas.c_'. $this->dia .'_m as cantidad', 'c.id as cliente_id', 'p.id as producto_id',
-                         'p.precio_venta', DB::RAW("'' as importe"))->get();
+                         'p.precio_venta_l1', DB::RAW("'' as importe"))->get();
 
             foreach($info as $i){
                 if ($i->cliente_id == $cliId) {

@@ -57,8 +57,9 @@ class RemitoController extends Component
         }        
 
         $this->productos = Producto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->clientes = Cliente::where('comercio_id', $this->comercioId)->orderBy('apellido')->get();
         $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->clientes = Cliente::where('comercio_id', $this->comercioId)
+            ->where('consignatario', '1')->orderBy('apellido')->get();
         
         //muestro solo los repartidores que tienen caja abierto
         $this->empleados = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')

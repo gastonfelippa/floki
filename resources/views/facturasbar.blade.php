@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-     
-  @livewire('proveedor-controller')
+
+  @livewire('factura-bar-controller')
 
 @endsection

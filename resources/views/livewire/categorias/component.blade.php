@@ -17,13 +17,13 @@
 						<table class="table table-hover table-checkable table-sm">
 							<thead>
 								<tr>
-									<th class="text-center">DESCRIPCIÓN</th>
-									@if($comercioTipo == 11)
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 1</th>
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 2</th>
-									@else
+									<th class="text-left">DESCRIPCIÓN</th>
+									@if($modComandas == "1")
 									<th class="text-center">MARGEN DE GANANCIA <br>LISTA SALÓN</th>
 									<th class="text-center">MARGEN DE GANANCIA <br>LISTA DELIVERY</th>
+									@else
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 1</th>
+									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 2</th>
 									@endif
 									<th class="text-center">ACCIONES</th>
 								</tr>

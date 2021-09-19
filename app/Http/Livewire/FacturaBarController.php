@@ -14,21 +14,22 @@ use App\Models\Detfactura;
 use App\Models\Empleado;
 use App\Models\Factura;
 use App\Models\Guarnicion;
+use App\Models\Mesa;
 use App\Models\Producto;
 use App\Models\Salsa;
 use App\Models\User;
 use Carbon\Carbon;
 use DB;
 
-class FacturaController extends Component
+class FacturaBarController extends Component
 {
 	//properties
     public $cantidad = 1, $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos;
-    public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $barcode, $salon =null;
-    public $clientes, $empleados, $productos;
+    public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $mesa="Elegir", $mozo="Elegir", $salon =null;
+    public $clientes, $empleados, $productos, $mesas, $mozos;
     public $selected_id = null, $search, $numFactura, $action = 1;
     public $facturas,  $total, $importe, $totalAgrabar, $delivery = 0;  
-    public $grabar_encabezado = true, $modificar, $codigo;
+    public $grabar_encabezado = true, $modificar, $codigo, $barcode;
     public $comercioId, $arqueoGralId, $factura_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
@@ -37,6 +38,7 @@ class FacturaController extends Component
     public $salsas, $guarniciones, $salsa = 0, $guarnicion = 0, $texto_base = null, $comentario_comanda='null';
     public $comanda_id, $inicio_comanda, $sector_comanda, $texto_comanda, $cantidad_comanda;
     public $tabFactura = 'factura', $unirComandas = 'no', $estadoComanda, $tab = 'factura';
+    public $mesaId, $mozoId;
 	
 	public function render()
 	{
@@ -44,7 +46,12 @@ class FacturaController extends Component
  
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
-
+        $this->mesaId = session("idMesa");
+        $this->mozo = session("idMozo");
+        $mesa = Mesa::where('id', $this->mesaId)->get();
+        if($mesa[0]->estado == 'Disponible') $this->mesa = $mesa[0]->descripcion;
+        
+//dd($this->mesaId, $this->mozoId);
         //busco el estado del Arqueo Gral
         $this->estadoAqueoGral = session('estadoArqueoGral');
         if($this->estadoAqueoGral == 'pendiente'){
@@ -71,11 +78,17 @@ class FacturaController extends Component
             }
         }        
 
-        $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
-        $this->clientes = Cliente::select()->where('comercio_id', $this->comercioId)->orderBy('apellido', 'asc')->get();
-        $this->categorias = Categoria::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
-        $this->salsas = Salsa::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
-        $this->guarniciones = Guarnicion::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
+        $this->productos = Producto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->clientes = Cliente::where('comercio_id', $this->comercioId)->orderBy('apellido')->get();
+        $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->salsas = Salsa::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->guarniciones = Guarnicion::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->mesas = Mesa::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+    //dd($this->mesas);
+        //muestro solo los mozos
+        $this->mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+            ->where('uc.comercio_id', $this->comercioId)->select('users.*')->orderBy('apellido')->get();
+   // dd($this->mozos);
         //muestro solo los repartidores que tienen caja abierta
         $this->empleados = User::join('model_has_roles as mhr', 'mhr.model_id', 'users.id')
             ->join('roles as r', 'r.id', 'mhr.role_id')
@@ -96,7 +109,7 @@ class FacturaController extends Component
         else $this->precio = '';        
 
         $dProducto = Producto::find($this->producto);
-        if($dProducto != null) $this->precio = $dProducto->precio_venta; 
+        if($dProducto != null) $this->precio = $dProducto->precio_venta_l1; 
         else $this->precio = '';
         
         $encabezado = Factura::select('*')->where('comercio_id', $this->comercioId)->withTrashed()->get(); 
@@ -105,19 +118,23 @@ class FacturaController extends Component
             $this->numFactura = 1;
             $this->inicio_factura = true;       
         }else{  //sino, busco si hay alguna factura abierta
-            $encabezado = Factura::where('facturas.estado','like','abierta')->where('facturas.comercio_id', $this->comercioId)
-                ->select('facturas.*', 'facturas.numero as nroFact')->get();
+            $encabezado = Factura::join('mesas as m', 'm.id', 'facturas.mesa_id')
+                ->where('facturas.estado','like','abierta')->where('facturas.comercio_id', $this->comercioId)
+                ->select('facturas.*', 'facturas.numero as nroFact', 'm.descripcion')->get();
                 //verifico si es delivery para recuperar los datos de Cli/Rep
             if($encabezado->count() > 0 && $encabezado[0]->cliente_id <> null){                
                 $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
                     ->join('users as u','u.id','facturas.repartidor_id')
+                    ->join('mesas as m','m.id','facturas.mesa_id')
                     ->where('facturas.estado','like','abierta')
                     ->where('facturas.comercio_id', $this->comercioId)
                     ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
-                             'c.numero', 'u.name as nomRep', 'u.apellido as apeRep')->get();
+                             'c.numero', 'u.name as nomRep', 'u.apellido as apeRep', 'm.descripcion')->get();
                 $this->numFactura = $encabezado[0]->nroFact;
                 $this->clienteId = $encabezado[0]->cliente_id;
                 $this->factura_id = $encabezado[0]->id;
+                $this->mesa = $encabezado[0]->descripcion;
+                $this->mozo = $encabezado[0]->mozo_id;
                 $this->inicio_factura = false;
                 $this->delivery = 1;
                 $this->estado_entrega = $encabezado[0]->estado_entrega;
@@ -128,6 +145,8 @@ class FacturaController extends Component
                 $this->inicio_factura = false;
                 $this->numFactura = $encabezado[0]->nroFact;
                 $this->factura_id = $encabezado[0]->id;
+                $this->mesa = $encabezado[0]->descripcion;
+                $this->mozo = $encabezado[0]->mozo_id;
                 $this->delivery = 0;          //dice si la factura es delivery
                 $this->mostrar_datos = 0;     //muestra datos del modal, no de la BD       
             }else {                           //si no hay una factura abierta le sumo 1 a la última
@@ -181,109 +200,11 @@ class FacturaController extends Component
 
     ///////////////    
 
-		return view('livewire.facturas.component', [
+		return view('livewire.facturas.component-bar', [
             'info'        => $info,
             'encabezado'  => $encabezado,
             'infoComanda' => $infoComanda
 		]);
-    }
-    public function verSaldo($id)
-    {            
-        $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
-            ->where('c.id', $id)
-            ->where('c.comercio_id', $this->comercioId)
-            ->select('cta_cte.cliente_id', DB::RAW("'' as importe"))->get(); 
-
-        foreach($info2 as $i) {
-            $sumaFacturas=0;
-            $sumaRecibos=0;
-                //sumo las facturas del cliente
-            $importe = Ctacte::join('facturas as f', 'f.id', 'cta_cte.factura_id') 
-                ->where('f.cliente_id', $i->cliente_id)
-                ->select('f.importe')->get();
-            foreach($importe as $imp){
-                $sumaFacturas += $imp->importe; //calculo el total de facturas de cada cliente
-            }
-                //sumo los recibos del cliente
-            $importe = Ctacte::join('recibos as r', 'r.id', 'cta_cte.recibo_id') 
-                ->where('r.cliente_id', $i->cliente_id)
-                ->select('r.importe')->get();
-            foreach($importe as $imp){
-                $sumaRecibos += $imp->importe; //calculo el total de recibos de cada cliente
-            }
-            //calculo el total para cada cliente
-            $i->importe = $sumaRecibos - $sumaFacturas;
-            $this->saldoCtaCte = $i->importe;
-        }
-    }
-    public function facturaAfip()
-    {
-        include './../resources/src/Afip.php';
-        /**
-         * CUIT vinculado al certificado
-         **/
-        $CUIT = 20175835165; 
-
-        $afip = new Afip(array('CUIT' => $CUIT));
-
-        $data = array(
-            'CantReg' 	 => 1,  // Cantidad de comprobantes a registrar
-            'PtoVta' 	 => 1,  // Punto de venta
-            'CbteTipo' 	 => 6,  // Tipo de comprobante (Factura B)(ver tipos disponibles) 
-            'Concepto' 	 => 1,  // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
-            'DocTipo' 	 => 99, // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
-            'DocNro' 	 => 0,  // Número de documento del comprador (0 consumidor final)
-            'CbteDesde'  => 1,  // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
-            'CbteHasta'  => 1,  // Número de comprobante o numero del último comprobante en caso de ser mas de uno
-            'CbteFch' 	 => intval(date('Ymd')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-            'ImpTotal' 	 => 121, // Importe total del comprobante
-            'ImpTotConc' => 0,   // Importe neto no gravado
-            'ImpNeto' 	 => 100, // Importe neto gravado
-            'ImpOpEx' 	 => 0,   // Importe exento de IVA
-            'ImpIVA' 	 => 21,  //Importe total de IVA
-            'ImpTrib' 	 => 0,   //Importe total de tributos
-            'MonId' 	 => 'PES', //Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos) 
-            'MonCotiz' 	 => 1,     // Cotización de la moneda usada (1 para pesos argentinos)  
-            'Iva' 		 => array( // (Opcional) Alícuotas asociadas al comprobante
-                array(
-                    'Id' 		=> 5, // Id del tipo de IVA (5 para 21%)(ver tipos disponibles) 
-                    'BaseImp' 	=> 100, // Base imponible
-                    'Importe' 	=> 21 // Importe 
-                )
-            ), 
-        );
-        
-        $res = $afip->ElectronicBilling->CreateVoucher($data);
-        echo $res['CAE']; //CAE asignado el comprobante
-        echo $res['CAEFchVto']; //Fecha de vencimiento del CAE (yyyy-mm-dd)
-    }    
-    protected $listeners = [
-        'modCliRep'         => 'modCliRep',
-        'deleteRow'         => 'destroy',
-        'factura_contado'   => 'factura_contado',
-        'factura_ctacte'    => 'factura_ctacte',      
-        'anularFactura'     => 'anularFactura',
-        'elegirFormaDePago' => 'elegirFormaDePago',
-        'enviarDatosPago'   => 'enviarDatosPago',
-        'dejar_pendiente'   => 'dejar_pendiente', 
-        'StoreOrUpdate'     => 'StoreOrUpdate',
-        'unirComandas'      => 'unirComandas'
-    ];
-	public function buscarArticulo($id)
-	{
-		$this->articulos = Producto::where('comercio_id', $this->comercioId)
-                                ->where('categoria_id', $id)->orderBy('descripcion', 'asc')->get();
-	}    
-    public function buscarProducto($id)
-    {
-        $pvta = Producto::select()->where('comercio_id', $this->comercioId)->where('codigo', $id)->get();
-        
-        if ($pvta->count() > 0){
-            $this->producto = $pvta[0]->id;
-        }else{
-            $this->producto = "Elegir";
-            session()->flash('msg-error', 'El Código no existe...');
-        } 
     }
     public function doAction($action)
     {
@@ -330,6 +251,112 @@ class FacturaController extends Component
         $this->factura_id     = null;
         $this->comanda_id     = null;
         $this->tab            = 'factura';
+    }
+    protected $listeners = [
+        'modCliRep'         => 'modCliRep',
+        'deleteRow'         => 'destroy',
+        'factura_contado'   => 'factura_contado',
+        'factura_ctacte'    => 'factura_ctacte',      
+        'anularFactura'     => 'anularFactura',
+        'elegirFormaDePago' => 'elegirFormaDePago',
+        'enviarDatosPago'   => 'enviarDatosPago',
+        'dejar_pendiente'   => 'dejar_pendiente', 
+        'StoreOrUpdate'     => 'StoreOrUpdate',
+        'unirComandas'      => 'unirComandas',
+        'abrirMesa'         => 'abrirMesa'
+    ];
+    public function abrirMesa($data)
+    {
+        $info = json_decode($data);
+        $this->mesa = $info->mesa_id;
+        $this->mozo = $info->mozo_id;
+        //dd($this->mesa,$this->mozo);
+    }
+    public function verSaldo($id)
+    {            
+        $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
+            ->where('c.id', $id)
+            ->where('c.comercio_id', $this->comercioId)
+            ->select('cta_cte.cliente_id', DB::RAW("'' as importe"))->get(); 
+
+        foreach($info2 as $i) {
+            $sumaFacturas=0;
+            $sumaRecibos=0;
+                //sumo las facturas del cliente
+            $importe = Ctacte::join('facturas as f', 'f.id', 'cta_cte.factura_id') 
+                ->where('f.cliente_id', $i->cliente_id)
+                ->select('f.importe')->get();
+            foreach($importe as $imp){
+                $sumaFacturas += $imp->importe; //calculo el total de facturas de cada cliente
+            }
+                //sumo los recibos del cliente
+            $importe = Ctacte::join('recibos as r', 'r.id', 'cta_cte.recibo_id') 
+                ->where('r.cliente_id', $i->cliente_id)
+                ->select('r.importe')->get();
+            foreach($importe as $imp){
+                $sumaRecibos += $imp->importe; //calculo el total de recibos de cada cliente
+            }
+            //calculo el total para cada cliente
+            $i->importe = $sumaRecibos - $sumaFacturas;
+            $this->saldoCtaCte = $i->importe;
+        }
+    }
+    public function facturaAfip()
+    {
+        include './../resources/src/Afip.php';
+        /**
+         * CUIT vinculado al certificado
+         **/
+        $CUIT = 20175835165; 
+
+        $afip = new Afip(array('CUIT' => $CUIT));
+
+        $data = array(
+            'CantReg' 	=> 1,  // Cantidad de comprobantes a registrar
+            'PtoVta' 	=> 1,  // Punto de venta
+            'CbteTipo' 	=> 6,  // Tipo de comprobante (Factura B)(ver tipos disponibles) 
+            'Concepto' 	=> 1,  // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
+            'DocTipo' 	=> 99, // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
+            'DocNro' 	=> 0,  // Número de documento del comprador (0 consumidor final)
+            'CbteDesde' 	=> 1,  // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
+            'CbteHasta' 	=> 1,  // Número de comprobante o numero del último comprobante en caso de ser mas de uno
+            'CbteFch' 	=> intval(date('Ymd')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
+            'ImpTotal' 	=> 121, // Importe total del comprobante
+            'ImpTotConc' 	=> 0,   // Importe neto no gravado
+            'ImpNeto' 	=> 100, // Importe neto gravado
+            'ImpOpEx' 	=> 0,   // Importe exento de IVA
+            'ImpIVA' 	=> 21,  //Importe total de IVA
+            'ImpTrib' 	=> 0,   //Importe total de tributos
+            'MonId' 	=> 'PES', //Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos) 
+            'MonCotiz' 	=> 1,     // Cotización de la moneda usada (1 para pesos argentinos)  
+            'Iva' 		=> array( // (Opcional) Alícuotas asociadas al comprobante
+                array(
+                    'Id' 		=> 5, // Id del tipo de IVA (5 para 21%)(ver tipos disponibles) 
+                    'BaseImp' 	=> 100, // Base imponible
+                    'Importe' 	=> 21 // Importe 
+                )
+            ), 
+        );
+        
+        $res = $afip->ElectronicBilling->CreateVoucher($data);
+        echo $res['CAE']; //CAE asignado el comprobante
+        echo $res['CAEFchVto']; //Fecha de vencimiento del CAE (yyyy-mm-dd)
+    }    
+	public function buscarArticulo($id)
+	{
+		$this->articulos = Producto::where('comercio_id', $this->comercioId)
+                                ->where('categoria_id', $id)->orderBy('descripcion', 'asc')->get();
+	}    
+    public function buscarProducto($id)
+    {
+        $pvta = Producto::select()->where('comercio_id', $this->comercioId)->where('codigo', $id)->get();
+        
+        if ($pvta->count() > 0){
+            $this->producto = $pvta[0]->id;
+        }else{
+            $this->producto = "Elegir";
+            session()->flash('msg-error', 'El Código no existe...');
+        } 
     }
     public function edit($id)
     {
@@ -397,7 +424,7 @@ class FacturaController extends Component
         if($this->producto != '0'){
             $producto = Producto::where('id', $this->producto)->get();
             //$this->producto = $id;
-            $this->precio = $producto[0]->precio_venta;
+            $this->precio = $producto[0]->precio_venta_l1;
             $this->cantidad = 1;
             $this->sector_comanda = $producto[0]->sectorcomanda_id;
         }else {
@@ -434,7 +461,7 @@ class FacturaController extends Component
                     if($nroArqueo->count()){
                         $this->nro_arqueo = $nroArqueo[0]->id;  //este es el nro_arqueo del delivery
                     }  
-                }   
+                }  
                 if($this->inicio_factura) {
                     $factura = Factura::create([
                         'numero'         => $this->numFactura,
@@ -444,10 +471,16 @@ class FacturaController extends Component
                         'estado_pago'    => '0',
                         'estado_entrega' => $this->estado_entrega,
                         'repartidor_id'  => $this->empleado,
+                        'mozo_id'        => $this->mozo,
+                        'mesa_id'        => $this->mesa,
                         'user_id'        => auth()->user()->id, //id de quien confecciona la factura
                         'comercio_id'    => $this->comercioId,
                         'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
+
+                    $mesa = Mesa::find($this->mesaId);
+                    $mesa->update(['estado' => 'Ocupada']);
+
                     $this->inicio_factura = false;
                     $this->factura_id = $factura->id;
                 }  

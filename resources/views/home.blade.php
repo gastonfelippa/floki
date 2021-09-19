@@ -1,4 +1,9 @@
-@extends('layouts.template')
+@extends('layouts.template',[
+    'modComandas'       => session('modComandas'),
+    'modConsignaciones' => session('modConsignaciones'),
+    'modViandas'        => session('modViandas'),
+    'modDelivery'       => session('modDelivery')
+  ])
 
 @section('logo')     
   @livewire('logo-controller')
@@ -22,6 +27,7 @@
 </div>
 @endsection
 
+@if(session('modComandas') == "1")
 <script type="text/javascript">
     window.onkeydown=PulsarTecla;
     function PulsarTecla(event)
@@ -30,3 +36,4 @@
         if(tecla==13) window.location.href="{{ url('mesas') }}";
     }
 </script>
+@endif

@@ -380,7 +380,7 @@
                 <div class="col">
                     <h6>{{$apeCliV}}, {{$nomCliV}}</h6>
                     <div class="mb-1">
-                        <select wire:model="producto" class="form-control form-control-sm text-center">
+                        <select wire:model="producto" class="form-control form-control-sm">
                                 <option value="Elegir" >Elegir producto</option>
                                 @foreach($productos as $t)
                                 <option value="{{ $t->id }}">{{$t->descripcion}}</option> 

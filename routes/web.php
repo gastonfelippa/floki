@@ -17,17 +17,13 @@ use Illuminate\Support\Facades\Mail;
 Route::get('/', function () {
     return view('auth.login');
 });
-// Route::get('email', function() {
-//     return new \App\Mail\WelcomeUser('Carina');
-// });
 
 //Auth::routes();
 Auth::routes(['verify' => true]);
+
             //url  -      controlador       -     vista
 Route::get('/home', 'HomeController@index')->name('home')->middleware('verified');
 Route::get('/notify', 'HomeController@notificado')->name('notify')->middleware('verified');
-
-//Route::get('/pdf', 'Livewire\PdfController@PDF')->name('descargarPDF');
 
 //rutas de impresion
 Route::get('/pdfFacturas', 'PdfController@PDFFacturas')->middleware('permission:Facturas_imp');
@@ -62,6 +58,7 @@ Route::view('stock', 'stock');
 Route::view('listadeprecios', 'listadeprecios');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
+Route::view('facturasbar', 'facturasbar')->middleware('permission:Facturas_index');
 Route::view('compras', 'compras')->middleware('permission:Compras_index');
 Route::view('facturasacobrar', 'facturasacobrar')->middleware('permission:Facturas_index');
 
@@ -83,6 +80,7 @@ Route::view('otroingreso', 'otroingreso')->middleware('permission:OtroIngreso_in
 Route::view('planes', 'planes')->middleware('permission:Planes_index');
 Route::view('abonados', 'abonados')->middleware('permission:Abonados_index');
 Route::view('procedimientos', 'procedimientos-admin')->middleware('permission:Procedimientos_index');
+Route::view('modulosadmin', 'modulosadmin');
 
 //rutas de impresion
 Route::get('print/visita/{id}', 'PrinterController@ticketVisita');

@@ -584,6 +584,21 @@
         $('#modalSalsas').modal('hide')
         window.livewire.emit('StoreOrUpdate', texto_comanda,1);
     } 
+    /////código para prolongar la session
+    var keep_alive = false;
+    $(document).bind("click keydown keyup mousemove", function() {
+        keep_alive = true;
+    });
+    setInterval(function() {
+        if ( keep_alive ) {
+            pingServer();
+            keep_alive = false;
+        }
+    }, 1200000 );
+    function pingServer() {
+        $.ajax('/keepAlive');
+    }
+    /////
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		
             swal({

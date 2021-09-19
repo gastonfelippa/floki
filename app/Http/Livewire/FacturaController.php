@@ -26,12 +26,13 @@ class FacturaController extends Component
     public $selected_id = null, $search, $numFactura, $action = 1;
     public $facturas,  $total, $importe, $totalAgrabar, $delivery = 0;  
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
-    public $comercioId, $arqueoGralId, $factura_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
+    public $arqueoGralId, $factura_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $contador_filas, $imp_por_hoja, $imp_duplicado, $lista = '1';
+    public $comercioId, $modConsignaciones;
 	
 	public function render()
 	{
@@ -39,6 +40,8 @@ class FacturaController extends Component
  
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        $this->modConsignaciones = session('modConsignaciones');
+
         $comercio = Comercio::where('id', $this->comercioId)->get();
         if($comercio->count())
         {

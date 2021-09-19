@@ -101,6 +101,8 @@ class PermisosController extends Component
 
         $pOtroIngreso = Permission::where('name', 'OtroIngreso_index')
             ->select('*', DB::RAW("0 as checked"))->get();
+        $pModViandas = Permission::where('name', 'ModViandas')
+            ->select('*', DB::RAW("0 as checked"))->get();
 
         if($this->userSelected != 'Seleccionar')
         {
@@ -128,8 +130,8 @@ class PermisosController extends Component
                 if($r->alias == 'Administrador') $this->adminId = $r->id;
                 if($r->alias == 'No Usuario') $this->noUsuarioId = $r->id;
             }
-            if($this->roleSelected == $this->adminId || $this->roleSelected == $this->noUsuarioId) $this->habilitar_botones = false;
-            else $this->habilitar_botones = true;  
+            // if($this->roleSelected == $this->adminId || $this->roleSelected == $this->noUsuarioId) $this->habilitar_botones = false;
+            // else $this->habilitar_botones = true;  
 
             //////
             foreach($pProductos as $p){
@@ -230,6 +232,13 @@ class PermisosController extends Component
                         $p->checked = 1;
                 }
             }
+            foreach($pModViandas as $p){
+                $role = Role::find($this->roleSelected);
+                $tienePermiso = $role->hasPermissionTo($p->name);
+                if($tienePermiso){
+                        $p->checked = 1;
+                }
+            }
         }
 
         return view('livewire.permisos.component',[
@@ -248,6 +257,7 @@ class PermisosController extends Component
             'pViandas'         => $pViandas,
             'pCtacte'          => $pCtacte,
             'pOtroIngreso'     => $pOtroIngreso,
+            'pModViandas'     => $pModViandas,
             'usuarios'         => $usuarios
             ]);        
     }    

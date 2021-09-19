@@ -6,25 +6,33 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\TextoBaseComanda;
+use App\Models\SectorComanda;
 use DB;
 
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $tipo = 'Art. Venta', $estado='DISPONIBLE';
+	public $categoria ='Elegir', $tipo = 'Art. Venta', $sector ='0', $texto ='Elegir', $estado='DISPONIBLE';
 	public $codigo = null, $codigo_sugerido, $descripcion, $stock, $stock_minimo, $habilitar_model = false;
-	public $pc_salon, $pv_salon, $precio_costo, $precio_venta_l1, $precio_venta_l2;
+	public $precio_costo, $precio_venta_l1, $precio_venta_l2;
 	public $selected_id = null, $categorias, $sectores, $textos;
-	public $comercioId, $comercioTipo , $action = 1, $search;
 	public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
+	public $action = 1, $search;
+	public $salsa = false, $guarnicion = false;
+	public $comercioId, $comercioTipo, $modComandas, $modDelivery; 
 	
 	public function render()
 	{
 		//busca el comercio que está en sesión
 		$this->comercioId = session('idComercio');
 		$this->comercioTipo = session('tipoComercio');
+		$this->modDelivery = session('modDelivery');
+		$this->modComandas = session('modComandas');
 		
 		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
+		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
+		$this->textos = TextoBaseComanda::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
 
 		if($this->selected_id == null) {
 			$nuevo_codigo = Producto::select('*')->where('comercio_id', $this->comercioId)->get();
@@ -68,7 +76,8 @@ class ProductoController extends Component
 		'deleteRow'             => 'destroy',
 		'calcular_precio_venta' => 'calcular_precio_venta',
 		'validarProducto'       => 'validarProducto',
-		'guardar'               => 'StoreOrUpdate'
+		'guardar'               => 'StoreOrUpdate', 
+		'grabar_texto_base'     => 'grabar_texto_base' 
 	];
 	public function doAction($action)
 	{
@@ -108,6 +117,10 @@ class ProductoController extends Component
 		$this->stock_minimo    = $record->stock_minimo;
 		$this->tipo            = $record->tipo;
 		$this->estado          = $record->estado;
+		$this->sector          = $record->sectorcomanda_id;
+		$this->texto           = $record->texto_base_comanda_id;
+		if($record->guarnicion == 1) $this->guarnicion = true; else $this->guarnicion = false;
+		if($record->salsa == 1) $this->salsa = true; else $this->salsa = false;
 	}	
 	public function volver()
     {
@@ -137,8 +150,41 @@ class ProductoController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-	public function StoreOrUpdate()
+	public function grabar_texto_base($texto)
 	{
+		$this->texto = ucwords($texto);
+        $this->validate([
+            'texto' => 'required'
+        ]);
+        DB::begintransaction();
+        try{
+			$existe = TextoBaseComanda::where('descripcion', $this->texto)
+				->where('comercio_id', $this->comercioId)->withTrashed()->get();
+				if($existe->count()) {
+				$this->emit('texto_existe');
+				return;
+			}
+			$texto = TextoBaseComanda::create([
+				'descripcion' => ucwords($this->texto), 
+				'comercio_id' => $this->comercioId            
+			]);
+			$this->texto = $texto->id;	
+			$this->emit('texto_creado');  
+            DB::commit(); 
+        }catch (\Exception $e){
+            DB::rollback();
+			$this->emit('registro_no_grabado');
+        }
+		return;
+	}
+	public function StoreOrUpdate($salsa, $guarnicion)
+	{
+		if($salsa) $salsa = '1'; else $salsa = '0';
+        if($guarnicion) $guarnicion = '1'; else $guarnicion = '0';
+		if($this->modComandas != "1"){
+			$this->sector = null;
+			$this->texto = null;
+		}
 		$this->validate([
 			'categoria' => 'not_in:Elegir',
 		]);
@@ -219,30 +265,38 @@ class ProductoController extends Component
 			}
 			if($this->selected_id <=0) {
 				$producto = Producto::create([
-					'codigo'          => $this->codigo_sugerido,
-					'descripcion'     => ucwords($this->descripcion),
-					'precio_costo'    => $this->precio_costo,
-					'precio_venta_l1' => $this->precio_venta_l1,
-					'precio_venta_l2' => $this->precio_venta_l2,
-					'stock'           => $this->stock,
-					'stock_minimo'    => $this->stock_minimo,
-					'tipo'            => $this->tipo,
-					'categoria_id'    => $this->categoria,
-					'estado'          => $this->estado,
-					'comercio_id'     => $this->comercioId
+					'codigo'                => $this->codigo_sugerido,
+					'descripcion'           => ucwords($this->descripcion),
+					'precio_costo'          => $this->precio_costo,
+					'precio_venta_l1'       => $this->precio_venta_l1,
+					'precio_venta_l2'       => $this->precio_venta_l2,
+					'stock'                 => $this->stock,
+					'stock_minimo'          => $this->stock_minimo,
+					'tipo'                  => $this->tipo,
+					'categoria_id'          => $this->categoria,
+					'estado'                => $this->estado,
+					'comercio_id'           => $this->comercioId,
+					'salsa'                 => $salsa,
+					'guarnicion'            => $guarnicion,
+					'sectorcomanda_id'      => $this->sector,
+					'texto_base_comanda_id' => $this->texto
 				]);
 			}else {				
 				$record = Producto::find($this->selected_id);
 				$record->update([
-					'descripcion'  	  => ucwords($this->descripcion),
-					'precio_costo' 	  => $this->precio_costo,			
-					'precio_venta_l1' => $this->precio_venta_l1,
-					'precio_venta_l2' => $this->precio_venta_l2,			
-					'stock'           => $this->stock,
-					'stock_minimo'    => $this->stock_minimo,
-					'tipo'         	  => $this->tipo,
-					'categoria_id' 	  => $this->categoria,
-					'estado'       	  => $this->estado
+					'descripcion'  	        => ucwords($this->descripcion),
+					'precio_costo' 	        => $this->precio_costo,			
+					'precio_venta_l1'       => $this->precio_venta_l1,
+					'precio_venta_l2'       => $this->precio_venta_l2,			
+					'stock'                 => $this->stock,
+					'stock_minimo'          => $this->stock_minimo,
+					'tipo'         	        => $this->tipo,
+					'categoria_id' 	        => $this->categoria,
+					'estado'       	        => $this->estado,
+					'salsa'                 => $salsa,
+					'guarnicion'            => $guarnicion,
+					'sectorcomanda_id'      => $this->sector,
+					'texto_base_comanda_id' => $this->texto
 				]);
 				$this->action = 1;
 			}
@@ -284,8 +338,8 @@ class ProductoController extends Component
 	{
 		if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
 			$porcentaje = Categoria::where('id', $this->categoria)->select('margen_1', 'margen_2')->get();
-			$this->precio_venta_l1 = $this->precio_costo + ($this->precio_costo * $porcentaje[0]->margen_1 / 100);
-			$this->precio_venta_l2 = $this->precio_costo + ($this->precio_costo * $porcentaje[0]->margen_2 / 100);
+			$this->precio_venta_l1 = number_format($this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1),2);
+			$this->precio_venta_l2 = number_format($this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2),2);
 		}else {
 			session()->flash('msg-error', 'Debe elegir una Categoría');
 		}

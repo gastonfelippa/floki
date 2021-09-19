@@ -11,30 +11,30 @@ use DB;
 class CategoriaController extends Component
 {
 	public $descripcion, $margen_1, $margen_2, $descripcion_soft_deleted, $id_soft_deleted;
-    public $selected_id, $search;  
-    public $comercioId, $comercioTipo, $action = 1, $recuperar_registro = 0;
+    public $selected_id, $search, $action = 1, $recuperar_registro = 0;  
+    public $comercioId, $comercioTipo, $modComandas, $modDelivery;
 
     public function render()
     {
          //busca el comercio que está en sesión
          $this->comercioId = session('idComercio');
+         
          $this->comercioTipo = session('tipoComercio');
+         $this->modComandas = session('modComandas');
+         $this->modDelivery = session('modDelivery');
 
         if(strlen($this->search) > 0)
         {
             $info = Categoria::where('descripcion', 'like', '%' .  $this->search . '%')
-                    ->where('comercio_id', $this->comercioId) 
-                    ->orderby('descripcion','desc')->get();
-            return view('livewire.categorias.component', [
-                'info' =>$info
-            ]);
+                        ->where('comercio_id', $this->comercioId) 
+                        ->orderby('descripcion','desc')->get();
+        }else {
+            $info = Categoria::orderBy('descripcion', 'asc')
+                        ->where('comercio_id', $this->comercioId)->get();
         }
-        else {
-           return view('livewire.categorias.component', [
-            'info' => Categoria::orderBy('descripcion', 'asc')
-                        ->where('comercio_id', $this->comercioId)->get()
+        return view('livewire.categorias.component', [
+            'info' => $info
         ]);
-       }
     }    
     protected $listeners = [
         'deleteRow'=>'destroy'        
@@ -92,7 +92,9 @@ class CategoriaController extends Component
     public function StoreOrUpdate()
     { 
         $this->validate([
-            'descripcion' => 'required'
+            'descripcion' => 'required',
+            'margen_1'    => 'required|integer|min:1|max: 99',
+            'margen_2'    => 'integer|min:1|max: 99'
         ]);
         DB::begintransaction();
         try{

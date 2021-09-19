@@ -24,7 +24,8 @@ class CreateClientesTable extends Migration
             $table->foreign('localidad_id')->references('id')->on('localidades');
             
             $table->string('telefono',15)->nullable();
-            $table->enum('vianda', ['1','2'])->default('1');
+            $table->enum('vianda', ['1','2'])->nullable();
+            $table->enum('consignatario', ['1','2'])->nullable();
             $table->enum('saldo', ['0','1']);
             
             $table->unsignedBigInteger('comercio_id');
