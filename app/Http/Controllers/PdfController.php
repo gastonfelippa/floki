@@ -91,10 +91,11 @@ class PdfController extends Controller
             $this->importeFactura += $i->importe;
         }
         
-        $info = Factura::leftjoin('clientes as c','c.id','facturas.cliente_id')
-            ->leftjoin('users as u','u.id','facturas.repartidor_id')
+        $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
+            ->join('users as u','u.id','facturas.repartidor_id')
+            ->join('localidades as l','l.id','c.localidad_id')
             ->select('facturas.*', 'facturas.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
-                     'c.calle as calleCli', 'c.numero as numCli')
+                     'c.calle as calleCli', 'c.numero as numCli', 'l.descripcion')
             ->where('facturas.id','like',$id)->get();
 
         if($info[0]->nomCli == null) {

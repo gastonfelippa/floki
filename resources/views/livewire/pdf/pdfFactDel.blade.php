@@ -10,7 +10,7 @@
 			<b>N° Control:</b>  {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Original<br>                       
 			@if($delivery)
 			<b>Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}}<br>                       
-			<b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}}<br> 
+			<b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->descripcion}}<br> 
 			@endif	
 			<b>Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
 			<br><br>
