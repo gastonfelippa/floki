@@ -48,9 +48,9 @@ class PdfController extends Controller
     public function PDFRecibos($id) 
     {
         $info = ReciboFactura::leftjoin('facturas as f','f.id','recibo_facturas.factura_id')
-            ->leftjoin('recibos as r','r.id','recibo_facturas.recibo_id')
-            ->leftjoin('clientes as c','c.id','f.cliente_id')
-            ->leftjoin('localidades as l','l.id','c.localidad_id')
+            ->join('recibos as r','r.id','recibo_facturas.recibo_id')
+            ->join('clientes as c','c.id','f.cliente_id')
+            ->join('localidades as l','l.id','c.localidad_id')
             ->where('recibo_facturas.recibo_id', $id)
             ->select('r.numero as nro_recibo', 'r.importe as total', 'r.entrega', 
                      'recibo_facturas.created_at as fecha_recibo', 'f.created_at as fecha', 
@@ -119,8 +119,9 @@ class PdfController extends Controller
             ->orderBy('det_remitos.id')->get(); 
         $info = Remito::join('clientes as c','c.id','remitos.cliente_id')
             ->join('users as u','u.id','remitos.repartidor_id')
+            ->join('localidades as l','l.id','c.localidad_id')
             ->select('remitos.*', 'remitos.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
-                     'c.calle as calleCli', 'c.numero as numCli')
+                     'c.calle as calleCli', 'c.numero as numCli', 'l.descripcion')
             ->where('remitos.id','like',$id)->get();
 
         if($info[0]->nomCli == null) {
