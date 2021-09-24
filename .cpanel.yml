@@ -1,5 +1,0 @@
----
-  deployment:
-      tasks:
-      - export DEPLOYPATH=/home/i4k5be5hraeg/public_html/
-      - /bin/rsync -a exclude 'index.php' public/ $DEPLOYPATH
