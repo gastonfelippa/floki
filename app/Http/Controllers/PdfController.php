@@ -11,11 +11,13 @@ use App\Models\Ctacte;
 use App\Models\Detfactura;
 use App\Models\DetRemito;
 use App\Models\Factura;
+use App\Models\Localidad;
 use App\Models\Producto;
 use App\Models\Recibo;
 use App\Models\ReciboFactura;
 use App\Models\Remito;
 use App\Models\Vianda;
+use App\Models\User;
 use Carbon\Carbon;
 use PDF;
 use DB;
@@ -91,21 +93,30 @@ class PdfController extends Controller
             $this->importeFactura += $i->importe;
         }
 
-        $infoFactura = Factura::find($id);
-        if($infoFactura->cliente_id != null) {
-            $delivery = true;
-            $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
-                ->join('users as u','u.id','facturas.repartidor_id')
-                ->join('localidades as l','l.id','c.localidad_id')
-                ->select('facturas.*', 'facturas.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
-                        'c.calle as calleCli', 'c.numero as numCli', 'l.descripcion')
-                ->where('facturas.id',$id)->get();
-        }else {
-            $delivery = false;
-            $info = Factura::find($id)->get();
+        $cliente = false;
+        $repartidor = false;
+        $info = Factura::select('numero','importe','cliente_id','repartidor_id','created_at', 
+                    DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"),DB::RAW("'' as calleCli"),
+                    DB::RAW("'' as numCli"),DB::RAW("'' as localidad"))
+                    ->where('id',$id)->get();
+        foreach ($info as $i)
+        {
+            if($i->cliente_id){
+                $cli = Cliente::find($i->cliente_id)->first();
+                $i->nomCli = $cli->nombre;
+                $i->apeCli = $cli->apellido;
+                $i->calleCli = $cli->calle;
+                $i->numCli = $cli->numero;
+                $loc = Localidad::find($cli->localidad_id)->first();
+                $i->localidad = $loc->descripcion;
+                $cliente = true;
+            }
+            if($i->repartidor_id){
+                $repartidor = true;
+            }
         }
         $pdf = PDF::loadView('livewire.pdf.pdfFactDel', compact([
-            'infoDetalle','info','delivery','leyendaFactura', 'impPorHoja' ,'impDuplicado']));
+            'infoDetalle','info','cliente','repartidor','leyendaFactura', 'impPorHoja' ,'impDuplicado']));
         return $pdf->stream('fact.pdf');
     }
     public function PDFRemito($id) 

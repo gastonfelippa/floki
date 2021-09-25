@@ -164,11 +164,17 @@ class FacturaController extends Component
             $i->importe=$i->cantidad * $i->precio;
             $this->total += $i->importe;
         }
+        $this->verificar_impresion();
 
 		return view('livewire.facturas.component', [
             'info'        => $info,
             'encabezado'  => $encabezado
 		]);
+    }
+    public function verificar_impresion()
+    {
+        if($this->contador_filas > 10 && $this->imp_por_hoja != '1') $this->emit('limite_superado');
+        elseif($this->contador_filas > 20 && $this->imp_por_hoja == '1') $this->emit('limite_20');
     }
     public function doAction($action)
     {

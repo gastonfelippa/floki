@@ -575,8 +575,18 @@
                 position: 'center',
                 icon: 'warning',
                 iconColor: 'orange',
-                title: 'Tabla con límite de filas completado!!',
+                title: 'Has llegado al límite de filas permitido!!',
                 text: 'Para seguir agregardo filas debes configurar la impresión a 1 hoja',
+                showConfirmButton: true
+            })
+		})
+        Livewire.on('limite_superado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                iconColor: 'orange',
+                title: 'Has superado el límite de filas permitido!!',
+                text: 'Para imprimir o seguir agregardo filas debes configurar la impresión a 1 hoja',
                 showConfirmButton: true
             })
 		})
@@ -585,7 +595,7 @@
                 position: 'center',
                 icon: 'warning',
                 iconColor: 'orange',
-                title: 'Tabla on límite de filas completado!!',
+                title: 'Has llegado al límite de filas permitido!!',
                 text: 'Has llegado al límite máximo de filas por factura. Para continuar deberás iniciar una factura nueva.',
                 showConfirmButton: true
             })

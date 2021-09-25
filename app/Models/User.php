@@ -25,10 +25,12 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var array
      */
+
+    //quitar 'email_verified_at' una vez que funcione la autenticacion en la nube 
     protected $fillable = [
         'name', 'apellido', 'username', 'email', 'password', 'pass', 'documento',
         'calle', 'numero', 'localidad_id', 'telefono1', 'telefono2', 'sexo', 'abonado',
-        'fecha_nac', 'fecha_ingreso'
+        'fecha_nac', 'fecha_ingreso','email_verified_at'
     ];
 
     /**

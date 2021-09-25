@@ -85,7 +85,12 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         //genera un password random de 8 caracteres y crea una sesion con ese password
-        $password = Str::random(8);
+        //................descomentar cuando funcione la autenticacion en la nube..........
+        // $password = Str::random(8);
+        //................comentar cuando funcione la autenticacion en la nube..........
+        $password = Str::finish('123', strtolower($data['name']));
+        //....................................
+
         session(['pass'     => $password]);
         session(['empleado' => false]);
 
@@ -116,7 +121,8 @@ class RegisterController extends Controller
                 'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
                 'pass'     => $password,
-                'abonado'  => 'Si'
+                'abonado'  => 'Si',
+                'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
 
             $userAdminComercio = UsuarioComercio::create([
@@ -141,7 +147,7 @@ class RegisterController extends Controller
                 'modViandas'        => '0',
                 'modComandas'       => '0',
                 'modDelivery'       => '0',
-                'modConsignaciones' => '0',
+                'modConsignaciones' => '1',
                 'comercio_id'       => $this->comercioId
             ]);
 
