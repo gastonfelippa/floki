@@ -72,13 +72,13 @@ class PdfController extends Controller
 
         $leyenda_factura = Comercio::select('leyenda_factura', 'imp_por_hoja', 'imp_duplicado')
             ->where('id', $this->comercioId)->get();
-            //dd($leyendaFactura[0]->imp_por_hoja);
+        
         $leyendaFactura = $leyenda_factura[0]->leyenda_factura;
         $impPorHoja     = $leyenda_factura[0]->imp_por_hoja;
         $impDuplicado   = $leyenda_factura[0]->imp_duplicado;
       
-        $infoDetalle = Detfactura::leftjoin('facturas as f','f.id','detfacturas.factura_id')
-          ->leftjoin('productos as p','p.id','detfacturas.producto_id')
+        $infoDetalle = Detfactura::join('facturas as f','f.id','detfacturas.factura_id')
+          ->join('productos as p','p.id','detfacturas.producto_id')
           ->select('detfacturas.*', 'p.descripcion as producto', DB::RAW("'' as importe"))
           ->where('detfacturas.factura_id', $id)
           ->where('detfacturas.comercio_id', $this->comercioId)
@@ -90,18 +90,19 @@ class PdfController extends Controller
             $i->importe=$i->cantidad * $i->precio;
             $this->importeFactura += $i->importe;
         }
-        
-        $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
-            ->join('users as u','u.id','facturas.repartidor_id')
-            ->join('localidades as l','l.id','c.localidad_id')
-            ->select('facturas.*', 'facturas.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
-                     'c.calle as calleCli', 'c.numero as numCli', 'l.descripcion')
-            ->where('facturas.id','like',$id)->get();
 
-        if($info[0]->nomCli == null) {
-            $delivery = false;
-        }else {              
+        $infoFactura = Factura::find($id);
+        if($infoFactura->cliente_id != null) {
             $delivery = true;
+            $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
+                ->join('users as u','u.id','facturas.repartidor_id')
+                ->join('localidades as l','l.id','c.localidad_id')
+                ->select('facturas.*', 'facturas.id as id', 'c.nombre as nomCli', 'c.apellido as apeCli', 
+                        'c.calle as calleCli', 'c.numero as numCli', 'l.descripcion')
+                ->where('facturas.id',$id)->get();
+        }else {
+            $delivery = false;
+            $info = Factura::find($id)->get();
         }
         $pdf = PDF::loadView('livewire.pdf.pdfFactDel', compact([
             'infoDetalle','info','delivery','leyendaFactura', 'impPorHoja' ,'impDuplicado']));
