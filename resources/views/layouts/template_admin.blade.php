@@ -31,7 +31,7 @@
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
     <style>
         body {
-            background: url('../images/arte.jpg') no-repeat center center fixed;
+            background: url('../images/fondo.jpg') no-repeat center center fixed;
             background-size: cover;
         }
     </style>
@@ -54,7 +54,7 @@
     <!--  END LOADER -->
 
     <!--  BEGIN NAVBAR  -->
-    <div class="header-container mb-2" style="background-color: #D31E08;">
+    <div class="header-container mb-2" style="background-color: #666666;">
         <header class="header navbar navbar-expand-sm">
             <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
             

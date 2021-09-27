@@ -7,7 +7,7 @@
     		<div class="widget-one">
     			<div class="row">
     				<div class="col-xl-12 text-center">
-    					<h3><b>Ingresos</b></h3>
+    					<h3><b>Otros Ingresos</b></h3>
     				</div> 
     			</div>    		
 				@if($recuperar_registro == 1)
@@ -27,7 +27,7 @@
 								<tr>
 									<td>{{$r->descripcion}}</td>
 									<td class="text-center">
-										@include('common.actions', ['edit' => 'Gastos_edit', 'destroy' => 'Gastos_destroy']) <!-- botons editar y eliminar -->
+										@include('common.actions', ['edit' => 'Gastos_edit', 'destroy' => 'Gastos_destroy'])
 									</td>
 								</tr>
 								@endforeach

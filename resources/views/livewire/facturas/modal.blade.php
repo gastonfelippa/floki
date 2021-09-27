@@ -2,7 +2,11 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
         <div class="modal-header">
+            @if($modDelivery == "1")
             <h5 class="modal-title">Modificar Cliente y/o Repartidor</h5>
+            @else
+            <h5 class="modal-title">Modificar Cliente</h5>
+            @endif
         </div>       
         <div class="modal-body">
             <div class="widget-content-area">
@@ -26,6 +30,7 @@
                                     </select>
                                 </div>
                             </div>
+                            @if($modDelivery == "1")
                             <div class="form-group col-6">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
@@ -42,6 +47,7 @@
                                     </select>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </form>
                 </div>
@@ -49,7 +55,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-dark" data-dismiss="modal"><i class="flaticon-cancel-12"></i>Cancelar</button>
-            <button class="btn btn-primary saveTarifa" type="button" onclick="save()">Guardar</button>
+            <button class="btn btn-primary" type="button" onclick="save()">Guardar</button>
         </div>
     </div>
 </div>

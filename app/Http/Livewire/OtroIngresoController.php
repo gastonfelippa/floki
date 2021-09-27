@@ -19,21 +19,18 @@ class OtroIngresoController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
-        if(strlen($this->search) > 0)
-        {
+        if(strlen($this->search) > 0){
             $info = OtroIngreso::where('descripcion', 'like', '%' .  $this->search . '%')
-                    ->where('comercio_id', $this->comercioId)
-                    ->orderby('descripcion','desc')->get();
-            return view('livewire.otrosingresos.component', [
-                'info' =>$info
-            ]);
+                ->where('comercio_id', $this->comercioId)
+                ->orderby('descripcion','desc')->get();
         }
         else {
-           return view('livewire.otrosingresos.component', [
-            'info' => OtroIngreso::orderBy('descripcion', 'asc')
-                            ->where('comercio_id', $this->comercioId)->get()
-        ]);
-       }
+            $info = OtroIngreso::orderBy('descripcion', 'asc')
+                            ->where('comercio_id', $this->comercioId)->get();
+        } 
+        return view('livewire.otrosingresos.component', [
+                'info' => $info
+            ]);
     }
 
     public function doAction($action)

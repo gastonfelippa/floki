@@ -32,7 +32,7 @@ class FacturaController extends Component
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $contador_filas, $imp_por_hoja, $imp_duplicado, $lista = '1';
-    public $comercioId, $modConsignaciones;
+    public $comercioId, $modConsignaciones, $modDelivery;
 	
 	public function render()
 	{
@@ -41,6 +41,7 @@ class FacturaController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
         $this->modConsignaciones = session('modConsignaciones');
+        $this->modDelivery = session('modDelivery');
 
         $comercio = Comercio::where('id', $this->comercioId)->get();
         if($comercio->count())
@@ -231,14 +232,16 @@ class FacturaController extends Component
     public function usarLista($numero)
     {
         $this->lista = $numero;
-        $texto = "La Factura descontará el Stock Local";
+        $texto = "";
+        if($this->modConsignaciones == '1') $texto = "La Factura descontará el Stock Local";
         if($numero == '3'){
             $texto="La Factura descontará el Stock del Consignatario";
             $this->emit('listaNro','Consignatarios', $texto);
         }else $this->emit('listaNro', $this->lista, $texto);
     }
     public function verSaldo($id)
-    {            
+    { 
+        $this->saldoCtaCte = 0;          
         $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
             ->where('c.id', $id)
             ->where('c.comercio_id', $this->comercioId)

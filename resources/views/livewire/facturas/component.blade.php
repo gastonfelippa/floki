@@ -72,27 +72,48 @@
                     <div class="col-md-9 text-right">
                         <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
                             @if($total == 0)
+                                @if($modDelivery == "1")
                                 <button type="button" onclick="openModal({{$factura_id}})"
                                     class="btn btn-dark" enabled>
                                     Delivery   
-                                </button>        
+                                </button>  
+                                @else      
+                                <button type="button" onclick="openModal({{$factura_id}})"
+                                    class="btn btn-dark" enabled>
+                                    Clientes   
+                                </button>
+                                @endif        
                                 <button type="button" class="btn btn-warning" disabled>Dejar Pendiente</button>                    
                                 <button type="button" class="btn btn-primary" disabled>Cobrar</button>
                                 <button type="button" class="btn btn-success" disabled>Imprimir</button>
                             @else
                                 @if($delivery == 0)
-                                    <button type="button" onclick="openModal({{$factura_id}})" 
+                                    @if($modDelivery == "1")
+                                    <button type="button" onclick="openModal({{$factura_id}})"
                                         class="btn btn-dark" enabled>
                                         Delivery   
+                                    </button>  
+                                    @else      
+                                    <button type="button" onclick="openModal({{$factura_id}})"
+                                        class="btn btn-dark" enabled>
+                                        Clientes   
                                     </button>
+                                    @endif
                                     <button type="button" class="btn btn-warning" disabled>
                                         Dejar Pendiente
                                     </button>
                                 @else
+                                    @if($modDelivery == "1")
                                     <button type="button" onclick="openModal({{$factura_id}})"
                                         class="btn btn-dark" enabled>
                                         Mod Cli/Rep                                         
                                     </button>
+                                    @else
+                                    <button type="button" onclick="openModal({{$factura_id}})"
+                                        class="btn btn-dark" enabled>
+                                        Mod Cliente                                         
+                                    </button>
+                                    @endif
                                     <button type="button" onclick="dejar_pendiente()"
                                         class="btn btn-warning" enabled>
                                         Dejar Pendiente
@@ -121,9 +142,11 @@
                             <div class="col-6">
                                 <h6>Cliente:  {{$apeNomCli}}</h6>
                             </div>
+                            @if($modDelivery == "1")
                             <div class="col-6">
                                 <h6>Rep:  {{$apeNomRep}}</h6>
                             </div>
+                            @endif
                         </div>
                         <div class="row">
                             <div class="col-6">
@@ -142,9 +165,11 @@
                             <div class="col-6">
                                 <h6>Cliente:  {{$encabezado[0]->apeCli}} {{$encabezado[0]->nomCli}}</h6>
                             </div>
+                            @if($modDelivery == "1")
                             <div class="col-6">
                                 <h6>Rep:  {{$encabezado[0]->apeRep}} {{$encabezado[0]->nomRep}}</h6>
                             </div>
+                            @endif
                         </div>
                         <div class="row">
                             <div class="col-6">
@@ -290,6 +315,7 @@
             <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
             <input type="hidden" id="ultima_factura" wire:model="ultima_factura"> 
             <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
+            <input type="hidden" id="modDelivery" wire:model="modDelivery">  
         </div> 
     </div>
     @include('livewire.facturas.modal')  
@@ -468,15 +494,25 @@
             toastr.error('Elige una opción válida para el Cliente')
             return;
         }
-        if($('#empleado option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Repartidor')
-            return;
+        if($('#modDelivery').val() == "1"){	
+            if($('#empleado option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Repartidor')
+                return;
+            }
         }
-        var data = JSON.stringify({
-            'factura_id'   : $('#facturaId').val(),
-            'cliente_id'   : $('#cliente option:selected').val(),
-            'empleado_id'  : $('#empleado option:selected').val()
-        });
+        if($('#modDelivery').val() == "1"){	
+            var data = JSON.stringify({
+                'factura_id'   : $('#facturaId').val(),
+                'cliente_id'   : $('#cliente option:selected').val(),
+                'empleado_id'  : $('#empleado option:selected').val()
+            });
+        }else{
+            var data = JSON.stringify({
+                'factura_id'   : $('#facturaId').val(),
+                'cliente_id'   : $('#cliente option:selected').val(),
+                'empleado_id'  : "Salon"
+            });
+        }
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
     } 

@@ -75,11 +75,12 @@ class HomeController extends Controller
                 $hoy = $hoy_solo_fecha . ' 23:59:59';
                 //comparamos las dos fecha/hora
                 $diff = $date->diffInDays($hoy);
-         
+ 
                 $hora_actual = Carbon::now()->format('H:i');
                 //si estamos en el mismo día 'o' es el día siguiente 
                 //y 'no' es más tarde que la hora de apertura del comercio
-                if($diff == 0 || $diff == 1 && $hora_actual <= $horaApertura->hora_apertura){
+                if($diff == 0 || $diff <= $this->periodoArqueo && $hora_actual < '23:59:59' 
+                              || $diff <= $this->periodoArqueo && $hora_actual <= $horaApertura->hora_apertura){
                     session(['estadoArqueoGral' => 'activo']); 
                 }else{    //sino, debemos hacer el arqueo 'si o si', e igualamos la variable a cero
                     session(['estadoArqueoGral' => 'pendiente']);
