@@ -4,8 +4,8 @@
 <div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-sm-6 col-lg-4">
-            <!-- <h1 class="text-center mb-4" style="color:white"><b>FlokI</b></h1> -->
-            <p class="centrado"><img src="images/logo_floki.png" height="130" alt="image"></p>
+            <h1 class="text-center mb-4" style="color:white"><b>FlokI</b></h1>
+            <!-- <p class="centrado"><img src="images/logo_floki_rojo.png" height="130" alt="image"></p> -->
             <div class="card">
                 <div class="card-header">Ingreso</div>
                 <div class="card-body px-4">
