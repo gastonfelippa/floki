@@ -1,5 +1,7 @@
 <div class="row layout-top-spacing justify-content-center">
     @if($action == 1)	
+    @include('common.alerts')
+    @include('common.messages')
     <div class="col-md-12 col-lg-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
@@ -108,7 +110,6 @@
                         </div>
                     </div>   
                 @endif
-                @include('common.alerts')
                 <div class="table-responsive scroll">
                     <table class="table table-hover table-checkable table-sm mb-4">
                         <thead>
@@ -150,7 +151,7 @@
         <div class="widget-content-area">
             <div class="widget-one">
                 <form>
-                    @include('common.messages')    
+                       
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-2">
                             <label>Cantidad</label>
@@ -455,6 +456,15 @@
                 title: 'Stock ' + ubicacion_stock + ' no disponible',
                 text: texto + stock + ' unidades',
                 showConfirmButton: true
+            })
+        })
+        Livewire.on('remitoTerminado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Remito grabado!!',
+                showConfirmButton: false,
+                timer: 1500
             })
         })
     } 

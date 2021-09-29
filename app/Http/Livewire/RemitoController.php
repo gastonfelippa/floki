@@ -427,8 +427,8 @@ class RemitoController extends Component
         $record = Remito::find($this->remito_id);
         $record->update([
             'estado' => 'terminado'
-        ]);              
-        session()->flash('message', 'Remito Terminado'); 
+        ]); 
+        $this->emit('remitoTerminado');             
         $this->resetInputTodos();
     }
     public function modCliRep($data)
