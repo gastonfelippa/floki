@@ -44,7 +44,7 @@ class UsuarioController extends Component
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
-        $localidades = Localidad::select()->where('uc.comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
+        $localidades = Localidad::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
  
         $this->roles = Role::select('*')->where('id', '<>', '1')->where('comercio_id', $this->comercioId)->get();
