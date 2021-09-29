@@ -248,28 +248,6 @@
                     </div>
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Viandas</div>
-                            <div class="card-body">
-                            @foreach($pViandas as $p)
-                            <tr>
-                                <td class="text-center">
-                                    <div class="n-check" id="divPermisos">
-                                        <label class="new-control new-checkbox checkbox-primary">
-                                            <input data-name="{{$p->name}}" 
-                                            {{$p->checked == 1 ? 'checked' : ''}}
-                                            type="checkbox" class="new-control-input checkbox-rol">
-                                            <span class="new-control-indicator"></span>
-                                            {{$p->alias}}
-                                        </label>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card border-dark text-dark bg-light mb-3">
                             <div class="card-header">Cuenta Corriente</div>
                             <div class="card-body">
                             @foreach($pCtacte as $p)
@@ -312,11 +290,12 @@
                             </div>
                         </div>
                     </div>
+                    @if($modViandas == "1")
                     <div class="col">
                         <div class="card border-dark text-dark bg-light mb-3">
-                            <div class="card-header">Mòdulo Viandas</div>
+                            <div class="card-header">Viandas</div>
                             <div class="card-body">
-                            @foreach($pModViandas as $p)
+                            @foreach($pViandas as $p)
                             <tr>
                                 <td class="text-center">
                                     <div class="n-check" id="divPermisos">
@@ -334,6 +313,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
