@@ -44,7 +44,7 @@ class UsuarioController extends Component
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
 
-        $localidades = Localidad::select()->orderBy('descripcion','asc')->get();
+        $localidades = Localidad::select()->where('uc.comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
  
         $this->roles = Role::select('*')->where('id', '<>', '1')->where('comercio_id', $this->comercioId)->get();
@@ -218,7 +218,7 @@ class UsuarioController extends Component
         //................descomentar cuando funcione la autenticacion en la nube..........
        // $password = Str::random(8);
         //................comentar cuando funcione la autenticacion en la nube..........
-        $password = Str::finish('123', strtolower($data['name']));
+        $password = Str::finish('123', strtolower($this->name));
         //....................................
         session(['pass_empleado' => $password]);
         session(['empleado' => 'si']);
