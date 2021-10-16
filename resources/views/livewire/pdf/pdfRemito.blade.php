@@ -47,7 +47,7 @@
 			<p><b>Remito N°:</b>  {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Duplicado  
 				<span class="tab"></span><b>Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}}</p>                       
 			<p><b>Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
-				<span class="tab3"></span><b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}}</p> 
+				<span class="tab3"></span><b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->descripcion}}</p> 
 			
 		</div>
 		<table class="alturaMedia" style="width:100%">

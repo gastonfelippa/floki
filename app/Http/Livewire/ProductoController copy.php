@@ -6,7 +6,6 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Producto;
-use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\TextoBaseComanda;
 use App\Models\SectorComanda;
@@ -16,13 +15,13 @@ use DB;
 class ProductoController extends Component
 {
 	public $categoria ='Elegir', $tipo = 'Art. Venta', $sector ='0', $texto ='Elegir', $estado='DISPONIBLE';
-	public $codigo = null, $codigo_sugerido, $descripcion, $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
+	public $codigo = null, $codigo_sugerido, $descripcion, $stock, $stock_minimo, $habilitar_model = false;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2;
 	public $selected_id = null, $categorias, $sectores, $textos, $producto;
 	public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
-	public $action = 1, $search, $habilitar_model = false;
+	public $action = 1, $search;
 	public $salsa = false, $guarnicion = false;
-	public $descripcion_sp, $search_sp, $tiene_sp = null;
+	public $descripcion_sp, $stock_sp, $stock_minimo_sp, $search_sp;
 	public $comercioId, $comercioTipo, $modComandas, $modDelivery; 
 	
 	public function render()
@@ -56,7 +55,7 @@ class ProductoController extends Component
 
 		if(strlen($this->search) > 0) {
 			$info = Producto::join('categorias as r','r.id','productos.categoria_id')
-				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"))
+				->select('productos.*', 'r.descripcion as categoria')
 				->where('productos.descripcion', 'like', '%' . $this->search .'%')
 				->where('productos.comercio_id', $this->comercioId)
 				->orWhere('productos.estado', 'like', '%' . $this->search .'%')
@@ -67,52 +66,22 @@ class ProductoController extends Component
 				->get();
 		}else {
 			$info = Producto::join('categorias as r','r.id','productos.categoria_id')
-				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"))
+				->select('productos.*', 'r.descripcion as categoria')
 				->where('productos.comercio_id', $this->comercioId)
 				->orderBy('productos.descripcion', 'asc')
 				->get();
 		}
-        foreach ($info as $i){
-			$tiene_sp = Subproducto::where('producto_id', $i->id)->get();
-			if($tiene_sp->count()){
-				foreach ($tiene_sp as $l){
-					$stock = Stock::where('subproducto_id', $l->id)->first();
-					$total = 0;
-					if($stock->count()){
-						$i->stock_actual += $stock->stock_actual;
-					}
-				}
-			}else{
-				$stock = Stock::where('producto_id', $i->id)->first();
-				$i->stock_actual = $stock->stock_actual;
-			}
-        }
-
 		if(strlen($this->search_sp) > 0) {
-			$subproductos = Subproducto::select('*', DB::RAW("0 as stock_actual"), 
-				DB::RAW("0 as stock_ideal"), DB::RAW("0 as stock_minimo"))
+			$subproductos = Subproducto::select('*')
 				->where('descripcion', 'like', '%' . $this->search_sp .'%')
 				->where('producto_id', $this->selected_id)
 				->where('comercio_id', $this->comercioId)
 				->orderBy('descripcion')->get();
-			foreach($subproductos as $i){
-				$stock = Stock::where('subproducto_id', $i->id)->first();
-				$i->stock_actual = $stock->stock_actual;
-				$i->stock_ideal = $stock->stock_ideal;
-				$i->stock_minimo = $stock->stock_minimo;
-			}
 		}else {
-			$subproductos = Subproducto::select('*', DB::RAW("0 as stock_actual"), 
-				DB::RAW("0 as stock_ideal"), DB::RAW("0 as stock_minimo"))
+			$subproductos = Subproducto::select('*')
 				->where('producto_id', $this->selected_id)
 				->where('comercio_id', $this->comercioId)
 				->orderBy('descripcion')->get();
-			foreach($subproductos as $i){
-				$stock = Stock::where('subproducto_id', $i->id)->first();
-				$i->stock_actual = $stock->stock_actual;
-				$i->stock_ideal = $stock->stock_ideal;
-				$i->stock_minimo = $stock->stock_minimo;
-			}
 		}
 		return view('livewire.productos.component', [
 			'info'         => $info,
@@ -140,8 +109,7 @@ class ProductoController extends Component
 		$this->precio_costo    = null;
 		$this->precio_venta_l1 = '';
 		$this->precio_venta_l2 = '';
-		$this->stock_actual    = null; 
-		$this->stock_ideal     = null; 
+		$this->stock           = null;
 		$this->stock_minimo    = null;
 		$this->tipo            = 'Art. Venta';
 		$this->categoria       = 'Elegir';
@@ -150,9 +118,8 @@ class ProductoController extends Component
 		$this->estado          = 'DISPONIBLE';
 		$this->selected_id     = null;
 		$this->search          = '';
-		$this->search_sp       = '';
+		$this->search_sp          = '';
 		$this->habilitar_model = false;
-		$this->tiene_sp        = null;
 	}	
 	public function edit($id)
 	{
@@ -165,19 +132,12 @@ class ProductoController extends Component
 		$this->precio_costo    = $record->precio_costo;
 		$this->precio_venta_l1 = $record->precio_venta_l1;
 		$this->precio_venta_l2 = $record->precio_venta_l2;
+		$this->stock           = $record->stock;
+		$this->stock_minimo    = $record->stock_minimo;
 		$this->tipo            = $record->tipo;
 		$this->estado          = $record->estado;
 		$this->sector          = $record->sectorcomanda_id;
 		$this->texto           = $record->texto_base_comanda_id;
-
-		$stock = Stock::where('producto_id', $id)->first();
-		$this->stock_actual    = $stock->stock_actual;
-		$this->stock_ideal     = $stock->stock_ideal;
-		$this->stock_minimo    = $stock->stock_minimo;
-
-		$tiene_sp = Subproducto::where('producto_id', $id)->get();
-		if($tiene_sp->count()) $this->tiene_sp = 1; else $this->tiene_sp = null;
-
 		if($record->guarnicion == 1) $this->guarnicion = true; else $this->guarnicion = false;
 		if($record->salsa == 1) $this->salsa = true; else $this->salsa = false;
 	}
@@ -196,16 +156,12 @@ class ProductoController extends Component
 		$this->precio_costo    = $record->precio_costo;
 		$this->precio_venta_l1 = $record->precio_venta_l1;
 		$this->precio_venta_l2 = $record->precio_venta_l2;
+		$this->stock           = $record->stock;
+		$this->stock_minimo    = $record->stock_minimo;
 		$this->tipo            = $record->tipo;
 		$this->estado          = $record->estado;
 		$this->sector          = $record->sectorcomanda_id;
 		$this->texto           = $record->texto_base_comanda_id;
-
-		$stock = Stock::where('subproducto_id', $id)->first();
-		$this->stock_actual    = $stock->stock_actual;
-		$this->stock_ideal     = $stock->stock_ideal;
-		$this->stock_minimo    = $stock->stock_minimo;
-
 		if($record->guarnicion == 1) $this->guarnicion = true; else $this->guarnicion = false;
 		if($record->salsa == 1) $this->salsa = true; else $this->salsa = false;
 	}	
@@ -277,19 +233,18 @@ class ProductoController extends Component
         }
 		return;
 	}
-	public function grabar_subproducto($id_subproducto, $texto, $stock_actual_sp, $stock_ideal_sp, $stock_minimo_sp)
+	public function grabar_subproducto($id_subproducto, $texto, $stock_sp, $stock_minimo_sp)
 	{
 		$texto_sp = ucwords($texto);
-		if($stock_actual_sp) $this->stock_actual = $stock_actual_sp; else $this->stock_actual = null;
-		if($stock_ideal_sp) $this->stock_ideal = $stock_ideal_sp; else $this->stock_ideal = null;
-		if($stock_minimo_sp) $this->stock_minimo = $stock_minimo_sp; else $this->stock_minimo = null;
+		if($stock_sp) $stock = $stock_sp; else $stock = null;
+		if($stock_minimo_sp) $stock_minimo = $stock_minimo_sp; else $stock_minimo = null;
 		
         $this->validate([
             'texto' => 'required'
         ]);
         DB::begintransaction();
         try{
-			if($id_subproducto){   //si está midificando
+			if($id_subproducto){
 				$existeSp = Subproducto::where('descripcion', $texto)
 				->where('id', '<>', $id_subproducto)
 				->where('comercio_id', $this->comercioId)				
@@ -305,7 +260,7 @@ class ProductoController extends Component
 					session()->flash('info', 'El Producto ya existe...');
 					return;
 				}
-			}else {       //si está creando
+			}else {
 				$existeSp = Subproducto::where('descripcion', $texto)
 				->where('comercio_id', $this->comercioId)->withTrashed()->get();
 				
@@ -325,28 +280,18 @@ class ProductoController extends Component
 			if($id_subproducto){ //modifica
 				$existe = Subproducto::find($id_subproducto);
 				$existe->update([
-					'descripcion'  => ucwords($texto_sp)
-				]);
-				$stock = Stock::where('subproducto_id', $id_subproducto)->first();
-				$stock->update([
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
+					'descripcion'  => ucwords($texto_sp), 
+					'stock'        => $stock, 
+					'stock_minimo' => $stock_minimo,
 				]);
 			}else{       //crea
-				$subproducto = Subproducto::create([
+				$texto = Subproducto::create([
 					'producto_id'  => $this->selected_id,
-					'descripcion'  => ucwords($texto_sp),
+					'descripcion'  => ucwords($texto_sp), 
+					'stock'        => $stock, 
+					'stock_minimo' => $stock_minimo, 
 					'comercio_id'  => $this->comercioId            
 				]);	
-				$stock = Stock::create([
-					'subproducto_id'        => $subproducto->id,
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
-				]);
 			}
 			if($id_subproducto) $this->emit('subproducto_modificado');
 			else $this->emit('subproducto_creado');
@@ -376,7 +321,6 @@ class ProductoController extends Component
 			'tipo'            => 'required',
 			'precio_venta_l1' => 'required'
 		]);
-		$this->descripcion = ucwords($this->descripcion);
 			
 		DB::begintransaction();
         try{
@@ -402,7 +346,7 @@ class ProductoController extends Component
 					->where('id', '<>', $this->selected_id)
 					->where('comercio_id', $this->comercioId)
 					->withTrashed()->get();
-                if($existeCodigo->count() && $existeCodigo[0]->deleted_at != null) {
+                if($existeCodigo->count() > 0 && $existeCodigo[0]->deleted_at != null) {
 					session()->flash('info', 'El Código que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
@@ -415,9 +359,9 @@ class ProductoController extends Component
 				}
 			}else {
 				$existeProducto = Producto::where('descripcion', $this->descripcion)
-					->where('comercio_id', $this->comercioId)->withTrashed()->get();
-		
-				if($existeProducto->count() && $existeProducto[0]->deleted_at != null) {
+				->where('comercio_id', $this->comercioId)->withTrashed()->get();
+				
+				if($existeProducto->count() > 0 && $existeProducto[0]->deleted_at != null) {
 					session()->flash('info', 'El Producto que desea agregar fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
 					$this->action = 1;
 					$this->recuperar_registro = 1;
@@ -431,9 +375,9 @@ class ProductoController extends Component
 				}
 				
 				$existeCodigo = Producto::where('codigo', $this->codigo)
-					->where('comercio_id', $this->comercioId)		
-					->withTrashed()->get();
-                if($existeCodigo->count() && $existeCodigo[0]->deleted_at != null) {
+				->where('comercio_id', $this->comercioId)		
+				->withTrashed()->get();
+                if($existeCodigo->count() > 0 && $existeCodigo[0]->deleted_at != null) {
 					session()->flash('info', 'El Código que desea agregar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
@@ -452,6 +396,8 @@ class ProductoController extends Component
 					'precio_costo'          => $this->precio_costo,
 					'precio_venta_l1'       => $this->precio_venta_l1,
 					'precio_venta_l2'       => $this->precio_venta_l2,
+					'stock'                 => $this->stock,
+					'stock_minimo'          => $this->stock_minimo,
 					'tipo'                  => $this->tipo,
 					'categoria_id'          => $this->categoria,
 					'estado'                => $this->estado,
@@ -461,20 +407,15 @@ class ProductoController extends Component
 					'sectorcomanda_id'      => $this->sector,
 					'texto_base_comanda_id' => $this->texto
 				]);
-				$stock = Stock::create([
-					'producto_id'           => $producto->id,
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
-				]);
 			}else {				
 				$record = Producto::find($this->selected_id);
 				$record->update([
 					'descripcion'  	        => ucwords($this->descripcion),
 					'precio_costo' 	        => $this->precio_costo,			
 					'precio_venta_l1'       => $this->precio_venta_l1,
-					'precio_venta_l2'       => $this->precio_venta_l2,	
+					'precio_venta_l2'       => $this->precio_venta_l2,			
+					'stock'                 => $this->stock,
+					'stock_minimo'          => $this->stock_minimo,
 					'tipo'         	        => $this->tipo,
 					'categoria_id' 	        => $this->categoria,
 					'estado'       	        => $this->estado,
@@ -482,13 +423,6 @@ class ProductoController extends Component
 					'guarnicion'            => $guarnicion,
 					'sectorcomanda_id'      => $this->sector,
 					'texto_base_comanda_id' => $this->texto
-				]);
-				$stock = Stock::where('producto_id', $this->selected_id)->first();
-				$stock->update([
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
 				]);
 				$this->action = 1;
 			}
@@ -506,30 +440,25 @@ class ProductoController extends Component
 	public function destroy($id, $comentario)
     {
         if ($id) {
-			$record = Subproducto::where('producto_id', $id)->get();
-            if(!$record->count()){
-				DB::begintransaction();
-				try{
-					$record = Producto::find($id)->delete();
-					$audit = Auditoria::create([
-						'item_deleted_id' => $id,
-						'tabla' => 'Productos',
-						'user_delete_id' => auth()->user()->id,
-						'comentario' => $comentario,
-						'comercio_id' => $this->comercioId
-					]);
-					DB::commit();  
-					$this->emit('registroEliminado');             
-				}catch (Exception $e){
-					DB::rollback();
-					session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
-				}  
-			}else $this->emit('eliminarRegistro'); 
-
+            DB::begintransaction();
+            try{
+                $record = Producto::find($id)->delete();
+                $audit = Auditoria::create([
+                    'item_deleted_id' => $id,
+                    'tabla' => 'Productos',
+                    'user_delete_id' => auth()->user()->id,
+                    'comentario' => $comentario,
+                    'comercio_id' => $this->comercioId
+                ]);
+                DB::commit();  
+                $this->emit('registroEliminado');             
+            }catch (Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }             
             $this->resetInput();
             return;
         }
-		
     } 			
 	public function destroy_sp($id, $comentario)
     {
@@ -584,7 +513,8 @@ class ProductoController extends Component
 			}else $this->habilitar_model = true; //habilito la presentación del model para agregar Texto Base
 		}else{
 			$existeProducto = Producto::where('descripcion', $this->descripcion)
-				->where('comercio_id', $this->comercioId)->withTrashed()->get();
+			->where('comercio_id', $this->comercioId)->withTrashed()->get();
+			
 			if($existeProducto->count() && $existeProducto[0]->deleted_at != null) {
 				session()->flash('info', 'El Producto que desea agregar fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
 				$this->action = 1;

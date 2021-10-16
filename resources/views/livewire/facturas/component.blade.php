@@ -109,10 +109,12 @@
                                         Mod Cli/Rep                                         
                                     </button>
                                     @else
-                                    <button type="button" onclick="openModal({{$factura_id}})"
-                                        class="btn btn-dark" enabled>
-                                        Mod Cliente                                         
-                                    </button>
+                                        @if($lista != "3")
+                                        <button type="button" onclick="openModal({{$factura_id}})"
+                                            class="btn btn-dark" enabled>
+                                            Mod Cliente                                         
+                                        </button>
+                                        @endif
                                     @endif
                                     <button type="button" onclick="dejar_pendiente()"
                                         class="btn btn-warning" enabled>
@@ -303,9 +305,15 @@
                     <div class="widget-one scrollb"> 
                         <div class="scrollContent"> 
                             @if($articulos != null)
+                            @if($mostrar_sp == 0)
                             @foreach($articulos as $a)                    
                                 <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
                             @endforeach 
+                            @else
+                            @foreach($tiene_sp as $sp)                    
+                                <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButtonSp({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
+                            @endforeach 
+                            @endif
                             @endif                   
                         </div>
                     </div>
@@ -316,6 +324,7 @@
             <input type="hidden" id="ultima_factura" wire:model="ultima_factura"> 
             <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
             <input type="hidden" id="modDelivery" wire:model="modDelivery">  
+            <input type="hidden" id="lista" wire:model="lista">  
         </div> 
     </div>
     @include('livewire.facturas.modal')  
@@ -340,7 +349,7 @@
     }
     .scrollb {
         width: 100%;
-        height:240px;
+        max-height:240px;
         overflow:hidden;
     }
     .scrollContent{
@@ -489,10 +498,17 @@
         $('#modal').modal('show')
 	}
 	function save()
-    {     
-        if($('#cliente option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Cliente')
-            return;
+    {
+        if($('#lista').val() != 3){     
+            if($('#cliente option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Cliente')
+                return;
+            }
+        }else{
+            if($('#consignatario option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Cliente')
+                return;
+            }
         }
         if($('#modDelivery').val() == "1"){	
             if($('#empleado option:selected').val() == 'Elegir') {
@@ -507,9 +523,12 @@
                 'empleado_id'  : $('#empleado option:selected').val()
             });
         }else{
+            var cliente = null;
+            if($('#lista').val() != 3) cliente = $('#cliente option:selected').val();
+            else cliente = $('#consignatario option:selected').val();
             var data = JSON.stringify({
                 'factura_id'   : $('#facturaId').val(),
-                'cliente_id'   : $('#cliente option:selected').val(),
+                'cliente_id'   : cliente,
                 'empleado_id'  : "Salon"
             });
         }
@@ -600,11 +619,13 @@
                 icon: 'success',
                 title: 'Factura enviada a Cuenta Corriente!!',
                 showConfirmButton: false,
-                timer: 1500
+                timer: 2500
             })
-            if($('#ultima_factura').val() == 1){
-                window.location.href="{{ url('notify') }}";
-            }
+            setTimeout(function(){
+                if($('#ultima_factura').val() == 1){
+                    window.location.href="{{ url('notify') }}";
+                }else window.location.href="{{ url('facturas') }}";
+            },1000);
 		})
         Livewire.on('limite_10',()=>{
             Swal.fire({
@@ -642,8 +663,11 @@
                 icon: 'success',
                 title: 'En uso Lista ' + nro,
                 text: texto,
-                showConfirmButton: true
-            })
+                showConfirmButton: false,
+                timer: 1500
+            });
+            setTimeout(function(){openModal(null)},1500);
+            
         })
         Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
             var texto = 'Solo restan ';

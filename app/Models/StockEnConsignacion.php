@@ -10,5 +10,6 @@ class StockEnConsignacion extends Model
     use HasFactory;
     
     protected $table = 'stock_en_consignacion';
-    protected $fillable = ['cliente_id', 'remito_id', 'factura_id', 'producto_id', 'cantidad', 'comercio_id'];
+    protected $fillable = ['cliente_id', 'remito_id', 'factura_id', 'producto_id',
+                           'subproducto_id', 'cantidad', 'comercio_id'];
 }

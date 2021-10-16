@@ -192,7 +192,6 @@ class UsuarioController extends Component
             }
         }
     }
-    
     public function edit($id)
     {
         $record = User::find($id);

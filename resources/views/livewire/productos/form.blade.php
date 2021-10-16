@@ -44,33 +44,38 @@
                         <input wire:model.lazy="precio_costo" onblur="calcularPrecioVenta()" type="text" class="form-control">
                     </div>
 
-                    <div class="form-group col-md-3 col-sm-12">
+                    <div class="form-group col-md-2 col-sm-12">
                         @if($modDelivery == "1")
-                        <label >Precio/Venta Lista Salón</label>
+                        <label >Pr/Vta Salón</label>
                         @else
-                        <label >Precio/Venta Lista 1</label>
+                        <label >Pr/Venta Lista 1</label>
                         @endif
                         <input wire:model.lazy="precio_venta_l1" type="text" class="form-control">
                     </div>  
-                    <div class="form-group col-md-3 col-sm-12">
+                    <div class="form-group col-md-2 col-sm-12">
                         @if($modDelivery == "1")
-                        <label >Precio/Venta Lista Delivery</label>
+                        <label >Pr/Vta Delivery</label>
                         @else
-                        <label >Precio/Venta Lista 2</label>
+                        <label >Pr/Venta Lista 2</label>
                         @endif
                         <input wire:model.lazy="precio_venta_l2" type="text" class="form-control">
                     </div> 
-                     <div class="form-group col-md-2 col-sm-12">
+                    @if($tiene_sp == null)
+                    <div class="form-group col-md-2 col-sm-12">
                         <label >Stock Actual</label>
-                        <input wire:model.lazy="stock" type="text" class="form-control">
+                        <input wire:model.lazy="stock_actual" type="text" class="form-control">
                     </div>
+                    <div class="form-group col-md-2 col-sm-12">
+                        <label >Stock Ideal</label>
+                        <input wire:model.lazy="stock_ideal" type="text" class="form-control">
+                    </div>                       
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Stock Mínimo</label>
                         <input wire:model.lazy="stock_minimo" type="text" class="form-control">
-                    </div>                       
+                    </div>
+                    @endif                       
                 </div>
                 <div class="row">
-                   
                 @if($modComandas == "1")
                     <div class="form-group col-12 col-md-2">
                         <label >Sector Comanda</label>
@@ -145,7 +150,6 @@
                         </div>
                     </div>
                 @endif
-
                 </div>
             </form>
             <div class="row ">
@@ -157,7 +161,14 @@
                         onclick="guardar()"   
                         class="btn btn-primary">
                         Guardar
-                    </button>       
+                    </button> 
+                    @if($selected_id > 0)      
+                    <button type="button" id="1btnGuardar"
+                        wire:click="agregar_sp()"   
+                        class="btn btn-danger ml-5">
+                        Agregar/Modificar Subproductos
+                    </button>
+                    @endif      
                 </div>
             </div>
         </div>

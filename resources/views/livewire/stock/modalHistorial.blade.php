@@ -3,8 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="row col-12">
-                    <h5 class="modal-title">Cliente: {{$nombreCliente}}</h5>
-                    <h5 class="modal-title">Producto: {{$producto}}</h5>
+                    <h5 class="modal-title">Cliente: {{$nombreCliente}}</br>Producto: {{$producto}}</h5>
                 </div>
             </div>       
             <div class="modal-body">

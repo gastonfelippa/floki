@@ -73,6 +73,12 @@ class AuditoriaController extends Component
                         ->select('p.descripcion')->get();
                     $i->item = $info2[0]->descripcion;
                     break; 
+                case 'Subproductos':                               
+                    $info2 = Auditoria::join('subproductos as sp', 'sp.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)
+                        ->select('sp.descripcion')->get();
+                    $i->item = $info2[0]->descripcion;
+                    break; 
                 case 'Detalle de Facturas':                               
                     $info2 = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
                         ->join('productos as p', 'p.id', 'df.producto_id')

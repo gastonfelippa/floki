@@ -20,7 +20,6 @@
                                     </option>                                       
                                     @endforeach 
                                 </select>
-                                </div>
                             </div>
                             <div class="form-group col-5">
                                 <div class="input-group">

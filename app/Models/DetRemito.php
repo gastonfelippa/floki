@@ -11,5 +11,5 @@ class DetRemito extends Model
     
     protected $dates = ['deleted_at'];
     protected $table = 'det_remitos';
-    protected $fillable = ['remito_id', 'producto_id', 'cantidad', 'comercio_id'];
+    protected $fillable = ['remito_id', 'producto_id', 'subproducto_id', 'cantidad', 'comercio_id'];
 }

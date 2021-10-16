@@ -25,8 +25,11 @@ class CreateStockEnConsignacionTable extends Migration
             $table->unsignedBigInteger('factura_id')->nullable();
             $table->foreign('factura_id')->references('id')->on('facturas');
 
-            $table->unsignedBigInteger('producto_id');
+            $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');
+
+            $table->unsignedBigInteger('subproducto_id')->nullable();
+            $table->foreign('subproducto_id')->references('id')->on('subproductos');
 
             $table->decimal('cantidad',10,2);
             
