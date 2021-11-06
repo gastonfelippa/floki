@@ -21,6 +21,7 @@ class PermisosController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio'); 
         $this->modViandas = session('modViandas'); 
+        session(['facturaPendiente' => null]);  
         
         $usuarios = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('uc.comercio_id', $this->comercioId)

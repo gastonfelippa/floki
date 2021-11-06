@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
+use App\Models\Comercio;
 use App\Models\Producto;
 use App\Models\Stock;
 use App\Models\Subproducto;
@@ -18,7 +19,7 @@ class ProductoController extends Component
 	public $categoria ='Elegir', $tipo = 'Art. Venta', $sector ='0', $texto ='Elegir', $estado='DISPONIBLE';
 	public $codigo = null, $codigo_sugerido, $descripcion, $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2;
-	public $selected_id = null, $categorias, $sectores, $textos, $producto;
+	public $selected_id = null, $categorias, $sectores, $textos, $producto, $calcular_precio_de_venta, $redondear_precio_de_venta;
 	public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
 	public $action = 1, $search, $habilitar_model = false;
 	public $salsa = false, $guarnicion = false;
@@ -32,12 +33,15 @@ class ProductoController extends Component
 		$this->comercioTipo = session('tipoComercio');
 		$this->modDelivery = session('modDelivery');
 		$this->modComandas = session('modComandas');
+        session(['facturaPendiente' => null]);  
 		
 		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->textos = TextoBaseComanda::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-	//	$this->subproductos = Subproducto::select('*')->where('producto_id', $this->selected_id)->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-
+		$record = Comercio::find($this->comercioId);
+		$this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
+		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
+		
 		if($this->selected_id == null) {
 			$nuevo_codigo = Producto::select('*')->where('comercio_id', $this->comercioId)->get();
 			if ($nuevo_codigo->count() == 0){
@@ -558,9 +562,24 @@ class ProductoController extends Component
 	{
 		if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
 			$porcentaje = Categoria::where('id', $this->categoria)->select('margen_1', 'margen_2')->get();
-			$this->precio_venta_l1 = number_format($this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1),2);
-			$this->precio_venta_l2 = number_format($this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2),2);
-		}else {
+			if ($this->calcular_precio_de_venta == 0){
+				//calcula el precio de venta sumando el margen de ganancia al costo del producto
+				$this->precio_venta_l1 = ($this->precio_costo * $porcentaje[0]->margen_1) / 100 + $this->precio_costo;
+				$this->precio_venta_l2 = ($this->precio_costo * $porcentaje[0]->margen_2) / 100 + $this->precio_costo;
+			}else{
+				//calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+				$this->precio_venta_l1 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
+				$this->precio_venta_l2 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
+			}
+			if ($this->redondear_precio_de_venta == 1){
+				$this->precio_venta_l1 = number_format(round($this->precio_venta_l1, 0),2);
+				$this->precio_venta_l2 = number_format(round($this->precio_venta_l2, 0),2);
+			}else{
+				$this->precio_venta_l1 = number_format($this->precio_venta_l1,2);
+				$this->precio_venta_l2 = number_format($this->precio_venta_l2,2);
+			}
+			$this->precio_costo = number_format($this->precio_costo,2);
+		}else{
 			session()->flash('msg-error', 'Debe elegir una Categoría');
 		}
 	}	

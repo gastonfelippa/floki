@@ -18,6 +18,7 @@ class OtroIngresoController extends Component
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         if(strlen($this->search) > 0){
             $info = OtroIngreso::where('descripcion', 'like', '%' .  $this->search . '%')

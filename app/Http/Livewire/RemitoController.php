@@ -22,22 +22,24 @@ use DB;
 class RemitoController extends Component
 {
     //properties
-    public $cantidad = 1, $precio, $estado='ABIERTO', $inicio_remito, $mostrar_datos;
-    public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $subproducto=null, $salon =null;
+    public $cantidad = 1, $estado='ABIERTO', $inicio_remito, $mostrar_datos;
+    public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $subproducto="Elegir", $salon =null;
     public $clientes, $empleados, $productos, $subproductos;
-    public $selected_id = null, $search, $numRemito, $action = 1;
-    public $remitos,  $total, $importe, $totalAgrabar, $delivery = 0;  
+    public $selected_id = null, $numRemito;
+    public $remitos, $delivery = 0, $action = 1, $forzar_arqueo = 0;  
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
-    public $comercioId, $arqueoGralId, $remito_id, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
+    public $comercioId, $arqueoGralId, $remito_id, $categorias, $articulos =null, $saldoCtaCte;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
-    public $contador_filas, $imp_por_hoja, $imp_duplicado, $stock_antes_de_modificar;
-    public $mostrar_sp = 0, $tiene_sp, $producto_sp = 0, $es_producto = 1;
+    public $contador_filas, $imp_por_hoja, $imp_duplicado;
+    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
     
     public function render()
     {     
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
+        
         $comercio = Comercio::where('id', $this->comercioId)->get();
         if($comercio->count())
         {
@@ -69,9 +71,14 @@ class RemitoController extends Component
                 return view('arqueodecaja');
             }
         }      
-
         $this->productos = Producto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->subproductos = Subproducto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        if ($this->subproducto == 'Elegir'){
+            $this->subproductos = Subproducto::where('producto_id', $this->producto)
+                ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        }else{
+            $this->subproductos = Subproducto::where('id', $this->subproducto)
+                ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        }        
         $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
         $this->clientes = Cliente::where('comercio_id', $this->comercioId)
             ->where('consignatario', '1')->orderBy('apellido')->get();
@@ -151,65 +158,64 @@ class RemitoController extends Component
                 }
             }
         }    
+        $this->verificar_impresion();
+
         return view('livewire.remitos.component', [
             'info'        => $info,
             'encabezado'  => $encabezado
         ]);
     }
+    public function verificar_impresion()
+    {
+        if($this->contador_filas > 10 && $this->imp_por_hoja != '1') $this->emit('limite_superado');
+        elseif($this->contador_filas > 20 && $this->imp_por_hoja == '1') $this->emit('limite_20');
+    }
     public function doAction($action)
     {
         $this->action = $action;
+        if($this->action == 1) $this->resetInput();
     }
     public function resetInput()
     {
         $this->cantidad       = 1;
         $this->barcode        = '';
-        $this->precio         = '';
         $this->producto       = 'Elegir';
-        $this->subproducto    = null;
+        $this->subproducto    = "Elegir";
         $this->selected_id    = null;
         $this->action         = 1;
-        $this->search         = '';
         $this->estado_entrega = 0;
         $this->salon          = null;
-        $this->f_de_pago      = null;
-        $this->nro_comp_pago  = null;
-        $this->mercadopago    = null;
-        $this->comentarioPago = '';
         $this->forzar_arqueo  = 0;
-        $this->es_producto = 1;
-        //$this->mostrar_sp  = 0;
+        $this->es_producto    = 1;
+        $this->mostrar_sp     = 0;
     }    
     public function resetInputTodos()
     {
         $this->cantidad       = 1;
-        $this->barcode        = '';
-        $this->precio         = '';        
+        $this->barcode        = '';        
         $this->cliente        = 'Elegir';
         $this->dirCliente     = null;
         $this->empleado       = 'Elegir';
         $this->producto       = 'Elegir';
-        $this->subproducto    = null;
+        $this->subproducto    = "Elegir";
         $this->articulos      = '';
         $this->delivery       = 0;
         $this->selected_id    = null;
         $this->action         = 1;
-        $this->search         = '';
         $this->inicio_remito  = true;
         $this->estado_entrega = '0';
         $this->salon          = null;
         $this->remito_id      = null;
+        $this->es_producto    = 1;
         $this->mostrar_sp     = 0;
     }
     protected $listeners = [
         'modCliRep'         => 'modCliRep',
-        'deleteRow'         => 'destroy',
-        'factura_contado'   => 'factura_contado',
-        'factura_ctacte'    => 'factura_ctacte',      
-        'anularFactura'     => 'anularFactura',
+        'deleteRow'         => 'destroy',     
+        'anularRemito'      => 'anularRemito',
         'elegirFormaDePago' => 'elegirFormaDePago',
         'enviarDatosPago'   => 'enviarDatosPago',
-        'dejar_pendiente'   => 'dejar_pendiente', 
+        'terminar_remito'   => 'terminar_remito', 
         'StoreOrUpdate'     => 'StoreOrUpdate',
         'buscarPorCodigo'   => 'buscarPorCodigo',
         'ocultar_sp'        => 'ocultar_sp'
@@ -256,52 +262,54 @@ class RemitoController extends Component
                 ->where('comercio_id', $this->comercioId)->first();
             $this->producto = $articulos->id;
         }
-        
     } 
     public function buscarArticulo($id)
     {
-        $this->mostrar_sp = 0;
+        //$this->mostrar_sp = 0;
+        $this->resetInput();
         $this->articulos = Producto::where('comercio_id', $this->comercioId)
-                                ->where('categoria_id', $id)->orderBy('descripcion', 'asc')->get();
+                                ->where('categoria_id', $id)->orderBy('descripcion')->get();
     } 
     public function edit($id, $es_producto)
     {
+        $this->selected_id = $id;
         $this->es_producto = $es_producto;
         $record = DetRemito::find($id);
-        $this->selected_id = $id;
         if($this->es_producto == 1) $this->producto = $record->producto_id;
         else $this->subproducto = $record->subproducto_id;
         $this->cantidad = $record->cantidad;
     }
-    public function StoreOrUpdateButton($articuloId, $es_producto)
+    public function StoreOrUpdateButton($articuloId)
     {
-        $this->es_producto = $es_producto;
-        if($articuloId != 0){
-            if($this->mostrar_sp == 0 && $this->es_producto == 1) $this->producto = $articuloId;
-            else $this->subproducto = $articuloId;
-        }else{
-            $record = Subproducto::where('producto_id', $this->producto)->get();
-            if($record->count()){
-                $this->es_producto = 0;
-                $this->mostrar_sp = 1;
-                $this->producto = null;
-                return;
-            } 
-        }
-        if($this->mostrar_sp == 0 && $this->es_producto == 1){
+       //dd($this->es_producto,$articuloId,$this->producto);
+        //$this->es_producto = $es_producto;
+        if($articuloId == 0 && $this->es_producto == 1){
             $this->validate([
                 'producto' => 'not_in:Elegir|required',
                 'cantidad' => 'required|numeric|min:0|not_in:0']);
-        }else{
+        }elseif($articuloId == 0 && $this->es_producto == 0){
             $this->validate([
                 'subproducto' => 'not_in:Elegir|required',
                 'cantidad'    => 'required|numeric|min:0|not_in:0']);            
+        } 
+        if($articuloId != 0){                  //si cargo desde los botones
+            if($this->es_producto == 1){        //si cargué un producto, verifico si tiene subproductos
+                $this->tiene_sp = Subproducto::where('producto_id', $articuloId)->get();
+                if($this->tiene_sp->count()){   //si tiene, los muestro
+                    $this->mostrar_sp = 1;
+                    $this->es_producto = 0; 
+                }   
+                else $this->verificar_stock($articuloId); //sino valido stock producto
+            }else $this->verificar_stock($articuloId); //si cargué un subproducto, valido su stock
+        }else{                                 //si cargo desde el form
+            if($this->es_producto == 1){       //si es un producto, verifico si tiene subproductos
+                $record = Subproducto::where('producto_id', $this->producto)->get();
+                if($record->count()){          //si tiene, los muestro en el select
+                    $this->es_producto = 0;
+                    //return;
+                }else $this->verificar_stock($this->producto); //si no tiene subproductos,valido stock producto
+            }else $this->verificar_stock($this->subproducto); //si cargué un subproducto, valido su stock
         }
-        if($this->mostrar_sp == 0 && $this->es_producto == 1){        //si cargué un producto, verifico si tiene subproductos
-            $this->tiene_sp = Subproducto::where('producto_id', $this->producto)->get();
-            if($this->tiene_sp->count()) $this->mostrar_sp = 1; //si tiene, los muestro  
-            else $this->verificar_stock($this->producto); //sino valido stock producto
-        }else $this->verificar_stock($this->subproducto); //si cargué un subproducto, valido su stock
     }
     public function verificar_stock($id)
     {
@@ -310,43 +318,26 @@ class RemitoController extends Component
             if($this->selected_id > 0){                 //si modificamos item
                 $record = DetRemito::find($this->selected_id);
                 $cantidad_detalle = $record->cantidad;
-                if($this->es_producto == 1){
-                    $stock = Stock::where('producto_id', $id)->first();
-                    $stock_local = $stock->stock_actual; 
-                    $stock_local_nuevo = $stock_local + $cantidad_detalle;
-                }else{
-                    $stock = Stock::where('subproducto_id', $id)->first();
-                    $stock_local = $stock->stock_actual;   
-                    $stock_local_nuevo = $stock_local + $cantidad_detalle;
-                } 
+                if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
+                else $stock = Stock::where('subproducto_id', $id)->first();
+                $stock_local = $stock->stock_actual;   
+                $stock_local_nuevo = $stock_local + $cantidad_detalle;
                 if($stock_local_nuevo == null) $stock_local_nuevo = 0;
             
-                if($stock_local_nuevo >= $this->cantidad){
-                    $this->StoreOrUpdate();
-                }else{
-                    $this->resetInput();
-                    $this->emit('stock_no_disponible', 'local', $stock_local);
-                }
+                if($stock_local_nuevo >= $this->cantidad) $this->StoreOrUpdate($id);
+                else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
             }else{                                     //si creamos item     
-                if($this->mostrar_sp == 0){
-                    $stock = Stock::where('producto_id', $id)->first();
-                    $stock_local = $stock->stock_actual;  
-                }else{
-                    $stock = Stock::where('subproducto_id', $id)->first();
-                    $stock_local = $stock->stock_actual;                
-                } 
+                if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
+                else $stock = Stock::where('subproducto_id', $id)->first();
+                $stock_local = $stock->stock_actual;                
                 if($stock_local == null) $stock_local = 0;
             
-                if($stock_local >= $this->cantidad){
-                    $this->StoreOrUpdate();
-                }else{
-                    $this->resetInput();
-                    $this->emit('stock_no_disponible', 'local', $stock_local); 
-                }   
+                if($stock_local >= $this->cantidad) $this->StoreOrUpdate($id);
+                else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();  
             }
         }
     }
-    public function StoreOrUpdate()
+    public function StoreOrUpdate($id)
     {
         //busca el id del cliente porque al ser inicio de factura este dato está en memoria 
         //y no está grabado todavía
@@ -382,11 +373,11 @@ class RemitoController extends Component
                     $record = DetRemito::find($this->selected_id);
                     $cantidad_detalle = $record->cantidad;        
                     $record->update([                      
-                        'subproducto_id' => $this->subproducto,
+                        'subproducto_id' => $id,
                         'cantidad'    => $this->cantidad
                     ]);
                     //modifico stock local
-                    $record = Stock::where('subproducto_id', $this->subproducto)->first(); 
+                    $record = Stock::where('subproducto_id', $id)->first(); 
                     $stockAnterior = $record['stock_actual'];        
                     $stockNuevo = $stockAnterior + $cantidad_detalle - $this->cantidad;
                     $record->update(['stock_actual' => $stockNuevo]);
@@ -394,7 +385,7 @@ class RemitoController extends Component
                     $record = StockEnConsignacion::select('id') 
                         ->where('remito_id', $this->remito_id)
                         ->where('comercio_id', $this->comercioId)
-                        ->where('subproducto_id', $this->subproducto)->first();
+                        ->where('subproducto_id', $id)->first();
                     $record = StockEnConsignacion::find($record->id); 
                     $record->update(['cantidad' => $this->cantidad]);
                 }
@@ -424,65 +415,64 @@ class RemitoController extends Component
                     $this->inicio_remito = false;
                     $this->remito_id = $remito->id;
                 }  
-                if($this->mostrar_sp == 0){         //si no mostramos los subproductos, es un producto
+                if($this->es_producto == 1){         //si no mostramos los subproductos, es un producto
                     $existe = DetRemito::select('id')       //buscamos si el producto ya está cargado
                     ->where('remito_id', $this->remito_id)
                     ->where('comercio_id', $this->comercioId)
-                    ->where('producto_id', $this->producto)->get();  
+                    ->where('producto_id', $id)->get();  
                 }else{
                     $existe = DetRemito::select('id')       //buscamos si el subproducto ya está cargado
                     ->where('remito_id', $this->remito_id)
                     ->where('comercio_id', $this->comercioId)
-                    ->where('subproducto_id', $this->subproducto)->get();
+                    ->where('subproducto_id', $id)->get();
                 }
-                if($existe->count()){
+                if($existe->count()){             //actualizamos solo la cantidad
                     $edit_cantidad = DetRemito::find($existe[0]->id); 
                     $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
-                    $edit_cantidad->update([                //actualizamos solo la cantidad                                      
-                        'cantidad' => $nueva_cantidad
-                    ]);
+                    $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
                 }else{
                     if($this->contador_filas == 15 && $this->imp_por_hoja != '1') $this->emit('limite_10');
                     elseif($this->contador_filas == 20 && $this->imp_por_hoja == '1') $this->emit('limite_20');
                     else{
-                        if($this->mostrar_sp == 0){
+                        if($this->es_producto == 1){
                             $add_item = DetRemito::create([         //creamos un nuevo detalle
                                 'remito_id'   => $this->remito_id,
-                                'producto_id' => $this->producto,
+                                'producto_id' => $id,
                                 'cantidad'    => $this->cantidad,
                                 'comercio_id' => $this->comercioId
                             ]);    
                         }else{ 
                             $add_item = DetRemito::create([         //creamos un nuevo detalle
                                 'remito_id'      => $this->remito_id,
-                                'subproducto_id' => $this->subproducto,
+                                'subproducto_id' => $id,
                                 'cantidad'       => $this->cantidad,
                                 'comercio_id'    => $this->comercioId
                             ]);      
                         }                      
                     }
                 } 
-                if($this->mostrar_sp == 0){             //modifico stock en consignación
+                //modifico stock
+                if($this->es_producto == 1){             //modifico stock en consignación
                     $existe = StockEnConsignacion::select('id')  
                         ->where('remito_id', $this->remito_id)
                         ->where('comercio_id', $this->comercioId)
-                        ->where('producto_id', $this->producto)->get();
+                        ->where('producto_id', $id)->get();
                 }else{
                     $existe = StockEnConsignacion::select('id')  
                         ->where('remito_id', $this->remito_id)
                         ->where('comercio_id', $this->comercioId)
-                        ->where('subproducto_id', $this->subproducto)->get();   
+                        ->where('subproducto_id', $id)->get();   
                 }
                 if ($existe->count()){                                //si el producto ya está cargado
                     $edit_cantidad = StockEnConsignacion::find($existe[0]->id); 
                     $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
                     $edit_cantidad->update(['cantidad' => $nueva_cantidad]);//actualizamos solo la cantidad
                 }else{
-                    if($this->mostrar_sp == 0){
+                    if($this->es_producto == 1){
                         $inv_en_consig = StockEnConsignacion::create([   //sino creamos uno nuevo
                             'cliente_id'  => $cliente,
                             'remito_id'   => $this->remito_id,
-                            'producto_id' => $this->producto,
+                            'producto_id' => $id,
                             'cantidad'    => $this->cantidad,
                             'comercio_id' => $this->comercioId
                         ]);
@@ -490,23 +480,18 @@ class RemitoController extends Component
                         $inv_en_consig = StockEnConsignacion::create([    //sino creamos uno nuevo
                             'cliente_id'  => $cliente,
                             'remito_id'   => $this->remito_id,
-                            'subproducto_id' => $this->subproducto,
+                            'subproducto_id' => $id,
                             'cantidad'    => $this->cantidad,
                             'comercio_id' => $this->comercioId
                         ]);  
                     }
                 }
-                if($this->mostrar_sp == 0){             //modifico stock en consignación
-                    $record = Stock::where('producto_id', $this->producto)->first();   
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior - $this->cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);
-                }else{
-                    $record = Stock::where('subproducto_id', $this->subproducto)->first();   
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior - $this->cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);   
-                }
+                //modifico stock local
+                if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();
+                else $record = Stock::where('subproducto_id', $id)->first();  
+                $stockAnterior = $record['stock_actual'];
+                $stockNuevo = $stockAnterior - $this->cantidad;  
+                $record->update(['stock_actual' => $stockNuevo]);   
             }
             DB::commit();
             if($this->selected_id > 0) session()->flash('message', 'Registro Actualizado');       
@@ -517,60 +502,8 @@ class RemitoController extends Component
         }     
         $this->resetInput(); 
         return;          
-    }    
-    public function factura_contado()
-    {
-        DB::begintransaction();                         //iniciar transacción para grabar
-        try{
-            $record = Remito::find($this->remito_id);
-            $record->update([
-                'estado'        => 'contado',
-                'estado_pago'   => '1',
-                'importe'       => $this->total,
-                'forma_de_pago' => $this->f_de_pago,
-                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
-                'mercadopago'   => $this->mercadopago,
-                'comentario'    => $this->comentarioPago
-            ]);
-            DB::commit();
-            $this->emit('facturaCobrada');
-        }catch (\Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-        }              
-        $this->resetInputTodos();
-    }
-    public function factura_ctacte($cliId)
-    {
-        $info = json_decode($cliId);
-        $this->clienteId = $info->cliente_id;
-        DB::begintransaction();                         //iniciar transacción para grabar
-        try{ 
-            $record = Remito::find($this->remito_id);
-            $record->update([
-                'cliente_id' => $this->clienteId,
-                'estado' => 'ctacte',
-                'estado_pago' => '0',
-                'importe' => $this->total
-            ]);
-            Ctacte::create([
-                'cliente_id' => $this->clienteId,
-                'remito_id' => $this->remito_id
-            ]);
-            $record = Cliente::find($this->clienteId); //marca que el cliente tiene un saldo en ctacte
-            $record->update([
-                'saldo' => '1'
-            ]);
-            $this->emit('facturaCtaCte');
-            DB::commit();               
-        }catch (Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-        }
-        $this->resetInputTodos();
-        return;
-    }        
-    public function dejar_pendiente()
+    }         
+    public function terminar_remito()
     {
         $record = Remito::find($this->remito_id);
         $record->update([
@@ -676,10 +609,10 @@ class RemitoController extends Component
             DB::begintransaction();
             try{
                 $remito = Remito::find($id);
-                $remito->update([                    
-                    'estado' => 'anulado'
-                    ]);
+                $remito->update(['estado' => 'anulado']);
+
                 $remito = Remito::find($id)->delete();
+
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
                     'tabla'           => 'Facturas',
@@ -688,13 +621,31 @@ class RemitoController extends Component
                     'comentario'      => $comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
+                //actualizo stock
+                $record = DetRemito::where('remito_id', $id)->get();
+                foreach ($record as $i){
+                    if($i->producto_id != null){            //modifico stock producto
+                        $record = Stock::where('producto_id', $i->producto_id)->first();   
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior + $i->cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);
+                    }else{                                  //modifico stock subproducto
+                        $record = Stock::where('subproducto_id', $i->subproducto_id)->first();   
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior + $i->cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);   
+                    }
+                }
+                $record = StockEnConsignacion::where('remito_id', $id)->get();
+                foreach ($record as $i) $i->delete();
+
                 session()->flash('msg-ok', 'Registro Anulado con éxito!!');
                 DB::commit();               
             }catch (Exception $e){
                 DB::rollback();
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se anuló...');
             }
-            $this->resetInput();
+            $this->resetInputTodos();
             return;
         }
     }

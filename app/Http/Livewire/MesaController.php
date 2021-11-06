@@ -13,6 +13,7 @@ class MesaController extends Component
     public function render()
     {
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
         
         $mesas = Mesa::where('comercio_id', $this->comercioId)->get();
         $mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')

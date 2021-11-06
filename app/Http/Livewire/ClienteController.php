@@ -30,6 +30,7 @@ class ClienteController extends Component
         $this->comercioId = session('idComercio');
         $this->modViandas = session('modViandas');
         $this->modConsignaciones = session('modConsignaciones');
+        session(['facturaPendiente' => null]);  
 
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
@@ -54,18 +55,21 @@ class ClienteController extends Component
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orWhere('loc.descripcion', 'like', '%' .  $this->search . '%')
                 ->where('clientes.comercio_id', $this->comercioId)
-                ->select('clientes.*', 'loc.descripcion as localidad')
+                ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as esConsFinal"))
                 ->orderBy('apellido', 'asc')->get();
         }else {
             $info = Cliente::join('localidades as loc', 'loc.id', 'clientes.localidad_id')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orderBy('apellido', 'asc')
-                ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as tieneViandasCargadas"))->get();
+                ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as tieneViandasCargadas",
+                    DB::RAW("'' as esConsFinal")))->get();
         } 
-        foreach ($info as $i){            
+        foreach ($info as $i){
+            $i->esConsFinal = 0;           
             $tieneViandasCargadas = Vianda::where('cliente_id', $i->id);
             if($tieneViandasCargadas->count()) $i->tieneViandasCargadas = 1;
             else $i->tieneViandasCargadas = 0;
+            if($i->localidad == '.') $i->esConsFinal = 1;
         }
 
         return view('livewire.clientes.component', [

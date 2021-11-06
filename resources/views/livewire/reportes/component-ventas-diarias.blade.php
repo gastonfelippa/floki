@@ -70,7 +70,13 @@
                                     <td class="text-center">{{number_format($r->importe,2)}}</td> 
                                     <td class="text-left">{{$r->nomRep}}</td> 
                                     <td class="text-center">
-                                        @include('common.actions', ['edit' => 'Facturas_index', 'destroy' => 'Facturas_index']) <!--botones editar y eliminar -->            
+                                        <a href="{{url('pdfFactDel',array($r->id))}}" target="_blank" title="Ver Factura">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye text-success"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>    
+                                            <!-- @include('common.actions', ['edit' => 'Facturas_index', 'destroy' => 'Facturas_index']) botones editar y eliminar             -->
+                                            <!-- <button type="button" class="btn btn-success" enabled>
+                                            <a href="{{url('pdfFactDel',array($r->id))}}" target="_blank">
+                                            Imprimir</a>
+                                            </button> -->
                                     </td>
                                 </tr>
                                 @endforeach

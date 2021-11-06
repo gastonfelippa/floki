@@ -16,6 +16,7 @@ class ComercioController extends Component
     public function mount()
     {
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
         $this->event = false;
         $comercio = Comercio::where('id', $this->comercioId)->get();
         if($comercio->count())

@@ -33,8 +33,13 @@
                             <tbody>
                                 @foreach($info as $r)
                                 <tr>
-                                    <td >{{$r->apellido}}, {{$r->nombre}}</td>
-                                    <td>{{$r->calle}} {{$r->numero}} - {{$r->localidad}}</td>
+                                    @if($r->esConsFinal == 0)
+                                        <td >{{$r->apellido}}, {{$r->nombre}}</td>
+                                        <td>{{$r->calle}} {{$r->numero}} - {{$r->localidad}}</td>
+                                    @else
+                                        <td >{{$r->apellido}} {{$r->nombre}}</td>
+                                        <td>...</td>
+                                    @endif
                                     <td class="text-center">{{$r->telefono}}</td>
                                     @if($modViandas == "1")
                                         @can('Viandas_index')
@@ -63,9 +68,11 @@
                                         @endif
                                         @endcan
                                     @endif
-                                    <td class="text-center">
-                                        @include('common.actions', ['edit' => 'Clientes_edit', 'destroy' => 'Clientes_destroy']) <!--botones editar y eliminar -->            
-                                    </td>
+                                    @if($r->esConsFinal == 0)
+                                        <td class="text-center">
+                                            @include('common.actions', ['edit' => 'Clientes_edit', 'destroy' => 'Clientes_destroy']) <!--botones editar y eliminar -->            
+                                        </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>

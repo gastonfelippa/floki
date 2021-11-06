@@ -25,6 +25,7 @@ class CompraController extends Component
 	{        
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
                 
         $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         $this->proveedores = Proveedor::select()->where('comercio_id', $this->comercioId)->orderBy('nombre_empresa', 'asc')->get();

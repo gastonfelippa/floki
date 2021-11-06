@@ -43,6 +43,7 @@ class UsuarioController extends Component
     {
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         $localidades = Localidad::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();

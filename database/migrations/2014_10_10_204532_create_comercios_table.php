@@ -30,6 +30,8 @@ class CreateComerciosTable extends Migration
             $table->integer('periodo_arqueo')->default(1);
             $table->enum('imp_por_hoja', ['1','2','4'])->default('1');
             $table->boolean('imp_duplicado')->default(false);
+            $table->boolean('calcular_precio_de_venta')->default(false);
+            $table->boolean('redondear_precio_de_venta')->default(false);
 
             $table->timestamps();
         });

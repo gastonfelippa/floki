@@ -245,7 +245,16 @@
                 showConfirmButton: false,
                 timer: 1500
             })
-		})         
+		}) 
+        Livewire.on('esConsFinal',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Debes elegir un Cliente!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+        })        
     }  
 
 </script>

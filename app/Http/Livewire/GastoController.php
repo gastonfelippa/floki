@@ -19,6 +19,7 @@ class GastoController extends Component
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         $categorias = CategoriaGasto::where('comercio_id', $this->comercioId)->get();
 

@@ -22,6 +22,7 @@ class CategoriaController extends Component
          $this->comercioTipo = session('tipoComercio');
          $this->modComandas = session('modComandas');
          $this->modDelivery = session('modDelivery');
+         session(['facturaPendiente' => null]);  
 
         if(strlen($this->search) > 0)
         {

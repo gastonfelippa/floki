@@ -47,6 +47,7 @@ class HomeController extends Controller
             $this->comercioTipo = session('tipoComercio'); 
             session(['periodoArqueo' => $userComercio[0]->periodo_arqueo]); 
             $this->periodoArqueo = session('periodoArqueo'); 
+            session(['facturaPendiente' => null]);
 
             //verifica los módulos que tiene disponible este comercio
             $modulos = Modulo::where('comercio_id', $this->comercioId)->first();

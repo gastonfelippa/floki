@@ -18,15 +18,15 @@ class CreateClientesTable extends Migration
             $table->string('nombre');
             $table->string('apellido');
             $table->string('calle');
-            $table->string('numero');
+            $table->string('numero')->nullable();
 
-            $table->unsignedBigInteger('localidad_id');
+            $table->unsignedBigInteger('localidad_id')->nullable();
             $table->foreign('localidad_id')->references('id')->on('localidades');
             
             $table->string('telefono',15)->nullable();
             $table->enum('vianda', ['1','2'])->nullable();
             $table->enum('consignatario', ['1','2'])->nullable();
-            $table->enum('saldo', ['0','1']);
+            $table->enum('saldo', ['0','1'])->nullable();
             
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');

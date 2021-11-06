@@ -110,9 +110,6 @@
                 </div>
                 @endif
             </div>
-
-
-
             <div class="row ">
                 <div class="col-12">
                     <button type="button" wire:click="doAction(1)" onclick="setfocus('nombre')"  class="btn btn-dark mr-1">
@@ -125,10 +122,6 @@
                     </button>       
                 </div>
             </div>
-
-
-
-
         </div>
     </div>	  
 </div>

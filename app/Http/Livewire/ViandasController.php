@@ -32,6 +32,7 @@ class ViandasController extends Component
     {
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
         //necesario para controlar que no se grabe más de una vez la misma vianda
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoAqueoGral = session('estadoArqueoGral');      

@@ -1,5 +1,4 @@
 <div class="row layout-top-spacing justify-content-center">
-    @if($action == 1)	
     <div class="col-md-12 col-lg-6 layout-spacing"> 		
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
@@ -7,9 +6,6 @@
                     <div class="col-md-6 text-left">
                         <h3>Remito N°: {{str_pad($numRemito, 6, '0', STR_PAD_LEFT)}}</h3>
                     </div>
-                    
-                <!-- </div>  
-                <div class="row"> -->
                     <div class="col-md-6 text-right">
                         <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
                         @if($inicio_remito) 
@@ -18,7 +14,7 @@
                                 Consignatarios   
                             </button>           
                         @else       
-                            <button type="button" onclick="dejar_pendiente()"
+                            <button type="button" onclick="terminar_remito()"
                                 class="btn btn-warning" enabled>
                                 Terminar
                             </button>
@@ -33,9 +29,30 @@
                         @endif
                         </div>
                     </div>
-                </div>
-                <!-- si es delivery --> 
-                <!-- @if($delivery == 1)           -->
+                </div>     
+                <!-- muestra datos del modal, no de la BD -->
+                @if($mostrar_datos == 1)    
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <h6>Cliente:  {{$apeNomCli}}</h6>
+                        </div>
+                        <!-- <div class="col-6">
+                            <h6>Rep:  {{$apeNomRep}}</h6>
+                        </div> -->
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Dirección:  {{$dirCliente}}</h6>
+                        </div>
+                        <div class="col-6">
+                            @if($saldoCtaCte < 0)
+                                <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
+                            @else
+                                <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
+                            @endif
+                        </div>
+                    </div> 
+                @else  
                     @if($inicio_remito)   
                         <div class="row mt-2">
                             <div class="col-8">
@@ -78,30 +95,7 @@
                                 @endif
                             </div>
                         </div>                
-                    @endif          
-                <!-- @endif -->
-                <!-- muestra datos del modal, no de la BD -->
-                @if($mostrar_datos == 1)    
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <h6>Cliente:  {{$apeNomCli}}</h6>
-                        </div>
-                        <!-- <div class="col-6">
-                            <h6>Rep:  {{$apeNomRep}}</h6>
-                        </div> -->
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6>Dirección:  {{$dirCliente}}</h6>
-                        </div>
-                        <div class="col-6">
-                            @if($saldoCtaCte < 0)
-                                <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
-                            @else
-                                <h6 style="color:green">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6> 
-                            @endif
-                        </div>
-                    </div>   
+                    @endif  
                 @endif
                 @include('common.alerts')
                 <div class="table-responsive scroll">
@@ -144,6 +138,9 @@
     <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
             <div class="widget-one">
+                @if($selected_id > 0)
+                    <h5><b>Editar Item</b></h5>
+                @endif 
                 <form>
                     @include('common.messages') 
                     <div class="row">
@@ -152,44 +149,76 @@
                             <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
                                 class="form-control form-control-sm text-center">
                         </div> 
-                        <div class="form-group col-sm-12 col-md-3">
-                            <label >Código</label>
-                            <input id="barcode" wire:model.lazy="barcode"  type="text" 
-                                onblur="buscarPorCodigo()" class="form-control form-control-sm">
-                        </div>
-                        <div class="form-group col-sm-12 col-md-4">
+                        @if($selected_id == null)
+                            <div class="form-group col-sm-12 col-md-2">
+                                <label >Código</label>
+                                <input id="barcode" wire:model.lazy="barcode"  type="text" 
+                                    onblur="buscarPorCodigo()" class="form-control form-control-sm">
+                            </div>
+                        @endif
+                        @if($selected_id == null)
+                        <div class="form-group col-sm-12 col-md-5">
+                        @else
+                        <div class="form-group col-sm-12 col-md-5">
+                        @endif
                             @if($es_producto == 1)
                                 <label>Producto</label>
-                                <select id="producto" wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm">
-                                    <option value="Elegir" >Elegir</option>
-                                    @foreach($productos as $t)
-                                    <option value="{{ $t->id }}">
-                                        {{$t->descripcion}}                         
-                                    </option> 
-                                    @endforeach   
-                                </select>			               
-                            @else                            
-                                <label>Subproducto</label>
-                                <select id="subproducto" wire:model="subproducto" class="form-control form-control-sm">
-                                    <option value="Elegir" >Elegir</option>
-                                        @foreach($subproductos as $t)
+                                @if($selected_id > 0)
+                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm" disabled>
+                                    @foreach($productos as $t)    
+                                        <option value="{{ $t->id }}">{{$t->descripcion}}</option>
+                                    @endforeach 
+                                    </select>
+                                @else
+                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm">
+                                        <option value="Elegir" >Elegir</option>
+                                        @foreach($productos as $t)
                                         <option value="{{ $t->id }}">
                                             {{$t->descripcion}}                         
                                         </option> 
                                         @endforeach   
-                                </select>  
-                            @endif                            
-                        </div>            
-                       
+                                    </select>			               
+                                @endif 			               
+                            @else                            
+                                <label>Subproducto</label>
+                                @if($selected_id > 0)
+                                    <select wire:model="subproducto" class="form-control form-control-sm" disabled>
+                                        @foreach($subproductos as $t)
+                                            <option value="{{ $t->id }}">{{$t->descripcion}}</option> 
+                                        @endforeach   
+                                    </select>  
+                                @else
+                                    <select wire:model="subproducto" class="form-control form-control-sm">
+                                        <option value="Elegir" >Elegir</option>
+                                            @foreach($subproductos as $t)
+                                            <option value="{{ $t->id }}">
+                                                {{$t->descripcion}}                         
+                                            </option> 
+                                            @endforeach   
+                                    </select> 
+                                @endif 
+                            @endif 
+                        </div>    
+                        @if($selected_id == 0)
                         <div class="form-group col-sm-12 col-md-2 mt-2" >
-                            <button id="guardar" type="button" wire:click="StoreOrUpdateButton(0,{{$es_producto}})" class="btn btn-primary mt-4">
+                            <button id="guardar" type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary mt-4">
                             Guardar</button>
+                        @endif
                         </div>
                     </div>
+                    @if($selected_id > 0)
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">Cancelar</button>
+                            <button type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary">
+                            Guardar</button>    
+                        </div>
+                    </div>
+                    @endif
                 </form>
             </div>
         </div>
-
+        @if($selected_id == 0)
         <div class="row mt-2">
             <div class="col-sm-12 col-lg-4">
                 <div class="widget-content-area">
@@ -215,11 +244,11 @@
                             @if($articulos != null)
                                 @if($mostrar_sp == 0)
                                     @foreach($articulos as $a)                    
-                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}},{{$es_producto}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
+                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
                                     @endforeach 
                                 @else
                                     @foreach($tiene_sp as $sp)                    
-                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}},{{$es_producto}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
+                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
                                     @endforeach 
                                 @endif
                             @endif                   
@@ -229,11 +258,10 @@
             </div>
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
             <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">  
-        </div> 
+        </div>
+        @endif
     </div>
-    @include('livewire.remitos.modal')       
-    @else
-	@endif        
+    @include('livewire.remitos.modal')   
 </div>
 
 <style type="text/css" scoped>
@@ -294,7 +322,7 @@
                 swal.close()   
             })
     }
-    function AnularFactura(id)
+    function AnularRemito(id)
     {
         Swal.fire({
     		title: 'CONFIRMAR',
@@ -318,7 +346,7 @@
 						'Tu registro se Anuló correctamente...',
 						'success'
 					);
-					window.livewire.emit('anularFactura', id, comentario)
+					window.livewire.emit('anularRemito', id, comentario)
 				}
 			}else if (result.dismiss === Swal.DismissReason.cancel) {
 				Swal.fire(
@@ -329,9 +357,9 @@
             }
 		})
     }
-    function dejar_pendiente()
+    function terminar_remito()
     {
-        window.livewire.emit('dejar_pendiente')
+        window.livewire.emit('terminar_remito')
     }
     function buscarPorCodigo()
     {
@@ -426,12 +454,14 @@
         })
         Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
             var texto = 'Solo restan ';
+            var unidades = ' unidades';
             if(stock == 0) texto = 'Restan ';
+            else if(stock == 1) texto = 'Solo resta '; unidades = ' unidad';
             Swal.fire({
                 position: 'center',
                 icon: 'success',
                 title: 'Stock ' + ubicacion_stock + ' no disponible',
-                text: texto + stock + ' unidades',
+                text: texto + stock + unidades,
                 showConfirmButton: true
             })
         })

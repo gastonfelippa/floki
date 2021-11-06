@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Spatie\Permission\Models\Role;
 use App\Models\Comercio;
+use App\Models\Cliente;
+use App\Models\Localidad;
 use App\Models\ModelHasRole;
 use App\Models\Modulo;
 use App\Models\Plan;
@@ -139,6 +141,24 @@ class RegisterController extends Controller
             ]);                
             UsuarioComercio::create([
                 'usuario_id'  => $userRepartidor->id,            
+                'comercio_id' => $this->comercioId            
+            ]);
+
+            //creo un cliente llamado Consumidor Final, pero primero debo agregar una localidad
+            $localidad = Localidad::create([            
+                'descripcion'  => '.',            
+                'provincia_id' => 5,     
+                'comercio_id'  => $this->comercioId   
+            ]);                
+            $cliente = Cliente::create([            
+                'nombre'       => 'FINAL',            
+                'apellido'     => 'CONSUMIDOR',     
+                'calle'        => '...',
+                'localidad_id' => $localidad->id,
+                'comercio_id'  => $this->comercioId   
+            ]);                
+            UsuarioComercio::create([
+                'usuario_id'  => $cliente->id,            
                 'comercio_id' => $this->comercioId            
             ]);
 

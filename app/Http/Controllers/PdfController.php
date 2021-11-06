@@ -13,6 +13,7 @@ use App\Models\DetRemito;
 use App\Models\Factura;
 use App\Models\Localidad;
 use App\Models\Producto;
+use App\Models\Subproducto;
 use App\Models\Recibo;
 use App\Models\ReciboFactura;
 use App\Models\Remito;
@@ -78,20 +79,36 @@ class PdfController extends Controller
         $leyendaFactura = $leyenda_factura[0]->leyenda_factura;
         $impPorHoja     = $leyenda_factura[0]->imp_por_hoja;
         $impDuplicado   = $leyenda_factura[0]->imp_duplicado;
-      
-        $infoDetalle = Detfactura::join('facturas as f','f.id','detfacturas.factura_id')
-          ->join('productos as p','p.id','detfacturas.producto_id')
-          ->select('detfacturas.*', 'p.descripcion as producto', DB::RAW("'' as importe"))
-          ->where('detfacturas.factura_id', $id)
-          ->where('detfacturas.comercio_id', $this->comercioId)
-          ->orderBy('detfacturas.id', 'asc')->get(); 
 
-        $this->importeFactura = 0;  
-        foreach ($infoDetalle as $i)
-        {
-            $i->importe=$i->cantidad * $i->precio;
-            $this->importeFactura += $i->importe;
-        }
+        $infoDetalle = Detfactura::select('*')->where('comercio_id', $this->comercioId)->get();
+        if($infoDetalle->count() > 0){ 
+            $infoDetalle = Detfactura::join('facturas as r','r.id','detfacturas.factura_id')
+                ->select('detfacturas.*', DB::RAW("'' as p_id"), 
+                    DB::RAW("'' as codigo"), DB::RAW("'' as producto"), DB::RAW("'' as es_producto"))
+                ->where('detfacturas.factura_id', $id)
+                ->where('detfacturas.comercio_id', $this->comercioId)
+                ->orderBy('detfacturas.id')->get();  
+            $this->total = 0;
+            $this->contador_filas = 0;
+            foreach ($infoDetalle as $i){
+                $this->contador_filas ++;
+                $i->importe=$i->cantidad * $i->precio;
+                $this->total += $i->importe;
+                if($i->producto_id){
+                    $producto = Producto::find($i->producto_id);
+                    $i->p_id        = $producto->id;
+                    $i->codigo      = $producto->codigo;
+                    $i->producto    = $producto->descripcion;
+                    $i->es_producto = 1;
+                }else{
+                    $subproducto = Subproducto::find($i->subproducto_id);
+                    $i->p_id        = $subproducto->id;
+                    $i->codigo      = $subproducto->id;
+                    $i->producto    = $subproducto->descripcion;
+                    $i->es_producto = 0;             
+                }
+            }
+        } 
 
         $cliente = false;
         $repartidor = false;
@@ -102,14 +119,14 @@ class PdfController extends Controller
         foreach ($info as $i)
         {
             if($i->cliente_id){
-                $cli = Cliente::find($i->cliente_id)->first();
-                $i->nomCli = $cli->nombre;
-                $i->apeCli = $cli->apellido;
-                $i->calleCli = $cli->calle;
-                $i->numCli = $cli->numero;
-                $loc = Localidad::find($cli->localidad_id)->first();
+                $cli = Cliente::find($i->cliente_id);
+                $i->nomCli    = $cli->nombre;
+                $i->apeCli    = $cli->apellido;
+                $i->calleCli  = $cli->calle;
+                $i->numCli    = $cli->numero;
+                $loc          = Localidad::find($cli->localidad_id);
                 $i->localidad = $loc->descripcion;
-                $cliente = true;
+                $cliente      = true;
             }
             if($i->repartidor_id){
                 $repartidor = true;
@@ -340,6 +357,4 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
         return $pdf->stream();
     }
-
-
 }

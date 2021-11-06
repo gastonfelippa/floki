@@ -26,6 +26,7 @@ class CtacteController extends Component
     {
          //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         //vemos si tenemos una caja habilitada para nuestro user_id 
         //en cuyo caso podremos cobrar, sino solo podremos ver e imprimir resúmenes de cta

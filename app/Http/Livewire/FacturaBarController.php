@@ -46,6 +46,7 @@ class FacturaBarController extends Component
  
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
         $this->mesaId = session("idMesa");
         $this->mozo = session("idMozo");
         $mesa = Mesa::where('id', $this->mesaId)->get();

@@ -19,6 +19,7 @@ class MovimientosDeCajaController extends Component
     public function render()
     {        
         $this->comercioId = session('idComercio');  //busca el comercio que está en sesión
+        session(['facturaPendiente' => null]);  
         //vemos si tenemos una caja habilitada para nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
             ->where('caja_usuarios.estado', '1')->get();

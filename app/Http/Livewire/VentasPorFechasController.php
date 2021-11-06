@@ -22,6 +22,7 @@ class VentasPorFechasController extends Component
         //busca el comercio que está en sesión y el id del ArqueoGral
         $this->comercioId = session('idComercio');
         $this->arqueoGralId = session('idArqueoGral');
+        session(['facturaPendiente' => null]);  
 
       //  $fi = Carbon::parse(Carbon::now())->format('Y-m-d'). ' 00:00:00';
       //  $ff = Carbon::parse(Carbon::now())->format('Y-m-d'). ' 23:59:00';

@@ -16,6 +16,7 @@ class AuditoriaController extends Component
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         if(strlen($this->search) > 0) {
             $info = Auditoria::join('users as u', 'u.id', 'auditorias.user_delete_id')

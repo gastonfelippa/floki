@@ -20,12 +20,18 @@ class FacturasACobrarController extends Component
     public $producto, $productos, $cantidadEdit, $productoEdit, $precioEdit;
     public $editFacturaId ='', $comentario = '', $caja_abierta, $importeFactura;
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
-    public $facturaId, $clienteId, $total_factura;
+    public $facturaId, $clienteId, $total_factura, $esConsFinal;
 
     public function render()
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]); 
+        
+        //averiguo el id del Cons Final
+        $this->esConsFinal = Cliente::where('comercio_id', $this->comercioId)
+            ->where('nombre', 'FINAL')->select('id')->first();
+        $this->esConsFinal = $this->esConsFinal->id;
 
         //vemos si tenemos una caja habilitada con el user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
@@ -97,8 +103,11 @@ class FacturasACobrarController extends Component
     }
     public function verDet($id, $nomCli, $apeCli)
     {
-        $this->nombreCliente = $apeCli . ' ' . $nomCli;
-        $this->verDetalle($id);
+        session(['facturaPendiente' => $id]);
+        return redirect()->to('/facturas');
+
+        //$this->nombreCliente = $apeCli . ' ' . $nomCli;
+        //$this->verDetalle($id);
     }
     public function editDel($id)
     {
@@ -215,6 +224,11 @@ class FacturasACobrarController extends Component
     public function factura_ctacte($data)
     {
         $info = json_decode($data);
+        //$info = json_decode($cliId);
+        if($info->cliente_id == $this->esConsFinal){
+            $this->emit('esConsFinal');
+            return;
+        }else $this->clienteId = $info->cliente_id;
         $this->facturaId = $info->factura_id;
         $this->clienteId = $info->cliente_id;
         $total    = $info->total;

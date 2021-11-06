@@ -12,9 +12,6 @@
                     </div>
                 </div>  
                 <div class="row">
-                    <!-- <div class="col-md-3">
-                        <p style="font-size:14px;">Fecha {{\Carbon\Carbon::now()->format('d-m-Y')}} <p>
-                    </div>  -->
                     <div class="col-md-3">
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
                             @if($inicio_factura)
@@ -51,19 +48,19 @@
                                     <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
                                     @if($modConsignaciones == "1")
-                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                    <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
                                     @endif
                                 @elseif($lista == '2')
                                     <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
                                     @if($modConsignaciones == "1")
-                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                    <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
                                     @endif
                                 @else
                                     <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
                                     <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
                                     @if($modConsignaciones == "1")
-                                    <button id="btn2" type="button" class="btn btn-danger" disabled>LC</button>
+                                    <button id="btn3" type="button" class="btn btn-danger" disabled>LC</button>
                                     @endif
                                 @endif
                             @endif
@@ -139,22 +136,22 @@
                 </div>
                 <!-- si es delivery --> 
                 @if($delivery == 1)          
-                    @if($total == 0)   <!-- si es inicio de factura -->
+                    @if($inicio_factura)   <!-- si es inicio de factura -->
                         <div class="row mt-2">
-                            <div class="col-6">
+                            <div class="col-7">
                                 <h6>Cliente:  {{$apeNomCli}}</h6>
                             </div>
                             @if($modDelivery == "1")
-                            <div class="col-6">
+                            <div class="col-5">
                                 <h6>Rep:  {{$apeNomRep}}</h6>
                             </div>
                             @endif
                         </div>
                         <div class="row">
-                            <div class="col-6">
+                            <div class="col-7">
                                 <h6>Dirección:  {{$dirCliente}}</h6>
                             </div>
-                            <div class="col-6">
+                            <div class="col-5">
                                 @if($saldoCtaCte < 0)
                                     <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
                                 @else
@@ -164,20 +161,20 @@
                         </div>       
                     @else
                         <div class="row mt-2">
-                            <div class="col-6">
+                            <div class="col-7">
                                 <h6>Cliente:  {{$encabezado[0]->apeCli}} {{$encabezado[0]->nomCli}}</h6>
                             </div>
                             @if($modDelivery == "1")
-                            <div class="col-6">
+                            <div class="col-5">
                                 <h6>Rep:  {{$encabezado[0]->apeRep}} {{$encabezado[0]->nomRep}}</h6>
                             </div>
                             @endif
                         </div>
                         <div class="row">
-                            <div class="col-6">
-                                <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}}</h6>
+                            <div class="col-7">
+                                <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}} - {{$encabezado[0]->localidad}}</h6>
                             </div>
-                            <div class="col-6">
+                            <div class="col-5">
                                 @if($saldoCtaCte < 0)
                                     <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
                                 @else
@@ -189,18 +186,18 @@
                 @endif
                 @if($mostrar_datos == 1)
                     <div class="row mt-2">
-                        <div class="col-6">
+                        <div class="col-7">
                             <h6>Cliente:  {{$apeNomCli}}</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-5">
                             <h6>Rep:  {{$apeNomRep}}</h6>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-7">
                             <h6>Dirección:  {{$dirCliente}}</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-5">
                             @if($saldoCtaCte < 0)
                                 <h6 style="color:red">Saldo Cta. Cte.:<b> {{number_format($saldoCtaCte,2,',','.')}}</b></h6>   
                             @else
@@ -218,7 +215,9 @@
                                 <th class="text-center">DESCRIPCIÓN</th>
                                 <th class="text-right">P/UNITARIO</th>
                                 <th class="text-right">IMPORTE</th>
+                                @can('Facturas_edit_item')
                                 <th class="text-center">ACCIONES</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -228,9 +227,21 @@
                                 <td class="text-left">{{$r->producto}}</td>
                                 <td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
                                 <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+                                @can('Facturas_edit_item')
                                 <td class="text-center">
-                                    @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
+                                    <ul class="table-controls">
+                                        <li>
+                                            <a href="javascript:void(0);" wire:click="edit({{$r->id}},{{$r->es_producto}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
+                                        </li>
+                                        <li>
+                                            <a href="javascript:void(0);"          		
+                                            onclick="Confirm('{{$r->id}}','{{$r->es_producto}}')"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
+                                        </li>
+                                    </ul>
+                                    <!-- @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item']) -->
                                 </td>
+                                @endcan
                             </tr>
                             @endforeach
                         </tbody>
@@ -243,6 +254,9 @@
     <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
             <div class="widget-one">
+                @if($selected_id > 0)
+                    <h5><b>Editar Item</b></h5>
+                @endif 
                 <form>
                     @include('common.messages')    
                     <div class="row">
@@ -251,37 +265,81 @@
                             <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
                                 class="form-control form-control-sm text-center">
                         </div> 
-                        <div class="form-group col-sm-12 col-md-2">
-                            <label >Código</label>
-                            <input id="barcode" wire:model.lazy="barcode"  type="text" 
-                                onclick.keydown.enter="setfocus('guardar')" class="form-control form-control-sm">
-                        </div>
+                        @if($selected_id == null)
+                            <div class="form-group col-sm-12 col-md-2">
+                                <label >Código</label>
+                                <input id="barcode" wire:model.lazy="barcode"  type="text" 
+                                    onblur="buscarPorCodigo()" class="form-control form-control-sm">
+                            </div>
+                        @endif
+                        @if($selected_id == null)
                         <div class="form-group col-sm-12 col-md-3">
-                            <label>Producto</label>
-                            <select id="producto" wire:model="producto" class="form-control form-control-sm">
-                                <option value="Elegir" >Elegir</option>
-                                @foreach($productos as $t)
-                                <option value="{{ $t->id }}">
-                                    {{$t->descripcion}}                         
-                                </option> 
-                                @endforeach                               
-                            </select>			               
+                        @else
+                        <div class="form-group col-sm-12 col-md-5">
+                        @endif
+                            @if($es_producto == 1)
+                                <label>Producto</label>
+                                @if($selected_id > 0)
+                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm" disabled>
+                                    @foreach($productos as $t)    
+                                        <option value="{{ $t->id }}">{{$t->descripcion}}</option>
+                                    @endforeach 
+                                    </select>
+                                @else
+                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm">
+                                        <option value="Elegir" >Elegir</option>
+                                        @foreach($productos as $t)
+                                        <option value="{{ $t->id }}">
+                                            {{$t->descripcion}}                         
+                                        </option> 
+                                        @endforeach   
+                                    </select>			               
+                                @endif 			               
+                            @else                            
+                                <label>Subproducto</label>
+                                @if($selected_id > 0)
+                                    <select wire:model="subproducto" class="form-control form-control-sm" disabled>
+                                        @foreach($subproductos as $t)
+                                            <option value="{{ $t->id }}">{{$t->descripcion}}</option> 
+                                        @endforeach   
+                                    </select>  
+                                @else
+                                    <select wire:model="subproducto" class="form-control form-control-sm">
+                                        <option value="Elegir" >Elegir</option>
+                                            @foreach($subproductos as $t)
+                                            <option value="{{ $t->id }}">
+                                                {{$t->descripcion}}                         
+                                            </option> 
+                                            @endforeach   
+                                    </select> 
+                                @endif 
+                            @endif 
                         </div>            
                         <div class="form-group col-sm-12 col-md-3">
                             <label>P/Unitario</label>
                             <input wire:model.lazy="precio" type="text" class="form-control form-control-sm text-right" disabled>
                         </div>
                         <div class="form-group col-sm-12 col-md-2 mt-2">
+                        @if($selected_id == 0)
                             <label></label>
-                            <button id="guardar" type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary mt-4">
+                            <button type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary mt-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>                                
                             </button>
+                        @endif
                         </div>
                     </div>
+                    @if($selected_id > 0)
+                    <div class="row">
+                    <div class="col-12">
+                        <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">Cancelar</button>
+                        <button type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary">
+                        Guardar</button>    
+                    </div>
+                    @endif
                 </form>
             </div>
         </div>
-
+        @if($selected_id == 0)
         <div class="row mt-2">
             <div class="col-sm-12 col-lg-4">
                 <div class="widget-content-area">
@@ -289,13 +347,13 @@
                         <div class="widget-one scrollb"> 
                             <div class="scrollContent"> 
                                 @foreach($categorias as $c)                    
-                                    <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
+                                    <button style="width: 100%;" wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
                                 @endforeach
                             </div>
                         </div>
                     @else                   
                         @foreach($categorias as $c)                    
-                            <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
+                            <button style="width: 100%;" wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
                         @endforeach                       
                     @endif
                 </div>
@@ -305,16 +363,16 @@
                     <div class="widget-one scrollb"> 
                         <div class="scrollContent"> 
                             @if($articulos != null)
-                            @if($mostrar_sp == 0)
-                            @foreach($articulos as $a)                    
-                                <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
-                            @endforeach 
-                            @else
-                            @foreach($tiene_sp as $sp)                    
-                                <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButtonSp({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
-                            @endforeach 
-                            @endif
-                            @endif                   
+                                @if($mostrar_sp == 0)
+                                    @foreach($articulos as $a)                    
+                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
+                                    @endforeach 
+                                @else
+                                    @foreach($tiene_sp as $sp)                    
+                                        <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
+                                    @endforeach 
+                                @endif
+                            @endif                    
                         </div>
                     </div>
                 </div>
@@ -325,7 +383,8 @@
             <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
             <input type="hidden" id="modDelivery" wire:model="modDelivery">  
             <input type="hidden" id="lista" wire:model="lista">  
-        </div> 
+        </div>
+        @endif 
     </div>
     @include('livewire.facturas.modal')  
     @include('livewire.facturas.modalCtacte')    
@@ -343,7 +402,7 @@
     }
     .scroll{
         position: relative;
-        max-height: 220px;
+        max-height: 230px;
         margin-top: .5rem;
         overflow: auto;
     }
@@ -374,7 +433,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
 <script type="text/javascript">
- 	function Confirm(id)
+ 	function Confirm(id, es_producto)
     {
         let me = this
         swal({
@@ -389,7 +448,7 @@
             closeOnConfirm: false
             },
             function() {
-                window.livewire.emit('deleteRow', id)    
+                window.livewire.emit('deleteRow', id, es_producto)    
                 toastr.success('info', 'Registro eliminado con éxito')
                 swal.close()   
             })
@@ -417,6 +476,10 @@
                 }
             }
         })
+    }
+    function buscarPorCodigo()
+    {
+        window.livewire.emit('buscarPorCodigo')
     }
     function factura_contado()
     { 
@@ -534,6 +597,10 @@
         }
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
+    }
+    function ocultar_sp()
+    {
+        window.livewire.emit('ocultar_sp')
     } 
     function mostrarInput()
     {		
@@ -671,13 +738,33 @@
         })
         Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
             var texto = 'Solo restan ';
+            var unidades = ' unidades';
             if(stock == 0) texto = 'Restan ';
+            else if(stock == 1) texto = 'Solo resta '; unidades = ' unidad';
             Swal.fire({
                 position: 'center',
                 icon: 'success',
                 title: 'Stock ' + ubicacion_stock + ' no disponible',
-                text: texto + stock + ' unidades',
+                text: texto + stock + unidades,
                 showConfirmButton: true
+            })
+        })
+        Livewire.on('cargar_consignatario',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Primero debes cargar un Consignatario!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+        })
+        Livewire.on('esConsFinal',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Debes elegir un Cliente!!',
+                showConfirmButton: false,
+                timer: 1500
             })
         })
     } 

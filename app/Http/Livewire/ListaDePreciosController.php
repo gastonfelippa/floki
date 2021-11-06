@@ -15,6 +15,7 @@ class ListaDePreciosController extends Component
     {
         //busca el comercio que está en sesión
 		$this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
 
         if($this->lista == 1){
             $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')

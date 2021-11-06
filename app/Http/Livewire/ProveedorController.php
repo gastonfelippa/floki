@@ -20,44 +20,46 @@ class ProveedorController extends Component
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        session(['facturaPendiente' => null]);  
    
         $localidades = Localidad::select()->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
         $condIva = CondIva::all();
            
-        if(strlen($this->search) > 0)
-        {
-            $info = Proveedor::join('localidades as loc', 'loc.id', 'proveedores.localidad_id')
-                ->join('cond_iva as cIva', 'cIva.id', 'proveedores.condiva_id')
-                ->where('nombre_empresa', 'like', '%' .  $this->search . '%')
-                ->where('comercio_id', $this->comercioId)
-                ->orWhere('nombre_contacto', 'like', '%' .  $this->search . '%')
-                ->where('comercio_id', $this->comercioId)
-                ->orWhere('cuit', 'like', $this->search . '%')
-                ->where('comercio_id', $this->comercioId)
-                ->orWhere('apellido_contacto', 'like', '%' .  $this->search . '%')
-                ->where('comercio_id', $this->comercioId)
-                ->select('proveedores.*', 'loc.descripcion as localidad', 'cIva.descripcion as condiva')
-                ->orderBy('nombre_empresa', 'asc')->get();
-            return view('livewire.proveedores.component', [
-                'info' =>$info,
-                'localidades' => $localidades,
-                'provincias' => $provincias,
-                'condIva' => $condIva
-            ]);
-        }
-        else {
-            return view('livewire.proveedores.component', [
-                'info' => Proveedor::join('localidades as loc', 'loc.id', 'proveedores.localidad_id')
-                    ->join('cond_iva as cIva', 'cIva.id', 'proveedores.condiva_id')
-                    ->where('comercio_id', $this->comercioId)
-                    ->select('proveedores.*', 'loc.descripcion as localidad', 'cIva.descripcion as condiva')
-                    ->orderBy('nombre_empresa', 'asc')->get(),
-                'localidades' => $localidades,
-                'provincias' => $provincias,
-                'condIva' => $condIva
-            ]);
-        }
+        // if(strlen($this->search) > 0)
+        // {
+        //     $info = Proveedor::join('localidades as loc', 'loc.id', 'proveedores.localidad_id')
+        //         ->join('cond_iva as cIva', 'cIva.id', 'proveedores.condiva_id')
+        //         ->where('nombre_empresa', 'like', '%' .  $this->search . '%')
+        //         ->where('comercio_id', $this->comercioId)
+        //         ->orWhere('nombre_contacto', 'like', '%' .  $this->search . '%')
+        //         ->where('comercio_id', $this->comercioId)
+        //         ->orWhere('cuit', 'like', $this->search . '%')
+        //         ->where('comercio_id', $this->comercioId)
+        //         ->orWhere('apellido_contacto', 'like', '%' .  $this->search . '%')
+        //         ->where('comercio_id', $this->comercioId)
+        //         ->select('proveedores.*', 'loc.descripcion as localidad', 'cIva.descripcion as condiva')
+        //         ->orderBy('nombre_empresa', 'asc')->get();
+        //     return view('livewire.proveedores.component', [
+        //         'info' =>$info,
+        //         'localidades' => $localidades,
+        //         'provincias' => $provincias,
+        //         'condIva' => $condIva
+        //     ]);
+        // }
+        // else {
+        //     return view('livewire.proveedores.component', [
+        //         'info' => Proveedor::join('localidades as loc', 'loc.id', 'proveedores.localidad_id')
+        //             ->join('cond_iva as cIva', 'cIva.id', 'proveedores.condiva_id')
+        //             ->where('comercio_id', $this->comercioId)
+        //             ->select('proveedores.*', 'loc.descripcion as localidad', 'cIva.descripcion as condiva')
+        //             ->orderBy('nombre_empresa', 'asc')->get(),
+        //         'localidades' => $localidades,
+        //         'provincias' => $provincias,
+        //         'condIva' => $condIva
+        //     ]);
+        // }
+        return view('livewire.proveedores.component');
     }
     public function doAction($action)
     {

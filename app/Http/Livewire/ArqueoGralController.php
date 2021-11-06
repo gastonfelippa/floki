@@ -47,6 +47,7 @@ class ArqueoGralController extends Component
         $this->comercioId = session('idComercio');
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
+        session(['facturaPendiente' => null]);  
 
     if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
 

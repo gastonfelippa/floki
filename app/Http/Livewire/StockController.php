@@ -25,6 +25,7 @@ class StockController extends Component
         //busca el comercio que está en sesión
 		$this->comercioId = session('idComercio');
         $this->modConsignaciones = session('modConsignaciones');
+        session(['facturaPendiente' => null]);  
 
         $this->clientes = Cliente::where('comercio_id', $this->comercioId)
             ->where('consignatario', '1')->orderBy('apellido')->get();
@@ -40,7 +41,7 @@ class StockController extends Component
 				->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();  
             foreach ($info as $i){
                 $this->info_sp = Subproducto::join('productos as p', 'p.id', 'subproductos.producto_id')
-                    ->select('subproductos.*', 'p.precio_costo', DB::RAW("0 as stock_local"), DB::RAW("'' as stock_en_consignacion"),
+                    ->select('subproductos.*', 'p.precio_costo', DB::RAW("0 as stock_local"), DB::RAW("0 as stock_en_consignacion"),
                         DB::RAW("0 as stock_total"), DB::RAW("0 as subtotal"), DB::RAW("'' as producto"))
                     ->where('producto_id', $i->id)->get();                
                 if($this->info_sp->count()){
@@ -48,9 +49,8 @@ class StockController extends Component
                     foreach ($this->info_sp as $l){
                         $stock = Stock::where('subproducto_id', $l->id)->first();
                         if($stock->count()) $l->stock_local = $stock->stock_actual;
-
-                        $stock_en_consig = StockEnConsignacion::where('subproducto_id', $l->id)->get()->sum('cantidad'); 
-                        if($stock_en_consig) $l->stock_en_consignacion = $stock_en_consig;
+                        $stock_en_consig = StockEnConsignacion::where('subproducto_id', $l->id)->get()->sum('cantidad');
+                        if($stock_en_consig != null) $l->stock_en_consignacion = $stock_en_consig;
                         $l->stock_total = $l->stock_local + $l->stock_en_consignacion;
                         $l->subtotal = $l->stock_total * $l->precio_costo;
                         $this->valorTotalStock += $l->subtotal;
@@ -118,44 +118,38 @@ class StockController extends Component
         $this->valorTotalStockConsignacion = 0;
         $this->infoCli = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
             ->where('stock_en_consignacion.cliente_id', $id)
-            ->select('stock_en_consignacion.*', 'c.id as clienteId', DB::RAW("'' as articuloId"), DB::RAW("'' as articuloCodigo"), 
-                DB::RAW("'' as cantidad"),  DB::RAW("'' as articuloDesc"), DB::RAW("'' as precio_venta_l2"), DB::RAW("0 as subtotal"))
-            ->get(); 
+            ->select('stock_en_consignacion.producto_id', 'stock_en_consignacion.subproducto_id', DB::RAW("'' as articuloId"), DB::RAW("'' as articuloCodigo"), 
+                     DB::RAW("'' as cantidad"),  DB::RAW("'' as articuloDesc"), DB::RAW("'' as precio_venta_l2"), DB::RAW("0 as subtotal"))
+            ->groupBy('stock_en_consignacion.producto_id', 'stock_en_consignacion.subproducto_id')->get();
         foreach ($this->infoCli as $i){
             if($i->producto_id != null){
                 $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
                     ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
                     ->where('stock_en_consignacion.producto_id', $i->producto_id)
-                    ->where('stock_en_consignacion.cliente_id', $i->clienteId)
+                    ->where('stock_en_consignacion.cliente_id', $id)
                     ->select('p.id', 'p.codigo', 'p.descripcion', 'p.precio_venta_l2')->first();
                 $i->articuloId = $stock_en_consig->id;
                 $i->articuloCodigo = $stock_en_consig->codigo;
                 $i->articuloDesc = $stock_en_consig->descripcion;
                 $i->precio_venta_l2 = $stock_en_consig->precio_venta_l2;
 
-                $stock_en_consig_cantidad = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
-                    ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
-                    ->where('stock_en_consignacion.producto_id', $i->producto_id)
-                    ->where('stock_en_consignacion.cliente_id', $i->clienteId)
+                $stock_en_consig_cantidad = StockEnConsignacion::where('producto_id', $i->producto_id)
+                    ->where('cliente_id', $id)
                     ->get()->sum('cantidad');
-
             }else{
                 $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
                     ->join('subproductos as sp', 'sp.id', 'stock_en_consignacion.subproducto_id')    
                     ->join('productos as p', 'p.id', 'sp.producto_id')
                     ->where('stock_en_consignacion.subproducto_id', $i->subproducto_id)
-                    ->where('stock_en_consignacion.cliente_id', $i->clienteId)
+                    ->where('stock_en_consignacion.cliente_id', $id)
                     ->select('sp.id', 'sp.descripcion', 'p.precio_venta_l2')->first();
                 $i->articuloId = $stock_en_consig->id;
                 $i->articuloCodigo = $stock_en_consig->id;
                 $i->articuloDesc = $stock_en_consig->descripcion;
                 $i->precio_venta_l2 = $stock_en_consig->precio_venta_l2;
 
-                $stock_en_consig_cantidad = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
-                    ->join('subproductos as sp', 'sp.id', 'stock_en_consignacion.subproducto_id')    
-                    ->join('productos as p', 'p.id', 'sp.producto_id')
-                    ->where('stock_en_consignacion.subproducto_id', $i->subproducto_id)
-                    ->where('stock_en_consignacion.cliente_id', $i->clienteId)
+                $stock_en_consig_cantidad = StockEnConsignacion::where('subproducto_id', $i->subproducto_id)
+                    ->where('cliente_id', $id)
                     ->get()->sum('cantidad');
             }
             $i->cantidad = $stock_en_consig_cantidad;
@@ -163,6 +157,7 @@ class StockController extends Component
             $this->valorTotalStockConsignacion += $i->subtotal;
         }
         $this->producto_id=null;    
+        $this->subproducto_id=null;    
     }
     public function doAction($action)
     {

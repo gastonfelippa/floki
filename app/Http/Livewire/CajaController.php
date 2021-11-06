@@ -26,6 +26,7 @@ class CajaController extends Component
         $this->comercioId = session('idComercio');
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
+        session(['facturaPendiente' => null]);  
     
         if($this->estadoArqueoGral == 'ya existe')  //si ya hay un arqueo cerrado con la misma fecha
         return view('livewire.admin.mensajes.ya_existe_arqueo');

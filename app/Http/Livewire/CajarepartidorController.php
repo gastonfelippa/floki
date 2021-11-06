@@ -36,6 +36,7 @@ class CajarepartidorController extends Component
         $this->comercioId = session('idComercio');        
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
+        session(['facturaPendiente' => null]);  
 
         //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
         //no hago ninguna validación y le permito hacer cualquier procedimiento
