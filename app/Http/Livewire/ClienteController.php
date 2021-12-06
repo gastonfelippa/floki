@@ -30,7 +30,6 @@ class ClienteController extends Component
         $this->comercioId = session('idComercio');
         $this->modViandas = session('modViandas');
         $this->modConsignaciones = session('modConsignaciones');
-        session(['facturaPendiente' => null]);  
 
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
