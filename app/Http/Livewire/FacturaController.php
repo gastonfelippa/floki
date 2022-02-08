@@ -390,9 +390,10 @@ class FacturaController extends Component
         if($this->barcode != null){
             $this->mostrar_sp = 0;
             $this->articulos = null;
-            $articulos = Producto::where('codigo', 4)
-                ->where('comercio_id', $this->comercioId)->first();
-            $this->producto = $articulos->id;
+            $articulos = Producto::where('codigo', $this->barcode)
+                            ->where('comercio_id', $this->comercioId)->get();
+            if ($articulos->count()) $this->producto = $articulos->id;
+            else session()->flash('msg-error', 'El Código no existe...');
         }
     }   
 	public function buscarArticulo($id)
@@ -404,7 +405,7 @@ class FacturaController extends Component
     public function buscarProducto($id)  //codigo original facturas
     {
         $pvta = Producto::select()->where('comercio_id', $this->comercioId)->where('codigo', $id)->get();
-        if ($pvta->count() > 0){
+        if ($pvta->count()){
             $this->producto = $pvta[0]->id;
         }else{
             $this->producto = "Elegir";

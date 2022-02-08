@@ -71,7 +71,6 @@ class MovimientosDeCajaController extends Component
 
     public function createFromModal($info)
     {
-        //dd($this->estado);
         $data = json_decode($info);
 
         DB::begintransaction();
@@ -104,14 +103,14 @@ class MovimientosDeCajaController extends Component
                     'arqueo_id' => $this->nro_arqueo
                 ]);
             }
-            session()->flash('msg-ok', 'Movimiento creado exitosamente!!!'); 
+            session()->flash('msg-ok', 'Movimiento creado exitosamente!!!');
             DB::commit();               
+            $this->emit('agregarDetalle'); 
         }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
         }
-    }
-    
+    }    
     public function destroy($id)
     {
         if ($id) {

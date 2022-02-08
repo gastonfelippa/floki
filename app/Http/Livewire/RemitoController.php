@@ -194,6 +194,7 @@ class RemitoController extends Component
         $this->cantidad       = 1;
         $this->barcode        = '';        
         $this->cliente        = 'Elegir';
+        $this->apeNomCli      = null;
         $this->dirCliente     = null;
         $this->empleado       = 'Elegir';
         $this->producto       = 'Elegir';

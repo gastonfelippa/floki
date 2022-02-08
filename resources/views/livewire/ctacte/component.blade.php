@@ -244,7 +244,8 @@
 						for(var i of arrImporte) {
 							cantidad ++;
 						}
-					if(cantidad > 1) Swal.fire('Ops!','Debes regresar y seleccionar solo la factura a la cual deseas hacerle una entrega a cuenta...','info')
+					if(cantidad == 0) Swal.fire('Ops!','Debes regresar y seleccionar la factura a la cual deseas hacerle una entrega a cuenta...','info')
+					else if(cantidad > 1) Swal.fire('Ops!','Debes regresar y seleccionar solo la factura a la cual deseas hacerle una entrega a cuenta...','info')
 					else {  //recupero el Id de la factura a la cual se le hace una entrega
 						var arrId = $('[name="checks"]:checked').map(function(){
 							return this.id;

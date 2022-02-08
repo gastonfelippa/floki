@@ -174,5 +174,25 @@
                 swal.close()   
             })
         }
+        
+		Livewire.on('agregarDetalle',()=>{
+	        swal({
+                title: 'CONFIRMAR',
+                text: '¿Deseas agregar el detalle del Egreso?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Si',
+                cancelButtonText: 'No',
+                closeOnConfirm: false
+            },
+            function() {
+				window.location.href="{{ url('compras') }}";
+                //window.livewire.emit('deleteRow', id, es_producto)    
+                //toastr.success('info', 'Registro eliminado con éxito')
+                swal.close()   
+            })
+        })
     }
 </script>
