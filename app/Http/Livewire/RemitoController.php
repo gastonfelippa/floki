@@ -10,6 +10,7 @@ use App\Models\Cliente;
 use App\Models\Comercio;
 use App\Models\Ctacte;
 use App\Models\DetRemito;
+use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\Remito;
 use App\Models\Stock;
