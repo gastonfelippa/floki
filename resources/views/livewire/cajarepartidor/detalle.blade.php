@@ -41,7 +41,7 @@
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
                         <label>Productos</label>
-						<select wire:model="productoEdit" class="form-control form-control-sm text-center">
+						<select wire:model="productoEdit" class="form-control form-control-sm">
 							<option value="Elegir" >Elegir</option>
 							@foreach($productos as $t)
 							<option value="{{$t->id}}">

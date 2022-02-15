@@ -11,7 +11,7 @@
                             <div class="row">
                                 <div id="concepto" class="form-group col-lg-6 col-md-6 col-sm-12">
                                     <label>Concepto</label>
-                                    <select id="gasto" class="form-control text-center">
+                                    <select id="gasto" class="form-control">
                                         <option value="Elegir">Elegir</option>
                                         @foreach($gastos as $g)
                                         <option value="{{ $g->id }}">
@@ -22,7 +22,7 @@
                                 </div>
                                 <div class="form-group col-sm-6">
                                     <label>Importe</label>
-                                    <input id="importe" type="text" class="form-control text-center" value="0" placeholder="...">                     
+                                    <input id="importe" type="text" class="form-control" value="0" placeholder="...">                     
                                 </div>                        
                             </div>                        
                         </form>

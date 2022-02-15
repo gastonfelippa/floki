@@ -6,7 +6,7 @@
                     <div class="col-sm-12 col-md-6">
                         <h5><b>Arqueo Caja Repartidor</b></h5>  
                         @can('HabilitarCaja_index')     
-                            <select wire:model="repartidor" class="form-control form-control-sm text-center">
+                            <select wire:model="repartidor" class="form-control form-control-sm">
                                 <option value="Elegir">Elegir</option>
                                 @foreach($empleados as $t)
                                 <option value="{{ $t->id }}">
@@ -15,7 +15,7 @@
                                 @endforeach                               
                             </select>
                         @else
-                            <input class="form-control form-control-sm text-center" value="{{auth()->user()->apellido}} {{auth()->user()->name}}">
+                            <input class="form-control form-control-sm" value="{{auth()->user()->apellido}} {{auth()->user()->name}}">
                         @endcan 
                         <div class="row mt-1">
                             <div class="col-7">
