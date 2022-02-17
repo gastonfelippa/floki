@@ -323,6 +323,7 @@ class UsuarioController extends Component
                     'sexo' => $this->sexo,
                     'email' => strtolower($this->email),
                     'username' => $username,
+                    'email_verified_at' => Carbon::now(),    //comentar cuando funcione la autenticacion en la nube
                     'abonado' => 'No'
                 ]);
             }

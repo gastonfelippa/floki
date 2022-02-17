@@ -123,10 +123,10 @@ class RegisterController extends Controller
                 'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
                 'pass'     => $password,
-                'abonado'  => 'Si'
-                //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                'abonado'  => 'Si',
+                'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
-//dd($user);
+
             $userAdminComercio = UsuarioComercio::create([
                 'usuario_id'  => $user->id,            
                 'comercio_id' => $this->comercioId            
@@ -157,7 +157,7 @@ class RegisterController extends Controller
                 'localidad_id' => $localidad->id,
                 'comercio_id'  => $this->comercioId   
             ]); 
-//dd($cliente->id,$this->comercioId);               
+             
             UsuarioComercio::create([
                 'usuario_id'  => $cliente->id,            
                 'comercio_id' => $this->comercioId            
@@ -292,7 +292,7 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-            $this->sendEmail($user, $this->comercio);
+            //$this->sendEmail($user, $this->comercio);
             DB::commit();
             
             return $user;
