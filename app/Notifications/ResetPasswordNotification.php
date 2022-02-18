@@ -53,7 +53,7 @@ class ResetPasswordNotification extends Notification
         return (new MailMessage)
             ->subject('Solicitud de restablecimiento de contraseña')
             ->greeting('Hola ' . $notifiable->name . '!')
-            ->line('Se solicitó un restablecimiento de contraseña para tu cuenta ' . $notifiable->getEmailForPasswordReset() . ', haz clic en el botón que aparece a continuación para cambiar tu contraseña.')
+            ->line('Se solicitó un restablecimiento de contraseña para tu cuenta ' . $notifiable->username . ', haz clic en el botón que aparece a continuación para cambiar tu contraseña.')
             ->action(('Cambiar contraseña'), url(config('app.url') . route('password.reset',['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()], false)))
             ->line('Si no realizaste la solicitud de cambio de contraseña, solo ignora este mensaje. ')
             ->line('Este enlace solo es válido dentro de los proximos : ' . $count . ' minutos.' )

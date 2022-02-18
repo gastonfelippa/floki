@@ -293,8 +293,8 @@ class UsuarioController extends Component
                     'username' => $username,
                     'password' => Hash::make($password),
                     'pass' => $password,
-                    'abonado' => 'No',
-                    'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                    'abonado' => 'No'
+                    //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
                 ]);
                     
                 UsuarioComercio::create([
@@ -328,7 +328,7 @@ class UsuarioController extends Component
                 ]);
             }
             DB::commit();
-        //    $this->sendEmail($user, $this->comercio, $this->admin);
+            $this->sendEmail($user, $this->comercio, $this->admin);
             $this->doAction(1);
             if($this->selected_id > 0) session()->flash('message', 'Usuario Actualizado');            
             else session()->flash('message', 'Usuario creado exitosamente! Verificar envío de email');       

@@ -54,7 +54,7 @@ class RegisterController extends Controller
      * @return void
      */
 
-    public $comercio, $nombre, $comercioId;
+    public $comercio, $nombre, $comercioId, $user;
 
     public function __construct()
     {
@@ -123,12 +123,13 @@ class RegisterController extends Controller
                 'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
                 'pass'     => $password,
-                'abonado'  => 'Si',
-                'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                'abonado'  => 'Si'
+                //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
-
+            $this->user=$user->id;
+//dd($this->user,$this->comercioId);
             $userAdminComercio = UsuarioComercio::create([
-                'usuario_id'  => $user->id,            
+                'usuario_id'  => $this->user,            
                 'comercio_id' => $this->comercioId            
             ]);
 
@@ -149,7 +150,9 @@ class RegisterController extends Controller
                 'descripcion'  => '.',            
                 'provincia_id' => 5,     
                 'comercio_id'  => $this->comercioId   
-            ]);                
+            ]);    
+  //   ERROR: al querer cargar el cliente con id=1, me carga el 1 en usuario_id, 
+  //   que corresponde al users.id                      
             $cliente = Cliente::create([            
                 'nombre'       => 'FINAL',            
                 'apellido'     => 'CONSUMIDOR',     
@@ -162,7 +165,7 @@ class RegisterController extends Controller
                 'usuario_id'  => $cliente->id,            
                 'comercio_id' => $this->comercioId            
             ]);
-
+  //   FIN ERROR
             //asigno los módulos bàsicos
             $modulos = Modulo::create([
                 'modViandas'        => '0',
@@ -292,8 +295,8 @@ class RegisterController extends Controller
                 'fecha_vto'            => Carbon::parse($fecha_fin)->format('Y,m,d') . ' 23:59:59',
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
-            //$this->sendEmail($user, $this->comercio);
             DB::commit();
+            $this->sendEmail($user, $this->comercio);
             
             return $user;
         }catch (Exception $e){
