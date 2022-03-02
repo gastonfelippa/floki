@@ -179,7 +179,7 @@ class UserSeeder extends Seeder
         Provincia::create(['descripcion' => 'Tierra del Fuego']);
         Provincia::create(['descripcion' => 'Tucumán']); 
 
-        CondIva::create(['descripcion' => 'Cons. Final']);
+        CondIva::create(['descripcion' => 'S/D']);
         CondIva::create(['descripcion' => 'Resp. Monotributo']);
         CondIva::create(['descripcion' => 'Resp. Inscripto']);
         CondIva::create(['descripcion' => 'Exento']);
