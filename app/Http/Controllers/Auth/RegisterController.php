@@ -147,12 +147,10 @@ class RegisterController extends Controller
 
             //creo un cliente llamado Consumidor Final, pero primero debo agregar una localidad
             $localidad = Localidad::create([            
-                'descripcion'  => '.',            
+                'descripcion'  => '...',            
                 'provincia_id' => 5,     
                 'comercio_id'  => $this->comercioId   
-            ]);    
-  //   ERROR: al querer cargar el cliente con id=1, me carga el 1 en usuario_id, 
-  //   que corresponde al users.id                      
+            ]);  
             $cliente = Cliente::create([            
                 'nombre'       => 'FINAL',            
                 'apellido'     => 'CONSUMIDOR',     
@@ -160,12 +158,7 @@ class RegisterController extends Controller
                 'localidad_id' => $localidad->id,
                 'comercio_id'  => $this->comercioId   
             ]); 
-             
-            UsuarioComercio::create([
-                'usuario_id'  => $cliente->id,            
-                'comercio_id' => $this->comercioId            
-            ]);
-  //   FIN ERROR
+            
             //asigno los módulos bàsicos
             $modulos = Modulo::create([
                 'modViandas'        => '0',

@@ -39,11 +39,11 @@
 						<tbody>
 							@foreach($info as $r)
 							<tr>
-								<td>{{$r->descripcion}}</td>
+								<td>{{$r->nombre_empresa}}</td>
                                 <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
 								<td class="text-center">
                                     <ul class="table-controls">
-                                    @can('Movimientos_edit')
+                                    @can('MovimientosDiarios_index')
                                     <li>
                                         @if($estado == 1)
                                         <a href="javascript:void(0);"
@@ -56,7 +56,7 @@
                                         @endif
                                     </li>
                                     @endcan
-                                    @can('Movimientos_destroy')
+                                    @can('MovimientosDiarios_index')
                                     <li>
                                         <a href="javascript:void(0);"          		
                                         onclick="Confirm('{{$r->id}}')"
@@ -111,13 +111,13 @@
     {
         if(editar == 1){
             $('.modal-title').text('Editar Egreso')
-            $('#egreso').val(ing_egr_id)
+            $('#proveedor').val(ing_egr_id)
             $('#mov_importe').val(importe)
             $('#mov_id').val(mov_id)
             $('#edit_ing_egr').val(1)
         }else if(editar == 2){
             $('.modal-title').text('Editar Otro Ingreso')
-            $('#egreso').val(ing_egr_id)
+            $('#proveedor').val(ing_egr_id)
             $('#mov_importe').val(importe)
             $('#mov_id').val(mov_id)
             $('#edit_ing_egr').val(2)
@@ -127,7 +127,7 @@
             }else{
                 $('.modal-title').text('Agregar Otro Ingreso')
             } 
-            $('#egreso').val('Elegir')
+            $('#proveedor').val('Elegir')
             $('#mov_importe').val('')
             $('#mov_id').val(0)
             $('#edit_ing_egr').val(0)
@@ -136,7 +136,7 @@
 	}
 	function save()
     {
-        if($('#egreso option:selected').val() == 'Elegir') {
+        if($('#proveedor option:selected').val() == 'Elegir') {
             toastr.error('Elige una opción válida para el Egreso')
             return;
         }
@@ -145,7 +145,7 @@
             return;
         }
         var data = JSON.stringify({
-            'ing_egr_id'  : $('#egreso option:selected').val(),
+            'ing_egr_id'  : $('#proveedor option:selected').val(),
             'mov_importe': $('#mov_importe').val(),
             'mov_id': $('#mov_id').val(),
             'edit_ing_egr': $('#edit_ing_egr').val(),
@@ -155,7 +155,7 @@
         window.livewire.emit('createFromModal', data)
     }
     function redireccionar(data){
-        if(data == 1) window.location.href="{{ url('gastos') }}";
+        if(data == 1) window.location.href="{{ url('proveedores') }}";
         else window.location.href="{{ url('otroingreso') }}";
     }
     

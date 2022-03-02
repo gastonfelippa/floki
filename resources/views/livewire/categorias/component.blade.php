@@ -6,7 +6,7 @@
     		<div class="widget-one">
     			<div class="row">
     				<div class="col-xl-12 text-center">
-    					<h3><b>Categorías</b></h3>
+    					<h3><b>Categorías de Productos</b></h3>
     				</div> 
     			</div> 
 				@if($recuperar_registro == 1)

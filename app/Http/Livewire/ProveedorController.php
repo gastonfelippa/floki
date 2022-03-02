@@ -22,7 +22,7 @@ class ProveedorController extends Component
         $this->comercioId = session('idComercio');
         session(['facturaPendiente' => null]);  
    
-        $localidades = Localidad::select()->orderBy('descripcion','asc')->get();
+        $localidades = Localidad::select()->where('localidades.comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
         $condIva = CondIva::all();
            
@@ -167,7 +167,8 @@ class ProveedorController extends Component
             DB::begintransaction();
             try{
                 if($this->selected_id > 0) {
-                    $existe = Proveedor::where('nombre_empresa', $this->nombre_empresa)
+                    if($this->cuit){
+                        $existe = Proveedor::where('nombre_empresa', $this->nombre_empresa)
                         ->where('comercio_id', $this->comercioId)
                         ->where('id', '<>', $this->selected_id)
                         ->orWhere('cuit', $this->cuit)
@@ -175,6 +176,14 @@ class ProveedorController extends Component
                         ->where('id', '<>', $this->selected_id)
                         ->select('*')
                         ->withTrashed()->get();
+                    }else{
+                        $existe = Proveedor::where('nombre_empresa', $this->nombre_empresa)
+                        ->where('comercio_id', $this->comercioId)
+                        ->where('id', '<>', $this->selected_id)
+                        ->select('*')
+                        ->withTrashed()->get();
+                    }
+                    
                     if($existe->count() > 0 && $existe[0]->deleted_at != null) {
                         session()->flash('info', 'El Proveedor que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                         $this->action = 1;
@@ -182,9 +191,9 @@ class ProveedorController extends Component
                         $this->descripcion_soft_deleted = $existe[0]->nombre_empresa;
                         $this->id_soft_deleted = $existe[0]->id;
                         return;
-                    }elseif( $existe->count() > 0) {
+                    }elseif($existe->count()) {
                         session()->flash('info', 'El Proveedor ya existe...');
-                        $this->resetInput();
+                        //$this->resetInput();
                         return;
                     }
                 }else {
@@ -277,33 +286,50 @@ class ProveedorController extends Component
     public function createFromModal($info)
     {
         $data = json_decode($info);
-        DB::begintransaction();
-        try{   
-            Localidad::create([
-                'descripcion' => ucwords($data->localidad),
-                'provincia_id' => $data->provincia_id
-            ]);
-            session()->flash('msg-ok', 'Localidad creada exitosamente!!!'); 
-            DB::commit();               
-        }catch (\Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
-        } 
+
+        $existe = Localidad::where('descripcion', ucwords($data->localidad))
+            ->where('provincia_id', $data->provincia_id)
+            ->where('comercio_id', $this->comercioId)->get();  
+        if($existe->count() > 0 ) {
+            session()->flash('info', 'La Localidad ingresada ya existe!!!');
+            return;
+        }else{
+            DB::begintransaction();
+            try{   
+                Localidad::create([
+                    'descripcion'  => ucwords($data->localidad),
+                    'provincia_id' => $data->provincia_id,
+                    'comercio_id'  => $this->comercioId
+                ]);
+                session()->flash('msg-ok', 'Localidad creada exitosamente!!!'); 
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
+            }
+        }
     }
 
     public function createIvaFromModal($info)
     {
         $data = json_decode($info);
-        DB::begintransaction();
-        try{   
-            CondIva::create([
-                'descripcion' => ucwords($data->descripcion)
-            ]);
-            session()->flash('msg-ok', 'Condición de Iva creada exitosamente!!!'); 
-            DB::commit();               
-        }catch (\Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
-        }  
-    }   
+
+        $existe = CondIva::where('descripcion', ucwords($data->descripcion));  
+        if($existe->count() > 0 ) {
+            session()->flash('info', 'La Condición de Iva ingresada ya existe!!!');
+            return;
+        }else{   
+            DB::begintransaction();
+            try{   
+                CondIva::create([
+                    'descripcion' => ucwords($data->descripcion)
+                ]);
+                session()->flash('msg-ok', 'Condición de Iva creada exitosamente!!!'); 
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }  
+        } 
+    }  
 }

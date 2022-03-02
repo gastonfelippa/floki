@@ -11,6 +11,6 @@ class Detcompra extends Model
     
     protected $dates = ['deleted_at'];
     protected $table = 'det_compras';
-    protected $fillable = ['compra_id', 'producto_id', 'cantidad', 'precio', 'comercio_id'];
+    protected $fillable = ['factura_id', 'producto_id', 'subproducto_id', 'cantidad', 'precio', 'comercio_id'];
 
 }

@@ -197,7 +197,7 @@ class FacturaController extends Component
             }
         }
         $info = Detfactura::select('*')->where('comercio_id', $this->comercioId)->get();
-        if($info->count() > 0){ 
+        if($info->count()){ 
             $info = Detfactura::join('facturas as r','r.id','detfacturas.factura_id')
                 ->select('detfacturas.*', DB::RAW("'' as p_id"), 
                     DB::RAW("'' as codigo"), DB::RAW("'' as producto"), DB::RAW("'' as es_producto"))
@@ -617,7 +617,6 @@ class FacturaController extends Component
                     if($nroArqueo->count()) $this->nro_arqueo = $nroArqueo[0]->id;  //este es el nro_arqueo del delivery
                 }  
                 if($this->inicio_factura) {
-                    //dd($this->esConsFinal);
                     $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio); 
                     $factura = Factura::create([
                         'numero'         => $this->numFactura,

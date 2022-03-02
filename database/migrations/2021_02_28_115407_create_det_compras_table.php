@@ -16,11 +16,14 @@ class CreateDetComprasTable extends Migration
         Schema::create('det_compras', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('compra_id');
-            $table->foreign('compra_id')->references('id')->on('compras');
+            $table->unsignedBigInteger('factura_id');
+            $table->foreign('factura_id')->references('id')->on('compras');
 
-            $table->unsignedBigInteger('producto_id');
+            $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');
+                        
+            $table->unsignedBigInteger('subproducto_id')->nullable();
+            $table->foreign('subproducto_id')->references('id')->on('subproductos');
 
             $table->decimal('cantidad',10,2);
             $table->decimal('precio',10,2);

@@ -11,7 +11,6 @@ use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use App\Models\CajaInicial;
 use App\Models\CajaUsuario;
 use App\Models\Factura;
-use App\Models\Gasto;
 use App\Models\ModelHasRole;
 use App\Models\MovimientoDeCaja;
 use App\Models\OtroIngreso;
@@ -26,7 +25,8 @@ class CortesController extends Component
     
     public $fecha, $fecha_inicio;
     public $comercioId, $arqueoGralId, $estadoArqueoGral, $nro_arqueo, $Arqueo;
-    public $cajaInicial, $ventas, $cobrosCtaCte, $otrosIngresos, $totalIngresos, $egresos, $cajaFinal;
+    public $cajaInicial, $ventas, $cobrosCtaCte, $otrosIngresos, $totalIngresos, $cajaFinal;
+    public $egresos;
     public $importe, $comentario='', $caja_abierta = 1, $factPendiente;
     public $user = 0, $usuario_habilitado = 1, $repartidor = true;
 
@@ -144,10 +144,10 @@ class CortesController extends Component
             ->where('movimiento_de_cajas.ingreso_id', '<>', null)
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
             ->select('g.descripcion', 'movimiento_de_cajas.importe')->get();
-        $listaEgresos = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+        $listaEgresos = MovimientoDeCaja::join('proveedores as g', 'g.id', 'movimiento_de_cajas.egreso_id')
             ->where('movimiento_de_cajas.egreso_id', '<>', null)
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
-            ->select('g.descripcion', 'movimiento_de_cajas.importe')->get(); 
+            ->select('g.nombre_empresa', 'movimiento_de_cajas.importe')->get(); 
 
         return view('livewire.cortes.component',[
                 'users'           => $users,
@@ -193,7 +193,7 @@ class CortesController extends Component
             ->where('cu.estado', '1')
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo) 
             ->where('movimiento_de_cajas.ingreso_id', '<>', null)->sum('importe');
-        $this->egresos = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+        $this->egresos = MovimientoDeCaja::join('proveedores as g', 'g.id', 'movimiento_de_cajas.egreso_id')
             ->join('caja_usuarios as cu', 'cu.id', 'movimiento_de_cajas.arqueo_id')
             ->where('cu.estado', '1')
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo) 
@@ -220,7 +220,7 @@ class CortesController extends Component
                 ->where('movimiento_de_cajas.comercio_id', $this->comercioId)
                 ->where('movimiento_de_cajas.ingreso_id', '<>', null)
                 ->whereDate('movimiento_de_cajas.created_at', [$fi, $ff])->sum('importe');
-            $this->egresos = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+            $this->egresos = MovimientoDeCaja::join('proveedores as g', 'g.id', 'movimiento_de_cajas.egreso_id')
                 ->where('movimiento_de_cajas.comercio_id', $this->comercioId)
                 ->where('movimiento_de_cajas.egreso_id', '<>', null)
                 ->whereDate('movimiento_de_cajas.created_at', [$fi, $ff])->sum('importe');
@@ -241,7 +241,7 @@ class CortesController extends Component
                 ->where('user_id', $this->user)
                 ->where('movimiento_de_cajas.ingreso_id', '<>', null)
                 ->whereDate('movimiento_de_cajas.created_at', [$fi, $ff])->sum('importe');
-            $this->egresos = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+            $this->egresos = MovimientoDeCaja::join('proveedores as g', 'g.id', 'movimiento_de_cajas.egreso_id')
                 ->where('movimiento_de_cajas.comercio_id', $this->comercioId)
                 ->where('user_id', $this->user)
                 ->where('movimiento_de_cajas.egreso_id', '<>', null)

@@ -7,7 +7,7 @@
     function PulsarTecla(event)
     {
         tecla = event.keyCode;
-        if(e.ctrlKey == 1 && tecla==13) window.location.href="{{ url('facturas') }}";
+        if(e.ctrlKey == 1 && tecla==13) window.location.href="{{ url('facturas') }}";
         else if(tecla == 27) document.getElementById("btnCancelar").click();
     }
     function openModalMesa()

@@ -31,37 +31,34 @@ class CajaController extends Component
         if($this->estadoArqueoGral == 'ya existe')  //si ya hay un arqueo cerrado con la misma fecha
         return view('livewire.admin.mensajes.ya_existe_arqueo');
 
-     if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
-
-
-
-        //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
-        //no hago ninguna validación y le permito hacer cualquier procedimiento
-        $usuadrioAdmin = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
-            ->join('users as u', 'u.id', 'model_has_roles.model_id')
-            ->where('r.alias', 'Administrador')
-            ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
-        if($usuadrioAdmin[0]->id <> auth()->user()->id){
-            //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir
-            //si no lo es, muestro un mensaje y no lo dejo continuar
-            //si no hay arqueo abierto, lo habilito para habilitar Cajas
-            $usuarioArqueo = CajaUsuario::join('arqueo_grals as ag', 'ag.id', 'caja_usuarios.arqueo_gral_id')
-                ->where('caja_usuarios.user_id', auth()->user()->id)
-                ->where('caja_usuarios.arqueo_gral_id', $this->arqueoGralId)
-                ->where('ag.estado', '1')->get();
-           // dd($usuarioArqueo);
-            if(!$usuarioArqueo->count()) $this->usuario_habilitado = 0;
-        }else{
-            if($this->estadoArqueoGral == 'pendiente') return view('arqueogral');
+        if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
+            //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
+            //no hago ninguna validación y le permito hacer cualquier procedimiento
+            $usuadrioAdmin = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
+                ->join('users as u', 'u.id', 'model_has_roles.model_id')
+                ->where('r.alias', 'Administrador')
+                ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
+            if($usuadrioAdmin[0]->id <> auth()->user()->id){
+                //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir
+                //si no lo es, muestro un mensaje y no lo dejo continuar
+                //si no hay arqueo abierto, lo habilito para habilitar Cajas
+                $usuarioArqueo = CajaUsuario::join('arqueo_grals as ag', 'ag.id', 'caja_usuarios.arqueo_gral_id')
+                    ->where('caja_usuarios.user_id', auth()->user()->id)
+                    ->where('caja_usuarios.arqueo_gral_id', $this->arqueoGralId)
+                    ->where('ag.estado', '1')->get();
+            // dd($usuarioArqueo);
+                if(!$usuarioArqueo->count()) $this->usuario_habilitado = 0;
+            }else{
+                if($this->estadoArqueoGral == 'pendiente') return view('arqueogral');
+            }
         }
-     }
         // si es el usuario que corresponde y
         // si el valor de 'estadoArqueoGral' es 'pendiente', lo obligo a hacer el Arqueo Gral.
         // si es 'activo', todo sigue normal
         // y si es 'no existe', se creará un nuevo arqueo al habilitar la primera caja del día
         // SALVO que se trate del mismo día que cubre el último arqueo gral.
         //en este caso no se podrá iniciar nada hasta que culmine el horario de cobertura de dicho arqueo gral.
-     //   
+       
 
         $cajas = Caja::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
 
@@ -107,7 +104,6 @@ class CajaController extends Component
             'infoImportesCaja' =>$infoImportesCaja
         ]);
     }
-
     public function doAction($action)
     {
         if($action == 1){
@@ -115,7 +111,6 @@ class CajaController extends Component
         }
         $this->action = $action;
     }
-
     private function resetInput()
     {
         $this->descripcion = '';
@@ -141,7 +136,6 @@ class CajaController extends Component
         
         $this->action = 2;
     }
-
     public function StoreOrUpdate()
     { 
         $this->validate([
@@ -247,12 +241,10 @@ class CajaController extends Component
         $this->resetInput();
         return;
     }
-
     protected $listeners = [
         'createFromModal' => 'createFromModal',       
         'editFromModal'   => 'editFromModal'       
     ];  
-
     public function createFromModal($info)
     {
         $data = json_decode($info);

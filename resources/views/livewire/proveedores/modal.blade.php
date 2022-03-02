@@ -40,7 +40,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-dark" data-dismiss="modal"><i class="flaticon-cancel-12"></i>Cancelar</button>
-            <button class="btn btn-primary saveTarifa" type="button" onclick="save()">Guardar</button>
+            <button class="btn btn-primary" type="button" onclick="save()">Guardar</button>
         </div>
     </div>
 </div>

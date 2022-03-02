@@ -3,17 +3,18 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use App\Models\MovimientoDeCaja;
-use App\Models\OtroIngreso;
-use App\Models\Gasto;
 use App\Models\Auditoria;
 use App\Models\CajaUsuario;
+use App\Models\Gasto;
+use App\Models\MovimientoDeCaja;
+use App\Models\OtroIngreso;
+use App\Models\Proveedor;
 use Carbon\Carbon;
 use DB;
 
 class MovimientosDeCajaController extends Component
 {
-    public $egreso='Elegir', $otro_ingreso='Elegir', $comentario = '';
+    public $proveedor='Elegir', $egreso='Elegir', $otro_ingreso='Elegir', $comentario = '';
     public $comercioId, $estado = 1, $mov_importe, $selected_id = null, $caja_abierta, $nro_arqueo;
 
     public function render()
@@ -30,15 +31,16 @@ class MovimientosDeCajaController extends Component
         }
 
         $egresos = Gasto::where('comercio_id', $this->comercioId)->get();
+        $proveedores = Proveedor::where('comercio_id', $this->comercioId)->get();
         $ingresos = OtroIngreso::where('comercio_id', $this->comercioId)->get();
      
         switch ($this->estado) {    //'estado' indica si se ven egresos u otros ingresos de entrada al form
             case 1:                             //egresos
-                $info = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+                $info = MovimientoDeCaja::join('proveedores as p', 'p.id', 'movimiento_de_cajas.egreso_id')
                     ->where('movimiento_de_cajas.egreso_id', '<>', null)
                     ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
                     ->orderBy('movimiento_de_cajas.created_at')
-                    ->select('movimiento_de_cajas.*', 'g.descripcion')->get();   
+                    ->select('movimiento_de_cajas.*', 'p.nombre_empresa')->get();   
                 break;
             case 2:                               //otros ingresos
                 $info = MovimientoDeCaja::join('otro_ingresos as g', 'g.id', 'movimiento_de_cajas.ingreso_id')
@@ -51,6 +53,7 @@ class MovimientosDeCajaController extends Component
         }
         return view('livewire.movimientos_de_caja.component',[
             'info' => $info,
+            'proveedores' => $proveedores,
             'egresos' => $egresos,
             'ingresos' => $ingresos
         ]);
@@ -59,7 +62,7 @@ class MovimientosDeCajaController extends Component
     private function resetInput()
     {
         $this->selected_id = null;  
-        $this->egreso = '';
+        $this->proveedor = 'Elegir';
         $this->otro_ingreso  = '';
         $this->categoria   = 'Elegir';
     }
@@ -72,7 +75,7 @@ class MovimientosDeCajaController extends Component
     public function createFromModal($info)
     {
         $data = json_decode($info);
-
+//dd($data);
         DB::begintransaction();
         try{  
             if($data->edit_ing_egr == 1){               //editar egreso
@@ -88,15 +91,15 @@ class MovimientosDeCajaController extends Component
                     'importe' => $data->mov_importe
                 ]);
             }else{                                      //registro nuevo
-                if($this->estado == 1) $this->egreso = $data->ing_egr_id;
+                if($this->estado == 1) $this->proveedor = $data->ing_egr_id;
                 else $this->otro_ingreso = $data->ing_egr_id;
         
-                if($this->egreso == 'Elegir') $this->egreso = null;
+                if($this->proveedor == 'Elegir') $this->proveedor = null;
                 if($this->otro_ingreso == 'Elegir') $this->otro_ingreso = null;
 
                 MovimientoDeCaja::create([
                     'ingreso_id' => $this->otro_ingreso,
-                    'egreso_id' => $this->egreso,
+                    'egreso_id' => $this->proveedor,
                     'importe' => $data->mov_importe,
                     'user_id' => auth()->user()->id,
                     'comercio_id' => $this->comercioId,
@@ -106,7 +109,7 @@ class MovimientosDeCajaController extends Component
             session()->flash('msg-ok', 'Movimiento creado exitosamente!!!');
             DB::commit();               
             $this->emit('agregarDetalle'); 
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
         }

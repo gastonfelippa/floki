@@ -3,98 +3,98 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Models\Auditoria;
+use App\Models\Compra;
 use App\Models\Detcompra;
 use App\Models\Producto;
-use App\Models\Compra;
 use App\Models\Proveedor;
+use App\Models\Stock;
+use App\Models\Subproducto;
 use Carbon\Carbon;
 use DB;
 
 class CompraController extends Component
 {
-	//properties
-    public $cantidad = 1, $precio, $estado='ABIERTO';
-    public $proveedor="Elegir", $producto="Elegir", $barcode;
-    public $proveedores, $productos;
-    public $selected_id = null, $search, $numFactura;
+    public $cantidad = 1, $precio, $estado='abierta';
+    public $nombreProveedor, $proveedor="Elegir", $producto="Elegir", $subproducto="Elegir", $barcode;
+    public $proveedores, $productos, $subproductos;
+    public $selected_id = null, $search, $numFactura, $action = 1, $mostrar_datos;
     public $compras, $total, $importe, $totalAgrabar;  
-    public $grabar_encabezado, $habilitar_grabar_encabezado =null, $habilitar_botones =null,$modificar, $codigo;
-    public $comercioId, $compra_id, $letra, $sucursal, $numFact;
+    public $inicio_factura = true, $habilitar_botones =null,$modificar, $codigo;
+    public $comercioId, $factura_id;
+    public $numeroFactura, $letra, $sucursal, $numFact, $fecha;
+    public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
+    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
 	
 	public function render()
 	{        
-        //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
-        session(['facturaPendiente' => null]);  
                 
         $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
-        $this->proveedores = Proveedor::select()->where('comercio_id', $this->comercioId)->orderBy('nombre_empresa', 'asc')->get();
-        
-        if(strlen($this->barcode) > 0){ //strlen valida si está vacío o no
-            $this->buscarProducto($this->barcode); 
-        }
-        else{
-            $this->precio = '';
-        }
-        
-        $dProveedor = Proveedor::find($this->proveedor);
-        if($dProveedor != null) {$this->dirProveedor = $dProveedor->calle . ' ' . $dProveedor->numero;}
-        
-        $dProducto = Producto::find($this->producto);
-        if($dProducto != null) {$this->precio = $dProducto->precio_venta;}else {$this->precio = '';}     
-        
-        $encabezado = Compra::select('*')->where('comercio_id', $this->comercioId)->get();                        // ->where('estado','like','ABIERTA')->get();
-        
-        if($encabezado->count() == 0){
-            $this->grabar_encabezado = true;
+        if ($this->subproducto == 'Elegir'){
+            $this->subproductos = Subproducto::where('producto_id', $this->producto)
+                ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
         }else{
-            $encabezado = Compra::join('proveedores as prov','prov.id','compras.proveedor_id')
+            $this->subproductos = Subproducto::where('id', $this->subproducto)
+                ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        }
+        
+        $this->proveedores = Proveedor::select()->where('comercio_id', $this->comercioId)->orderBy('nombre_empresa', 'asc')->get();
+      
+        $dProveedor = Proveedor::find($this->proveedor);
+        if($dProveedor != null) {
+            $this->nombreProveedor = $dProveedor->nombre_empresa;
+            $this->dirProveedor = $dProveedor->calle . ' ' . $dProveedor->numero;
+        }
+        $encabezado = Compra::join('proveedores as prov','prov.id','compras.proveedor_id')
             ->join('localidades as loc','loc.id','prov.localidad_id')
-            ->where('compras.estado','like','ABIERTA')
+            ->where('compras.estado','like','abierta')
             ->where('compras.comercio_id', $this->comercioId)
             ->select('compras.*','prov.nombre_empresa as nombre_empresa',
-                     'prov.calle', 'prov.numero', 'loc.descripcion')->get();
-                        
-            if($encabezado->count() > 0){
-                $this->letra = $encabezado[0]->letra;
-                $this->sucursal = $encabezado[0]->sucursal;
-                $this->numFact = $encabezado[0]->num_fact;
-                //toma el id de la factura abierta
-                $this->compra_id = $encabezado[0]->id;
-                
-                if($this->habilitar_grabar_encabezado) $this->grabar_encabezado = true;
-                else $this->grabar_encabezado = false;                             
-            }else{
-                $this->grabar_encabezado = true;
-            }
-        }
-
-        if($encabezado->count() > 0){
-            if($encabezado[0]->proveedor_id != null){
-                $this->dejar_pendiente = true;
-            }else{
-                $this->dejar_pendiente = false;
-            }
+                    'prov.calle', 'prov.numero', 'loc.descripcion')->get();
+                    
+        if($encabezado->count()){
+            //$this->action = 1;
+            $this->inicio_factura = false;
+            $this->factura_id = $encabezado[0]->id;                             
+            $this->letra = $encabezado[0]->letra;
+            $this->sucursal = $encabezado[0]->sucursal;
+            $this->numFact = $encabezado[0]->num_fact;
+            $this->fecha = Carbon::parse($encabezado[0]->fecha_fact)->format('d-m-Y');
+            $this->proveedor = $encabezado[0]->proveedor_id;
+            $this->nombreProveedor = $encabezado[0]->nombre_empresa;
         }
 
         $info = Detcompra::select('*')->where('comercio_id', $this->comercioId)->get();
-
-        if($info->count() > 0){
-            $info = Detcompra::leftjoin('compras as f','f.id','det_compras.compra_id')
-                    ->leftjoin('productos as p','p.id','det_compras.producto_id')
-                    ->select('det_compras.*', 'p.descripcion as producto', DB::RAW("'' as importe"))
-                    ->where('det_compras.compra_id', $this->compra_id)
-                    ->where('det_compras.comercio_id', $this->comercioId)
-                    ->where('f.estado', 'like', 'ABIERTA')
-                    ->orderBy('det_compras.id', 'asc')->get();  
-        }    
-        $this->total = 0;
-
-        foreach ($info as $i)
-        {
-            $i->importe=$i->cantidad * $i->precio;
-            $this->total += $i->importe;
-        }
+        if($info->count()){ 
+            $info = Detcompra::join('compras as r','r.id','det_compras.factura_id')
+                ->select('det_compras.*', DB::RAW("'' as p_id"), 
+                    DB::RAW("'' as codigo"), DB::RAW("'' as producto"), DB::RAW("'' as es_producto"))
+                ->where('det_compras.factura_id', $this->factura_id)
+                ->where('det_compras.comercio_id', $this->comercioId)
+                ->orderBy('det_compras.id')->get();  
+            
+            $this->total = 0;
+            $this->contador_filas = 0;
+            foreach ($info as $i){
+                $this->contador_filas ++;
+                $i->importe=$i->cantidad * $i->precio;
+                $this->total += $i->importe;
+                if($i->producto_id){
+                    $producto = Producto::find($i->producto_id);
+                    $i->p_id        = $producto->id;
+                    $i->codigo      = $producto->codigo;
+                    $i->producto    = $producto->descripcion;
+                    $i->es_producto = 1;
+                }else{
+                    $subproducto = Subproducto::find($i->subproducto_id);
+                    $i->p_id        = $subproducto->id;
+                    $i->codigo      = $subproducto->id;
+                    $i->producto    = $subproducto->descripcion;
+                    $i->es_producto = 0;             
+                }
+            }
+        } 
 
 		return view('livewire.compras.component', [
             'info' => $info,
@@ -103,128 +103,212 @@ class CompraController extends Component
     }
     
     protected $listeners = [
-        'buscarProducto' => 'buscarProducto',
-        'buscarDomicilio' => 'buscarDomicilio',
-        'deleteRow' => 'destroy'         
+        'buscarProducto'           => 'buscarProducto',
+        'buscarPorCodigo'          => 'buscarPorCodigo',
+        'buscarDomicilio'          => 'buscarDomicilio',
+        'CrearModificarEncabezado' => 'CrearModificarEncabezado',
+        'elegirFormaDePago'        => 'elegirFormaDePago',
+        'factura_contado'          => 'factura_contado',
+        'anularFactura'            => 'anularFactura',
+        'deleteRow'                => 'destroy'         
     ];
-    
-    public function buscarProducto($id)
+    public function buscarPorCodigo() //codigo de remitos
     {
-        $pvta = Producto::select()->where('comercio_id', $this->comercioId)->where('codigo', $id)->get();
-        
-        if ($pvta->count() > 0){
-            $this->producto = $pvta[0]->id;
-        }else{
-            $this->producto = "Elegir";
-            session()->flash('msg-error', 'El Código no existe...');
-        } 
+        if($this->barcode != null){
+            $this->mostrar_sp = 0;
+            $this->articulos = null;
+            $articulos = Producto::where('codigo', $this->barcode)
+                            ->where('comercio_id', $this->comercioId)->get();
+            if ($articulos->count()) $this->producto = $articulos[0]->id;
+            else session()->flash('msg-error', 'El Código no existe...');
+        }
+    }
+
+    public function doAction($action)
+    {
+        $this->action = $action;
+        if($this->action == 1) $this->resetInput();
     }
 
     public function resetInput()
     {
-        $this->cantidad = 1;
-        $this->barcode ='';
-        $this->precio = '';
-        $this->producto = 'Elegir';
+        $this->action      = 1;
+        $this->cantidad    = 1;
+        $this->barcode     = '';
+        $this->precio      = '';
+        $this->producto    = 'Elegir';
+        $this->subproducto = 'Elegir';
         $this->selected_id = null;
-        $this->action = 1;
-        $this->search ='';
+        $this->search      = '';
+        $this->letra       = '';
+        $this->sucursal    = '';
+        $this->numFact     = '';
+        $this->fecha       = '';
+        $this->mostrar_sp  = 0;
+        $this->es_producto = 1;
     }
 
     public function resetInputTodos()
     {
+        $this->action = 3;
         $this->cantidad = 1;
         $this->barcode ='';
         $this->precio = '';        
         $this->proveedor = 'Elegir';
         $this->dirProveedor = null;
         $this->producto = 'Elegir';
+        $this->subproducto = 'Elegir';
         $this->selected_id = null;
-        $this->action =1;
         $this->search ='';
-        $this->habilitar_grabar_encabezado = true;
         $this->habilitar_botones = false;
+        $this->letra       = '';
+        $this->sucursal    = '';
+        $this->numFact      = '';
+        $this->fecha      = '';
+        $this->mostrar_sp  = 0;
+        $this->es_producto = 1;
     }
 
-    public function edit($id)
+    public function CrearModificarEncabezado($data)
+    {       
+        $info = json_decode($data);
+        $this->numeroFactura = $info->sucursal . '-' . $info->numero;
+        $dataPro = Proveedor::find($info->proveedor_id);
+        $this->nombreProveedor = $dataPro->nombre_empresa;
+        
+        $this->letra     = $info->letra;
+        $this->sucursal  = $info->sucursal;
+        $this->numFact   = $info->numero;
+        $this->fecha     = Carbon::now();
+        if($info->fecha != '') $this->fecha = $info->fecha;
+        
+        $this->proveedor = $info->proveedor_id;
+        
+        if(!$this->inicio_factura){
+            $record = Compra::find($this->factura_id);
+            $record->update([
+                'letra'        => $this->letra,
+                'sucursal'     => $this->sucursal,
+                'num_fact'     => $this->numFact,
+                'fecha_fact'   => Carbon::parse($this->fecha)->format('Y,m,d h:i:s'),
+                'proveedor_id' => $this->proveedor
+            ]);
+            session()->flash('message', 'Encabezado Modificado...');
+        }
+    }
+    public function edit($id, $es_producto)
     {
-        $record = Detcompra::find($id);
         $this->selected_id = $id;
-        $this->producto = $record->producto_id;
-        $this->precio = $record->precio;
+        $this->es_producto = $es_producto;
+        $record = Detcompra::find($id);
+        if($this->es_producto == 1) $this->producto = $record->producto_id;
+        else $this->subproducto = $record->subproducto_id;
+        $this->precio   = $record->precio;
         $this->cantidad = $record->cantidad;
-        $this->action = 2;
+    }
+ 
+    public function StoreOrUpdateButton($articuloId)
+    {
+        if($articuloId == 0 && $this->es_producto == 1){
+            $this->validate([
+                'producto' => 'not_in:Elegir|required',
+                'cantidad' => 'required|numeric|min:0|not_in:0',
+                'precio'   => 'required']);
+        }elseif($articuloId == 0 && $this->es_producto == 0){
+            $this->validate([
+                'subproducto' => 'not_in:Elegir|required',
+                'cantidad'    => 'required|numeric|min:0|not_in:0',
+                'precio'      => 'required']);            
+        }                                  
+        if($this->es_producto == 1){       //si es un producto, verifico si tiene subproductos
+            $record = Subproducto::where('producto_id', $this->producto)->get();
+            if($record->count()){          //si tiene, los muestro en el select
+                $this->es_producto = 0;
+            }else $this->StoreOrUpdate($this->producto);
+        }else $this->StoreOrUpdate($this->subproducto);
     }
 
-    public function StoreOrUpdate()
-    {
-        $this->validate([
-            'producto' => 'not_in:Elegir'
-        ]);            
-        $this->validate([
-            'cantidad' => 'required',
-            'producto' => 'required',
-            'precio' => 'required'
-        ]);
+    public function StoreOrUpdate($id)
+    {       
         $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio);
  
         DB::begintransaction();                         //iniciar transacción para grabar
         try{  
-            if($this->selected_id > 0) {                //valida si se quiere modificar o crear
-                $record = Detcompra::find($this->selected_id);  
-                $record->update([                       //actualizamos el registro
-                    'producto_id' => $this->producto,
-                    'cantidad' => $this->cantidad,
-                    'precio' => $this->precio
-                ]); 
-            }else {
-                if($this->proveedor == 'Elegir'){
-                    $this->proveedor = null;
-                } 
-                if($this->grabar_encabezado == true)
-                {
-                    $factura = Compra::create([
-                        'letra' => $this->letra,
-                        'sucursal' => $this->sucursal,
-                        'num_fact' => $this->numFact,
-                        'proveedor_id' => $this->proveedor,
-                        'importe' => $this->totalAgrabar,
-                        'estado' => 'ABIERTA',
-                        'user_id' => auth()->user()->id,
-                        'comercio_id' => $this->comercioId
-                    ]);
-                }
-                
-                $idFactura = Compra::where('estado', 'like', 'ABIERTA')
-                    ->where('comercio_id', $this->comercioId)->select('id')->get();
-                $this->compra_id = $idFactura[0]->id;
-
-                $existe = Detcompra::select('id')          //buscamos si el producto ya está cargado
-                                    ->where('compra_id', 'like', $idFactura[0]->id)
-                                    ->where('comercio_id', $this->comercioId)
-                                    ->where('producto_id', 'like', $this->producto)->get();
-                if ($existe->count() > 0){
-                    $edit_cantidad = Detcompra::find($existe[0]->id); 
-                    $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
-                    $edit_cantidad->update([                //actualizamos solo la cantidad                                      
-                        'cantidad' => $nueva_cantidad
-                    ]);
-                }else{
-                    $add_item = Detcompra::create([         //creamos un nuevo detalle
-                        'compra_id' => $this->compra_id,
-                        'producto_id' => $this->producto,
-                        'cantidad' => $this->cantidad,
-                        'precio' => $this->precio,
-                        'comercio_id' => $this->comercioId
-                    ]);	
-                }
-
-                $record = Compra::find($idFactura[0]->id);  //actualizamos el encabezado
+            if($this->selected_id > 0) {                //modifica
+                $record = Detcompra::find($this->selected_id);  //actualizamos cantidad y precio
+                $cantidad_detalle = $record->cantidad;         
                 $record->update([
-                    'importe' => $this->totalAgrabar
-                ]); 
+                    'cantidad' => $this->cantidad,
+                    'precio'   => $this->precio
+                ]);
+                //modifico stock
+                if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
+                else $record = Stock::where('subproducto_id', $id)->first(); 
+                $stockActual = $record['stock_actual'] - $cantidad_detalle;
+                $stockNuevo = $stockActual + $this->cantidad;  
+                $record->update(['stock_actual' => $stockNuevo]); 
+            }else {
+                if($this->inicio_factura) {
+                    if($this->proveedor == 'Elegir') $this->proveedor = null;
+                
+                    $factura = Compra::create([
+                        'letra'        => $this->letra,
+                        'sucursal'     => $this->sucursal,
+                        'num_fact'     => $this->numFact,
+                        'proveedor_id' => $this->proveedor,
+                        'importe'      => $this->totalAgrabar,
+                        'estado'       => 'abierta',
+                        'user_id'      => auth()->user()->id,
+                        'comercio_id'  => $this->comercioId,
+                        'fecha_fact'   => Carbon::parse($this->fecha)->format('Y,m,d h:i:s')
+                    ]);
+                    $this->inicio_factura = false;
+                    $this->factura_id = $factura->id;
+                }
+                $record = Compra::find($this->factura_id);  //actualizamos el encabezado
+                $record->update(['importe' => $this->totalAgrabar]);
+                // crea detalle
+                if($this->es_producto == 1){         //si es un producto
+                    $existe = Detcompra::select('id')       //buscamos si ya está cargado
+                        ->where('factura_id', $this->factura_id)
+                        ->where('comercio_id', $this->comercioId)
+                        ->where('producto_id', $id)->get();  
+                }else{                                 //sino
+                    $existe = Detcompra::select('id') //buscamos si el subproducto ya está cargado
+                        ->where('factura_id', $this->factura_id)
+                        ->where('comercio_id', $this->comercioId)
+                        ->where('subproducto_id', $id)->get();
+                }
+                if ($existe->count()){                    //actualizamos solo la cantidad
+                    $edit_cantidad = DetCompra::find($existe[0]->id); 
+                    $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
+                    $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
+                }else{
+                    if($this->es_producto == 1){
+                        $add_item = DetCompra::create([         //creamos un nuevo detalle
+                            'factura_id'  => $this->factura_id,
+                            'producto_id' => $id,
+                            'cantidad'    => $this->cantidad,
+                            'precio'      => $this->precio,
+                            'comercio_id' => $this->comercioId
+                        ]);    
+                    }else{ 
+                        $add_item = DetCompra::create([         //creamos un nuevo detalle
+                            'factura_id'  => $this->factura_id,
+                            'subproducto_id' => $id,
+                            'cantidad'    => $this->cantidad,
+                            'precio'      => $this->precio,
+                            'comercio_id' => $this->comercioId
+                        ]);      
+                    }    
+                }
+                //actualizamos stock
+                if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first(); 
+                else $record = Stock::where('subproducto_id', $id)->first();  
+                $stockAnterior = $record['stock_actual'];
+                $stockNuevo = $stockAnterior + $this->cantidad;  
+                $record->update(['stock_actual' => $stockNuevo]); 
             }
-                //confirmar la transaccion
             DB::commit();
             if($this->selected_id > 0){		
                 session()->flash('message', 'Registro Actualizado');       
@@ -232,17 +316,63 @@ class CompraController extends Component
                 session()->flash('message', 'Registro Creado'); 
             }           
         }catch (Exception $e){
-                DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos
+                DB::rollback(); 
                 session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }     
         $this->resetInput(); 
-        $this->habilitar_grabar_encabezado = false;
+    }
+
+    public function anularFactura($id, $comentario)
+    {
+        if ($id) {
+            DB::begintransaction();
+            try{
+                $factura = Compra::find($id);
+                $factura->update([ 'estado' => 'anulado']);
+
+                $factura = Compra::find($id)->delete();
+                $audit = Auditoria::create([
+                    'item_deleted_id' => $id,
+                    'tabla'           => 'Compras',
+                    'estado'          => '0',
+                    'user_delete_id'  => auth()->user()->id,
+                    'comentario'      => $comentario,
+                    'comercio_id'     => $this->comercioId
+                ]);
+                //actualizo stock
+                $record = Detcompra::where('factura_id', $id)->get();
+                foreach ($record as $i){
+                    if($i->producto_id != null) $record = Stock::where('producto_id', $i->producto_id)->first(); 
+                    else $record = Stock::where('subproducto_id', $i->subproducto_id)->first();  
+                    $stockAnterior = $record['stock_actual'];
+                    $stockNuevo = $stockAnterior - $i->cantidad;  
+                    $record->update(['stock_actual' => $stockNuevo]);   
+                }
+                session()->flash('msg-ok', 'Registro Anulado con éxito!!');
+                DB::commit();               
+            }catch (Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se anuló...');
+            }
+            $this->resetInputTodos();
+            return;
+        }
+    }
+
+    public function elegirFormaDePago()
+    {
+        if($this->proveedor != ''){
+            $cli = Proveedor::where('id', $this->proveedor)->get();
+            $this->nomCli = $cli[0]->nombre_empresa;
+        }
+        $this->f_de_pago = '1';        
+        $this->doAction(2);
     }
     
     public function pagar_factura()
     {
         if($this->total != 0){
-            $record = Compra::find($this->compra_id);
+            $record = Compra::find($this->factura_id);
             $record->update([
                 'estado' => 'PAGADA',
                 'importe' => $this->total
@@ -253,48 +383,42 @@ class CompraController extends Component
             session()->flash('msg-error', 'Compra vacía...'); 
         }
     }
+    public function factura_contado()
+    {
+        DB::begintransaction();                         //iniciar transacción para grabar
+        try{
+            $record = Compra::find($this->factura_id);
+            $record->update([
+                'estado'        => 'contado',
+                'estado_pago'   => '1',
+                'importe'       => $this->total,
+                'forma_de_pago' => $this->f_de_pago,
+                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                'mercadopago'   => $this->mercadopago,
+                'comentario'    => $this->comentarioPago
+            ]);
+            DB::commit();
+            $this->emit('facturaCobrada');
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }              
+        $this->resetInputTodos();
+    }
         
     public function cuenta_corriente()
     {
         if($this->total == 0){
             session()->flash('msg-error', 'Compra vacía...'); 
         }else{
-            $record = Compra::find($this->compra_id);
+            $record = Compra::find($this->factura_id);
             $record->update([
                 'estado' => 'CUENTACORRIENTE',
                 'importe' => $this->total
             ]);              
             session()->flash('message', 'Compra enviada a Cuenta Corriente'); 
-            $this->habilitar_grabar_encabezado = true;
             $this->resetInputTodos();
         }
-    }
-    
-    public function cancelarModEncabezado()
-    { 
-        $this->habilitar_grabar_encabezado = false;
-        $this->habilitar_botones = false;
-    }
-    public function modificarEncabezado()
-    { 
-        $this->habilitar_grabar_encabezado = true;
-        $this->habilitar_botones = true;
-    }
-    public function grabarModEncabezado($id)
-    { 
-        $this->validate([
-            'proveedor' => 'not_in:Elegir'
-        ]);
-        $record = Compra::find($id);
-        $record->update([
-            'letra' => $this->letra,
-            'sucursal' => $this->sucursal,
-            'num_fact' => $this->numFact,
-            'proveedor_id' => $this->proveedor
-        ]);
-        $this->habilitar_grabar_encabezado = false;
-        $this->habilitar_botones = false;
-        session()->flash('message', 'Encabezado Modificado...');
     }
 
     public function destroy($id) //eliminar / delete / remove

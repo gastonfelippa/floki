@@ -127,9 +127,14 @@
                             @endcan
                             @can('Categorias_index')
                                 <li>
-                                    <a href="{{ url('categorias') }}"> CATEGORIAS  </a>
+                                    <a href="{{ url('categorias') }}"> CATEGORIAS/PRODUCTOS  </a>
                                 </li>
                             @endcan
+                            <!-- @can('Gastos_index')
+                                <li>
+                                    <a href="{{ url('gastos') }}"> CATEGORIAS/EGRESOS  </a>
+                                </li>
+                            @endcan -->
                             @can('Clientes_index')
                                 <li>
                                     <a href="{{ url('clientes') }}"> CLIENTES  </a>
@@ -140,22 +145,27 @@
                                     <a href="{{ url('proveedores') }}"> PROVEEDORES  </a>
                                 </li>                            
                             @endcan
-                            @can('Gastos_index')
+                            <!-- @can('Gastos_index')
                                 <li>
                                     <a href="{{ url('gastos') }}"> EGRESOS  </a>
                                 </li>
-                            @endcan
-                            @can('OtroIngreso_index')
+                            @endcan -->
+                            <!-- @can('OtroIngreso_index')
                                 <li>
                                     <a href="{{ url('otroingreso') }}"> OTROS INGRESOS  </a>
                                 </li>
-                            @endcan
+                            @endcan -->
                             @can('Usuarios_index')
                                 <li>
                                     <a href="{{ url('usuarios') }}"> EMPLEADOS  </a>
                                 </li>
                             @endcan
                             @if($modComandas == "1")
+                                @can('Categorias_index')
+                                    <li>
+                                        <a href="{{ url('mesas') }}"> MESAS  </a>
+                                    </li>
+                                @endcan
                                 @can('Categorias_index')
                                     <li>
                                         <a href="{{ url('salsas') }}"> SALSAS  </a>
@@ -249,7 +259,7 @@
                     </li>
                 @endcan
                 <!-- COMPRAS -->
-                @can('Compras_index')
+                <!-- @can('Compras_index')
                     <li class="menu single-menu">
                         <a href="{{ url('compras') }}" >
                             <div class="">
@@ -258,7 +268,7 @@
                              </div>                            
                        </a>                    
                     </li>
-                @endcan
+                @endcan -->
                 <!-- CAJA -->
                 @canany(['HabilitarCaja_index','ArqueoDeCaja_index','CajaRepartidor_index',
                         'MovimientosDiarios_index',])

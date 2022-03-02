@@ -49,23 +49,23 @@ class ArqueoGralController extends Component
         $this->estadoArqueoGral = session('estadoArqueoGral');
         session(['facturaPendiente' => null]);  
 
-    if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
+        if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
 
-        //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
-        //no hago ninguna validación y le permito hacer cualquier procedimiento
-        $usuadrioAdmin = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
-            ->join('users as u', 'u.id', 'model_has_roles.model_id')
-            ->where('r.alias', 'Administrador')
-            ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
-        if($usuadrioAdmin[0]->id <> auth()->user()->id){
-            //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir
-            //si no lo es, muestro un mensaje y no lo dejo continuar
-            $usuarioArqueo = CajaUsuario::where('user_id', auth()->user()->id)
-                    ->where('arqueo_gral_id', $this->arqueoGralId)->get();
-            if($usuarioArqueo->count() == 0) $this->usuario_habilitado = 0;
-        }
+            //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
+            //no hago ninguna validación y le permito hacer cualquier procedimiento
+            $usuadrioAdmin = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
+                ->join('users as u', 'u.id', 'model_has_roles.model_id')
+                ->where('r.alias', 'Administrador')
+                ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
+            if($usuadrioAdmin[0]->id <> auth()->user()->id){
+                //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir
+                //si no lo es, muestro un mensaje y no lo dejo continuar
+                $usuarioArqueo = CajaUsuario::where('user_id', auth()->user()->id)
+                        ->where('arqueo_gral_id', $this->arqueoGralId)->get();
+                if($usuarioArqueo->count() == 0) $this->usuario_habilitado = 0;
+            }
 
-    }   
+        }   
         if($this->estadoArqueoGral == 'no existe'){
             $this->caja_abierta = 2; //deshabilitar botón
         }else{

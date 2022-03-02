@@ -2,7 +2,7 @@
 	<div class="widget-content-area">
         <div class="widget-one">
             <h5>
-                <b>Cobrar Factura</b>
+                <b>Pagar Factura</b>
             </h5>
             <div class="row">   
                 <div class="form-group col-sm-12 col-md-4">

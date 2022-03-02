@@ -26,10 +26,16 @@ class CreateComprasTable extends Migration
             $table->foreign('user_id')->references('id')->on('users');
          
             $table->decimal('importe',10,2);
-            $table->enum('estado', ['ABIERTA', 'PAGADA', 'CTACTE', 'ANULADA'])->default('ABIERTA');
+            $table->enum('estado', ['abierta','contado', 'pendiente', 'ctacte', 'anulado']);
+            $table->enum('estado_pago', ['0','1','2']);           //ctacte,pagado,entrega
+            $table->enum('forma_de_pago', ['1','2','3','4','5'])->nullable(); //efectivo,tarj débito,tarj crédito,transferencia,cheque
+            $table->enum('mercadopago', ['0','1'])->nullable(); //no,si
+            $table->string('nro_comp_pago')->nullable();         //nro ticket tarjeta o transferencia 
 
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');
+
+            $table->datetime('fecha_fact')->nullable();
          
             $table->softDeletes();
             $table->timestamps();
