@@ -16,7 +16,7 @@ class CreateCategoriaClubsTable extends Migration
         Schema::create('categoria_club', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
-            $table->unsignedBigInteger('eded_minima')->nullable();
+            $table->unsignedBigInteger('edad_minima')->nullable();
             $table->unsignedBigInteger('edad_maxima')->nullable();
             $table->decimal('importe',10,2);
 

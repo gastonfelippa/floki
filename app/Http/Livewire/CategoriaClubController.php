@@ -99,7 +99,6 @@ class CategoriaClubController extends Component
     }
     public function StoreOrUpdate()
     {
-        //dd($this->descripcion,$this->edad_minima,$this->edad_maxima,$this->importe);
         if ($this->otorgarCategoriaSegunLaEdad == 1){  
             $this->validate([                        
                 'descripcion' => 'required',
@@ -118,9 +117,9 @@ class CategoriaClubController extends Component
         try{
             if($this->selected_id > 0) {
                 $existe = CategoriaClub::where('descripcion', $this->descripcion)
-                ->where('id', '<>', $this->selected_id)
-                ->where('comercio_id', $this->comercioId)
-                ->withTrashed()->get();
+                    ->where('id', '<>', $this->selected_id)
+                    ->where('comercio_id', $this->comercioId)
+                    ->withTrashed()->get();
                 if($existe->count() && $existe[0]->deleted_at != null) {
                     session()->flash('info', 'La Categoría que desea modificar ya existe pero fué eliminada anteriormente, para recuperarla haga click en el botón "Recuperar registro"');
                     $this->action = 1;
@@ -135,7 +134,7 @@ class CategoriaClubController extends Component
                 }
             }else {
                 $existe = CategoriaClub::where('descripcion', $this->descripcion)
-                ->where('comercio_id', $this->comercioId)->withTrashed()->get();
+                    ->where('comercio_id', $this->comercioId)->withTrashed()->get();
 
                 if($existe->count() && $existe[0]->deleted_at != null) {
                     session()->flash('info', 'La Categoría que desea agregar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
@@ -150,15 +149,7 @@ class CategoriaClubController extends Component
                     return;
                 }
             }
-            if($this->selected_id <= 0) {
-                $category =  CategoriaClub::create([
-                    'descripcion' => strtoupper($this->descripcion),            
-                    'edad_minima' => $this->edad_minima,
-                    'edad_maxima' => $this->edad_maxima,
-                    'importe'     => $this->importe,
-                    'comercio_id' => $this->comercioId            
-                ]);
-            }else {   
+            if($this->selected_id > 0) {
                 $record = CategoriaClub::find($this->selected_id);
                 $record->update([
                     'descripcion' => strtoupper($this->descripcion),            
@@ -166,13 +157,21 @@ class CategoriaClubController extends Component
                     'edad_maxima' => $this->edad_maxima,
                     'importe'     => $this->importe
                 ]);
-                $this->action = 1;              
+                $this->action = 1; 
+            }else {  
+                 $category =  CategoriaClub::create([
+                    'descripcion' => strtoupper($this->descripcion),            
+                    'edad_minima' => $this->edad_minima,
+                    'edad_maxima' => $this->edad_maxima,
+                    'importe'     => $this->importe,
+                    'comercio_id' => $this->comercioId            
+                ]);           
             }
-            if($this->selected_id) session()->flash('msg-ok', 'Categoria Actualizada');            
+            if($this->selected_id > 0) session()->flash('msg-ok', 'Categoria Actualizada');            
             else session()->flash('msg-ok', 'Categoria Creada');            
  
             DB::commit(); 
-        }catch (\Exception $e){
+        }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
