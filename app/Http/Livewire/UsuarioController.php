@@ -196,18 +196,18 @@ class UsuarioController extends Component
     public function edit($id)
     {
         $record = User::find($id);
-        $this->name = $record->name;
-        $this->apellido = $record->apellido;
-        $this->documento = $record->documento;
-        $this->calle = $record->calle;
-        $this->numero = $record->numero;
-        $this->localidad = $record->localidad_id;
-        $this->telefono1 = $record->telefono1;
+        $this->name          = $record->name;
+        $this->apellido      = $record->apellido;
+        $this->documento     = $record->documento;
+        $this->calle         = $record->calle;
+        $this->numero        = $record->numero;
+        $this->localidad     = $record->localidad_id;
+        $this->telefono1     = $record->telefono1;
         $this->fecha_ingreso = Carbon::parse($record->fecha_ingreso)->format('d-m-Y');
-        $this->fecha_nac = Carbon::parse($record->fecha_nac)->format('d-m-Y');
-        $this->sexo = $record->sexo;
-        $this->email = $record->email;
-        $this->selected_id = $record->id;
+        $this->fecha_nac     = Carbon::parse($record->fecha_nac)->format('d-m-Y');
+        $this->sexo          = $record->sexo;
+        $this->email         = $record->email;
+        $this->selected_id   = $record->id;
 
         $this->action = 2;
     }

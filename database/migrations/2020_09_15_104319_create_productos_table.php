@@ -20,11 +20,12 @@ class CreateProductosTable extends Migration
             $table->decimal('precio_costo',10,2)->nullable();
             $table->decimal('precio_venta_l1',10,2)->nullable();
             $table->decimal('precio_venta_l2',10,2)->nullable();
-            $table->enum('control_stock', ['0','1'])->default('1');
-            $table->unsignedBigInteger('stock')->nullable();
-            $table->unsignedBigInteger('stock_minimo')->nullable();
-            $table->enum('estado', ['DISPONIBLE','SUSPENDIDO','SIN STOCK'])->default('DISPONIBLE');
+            $table->decimal('precio_venta_sug_l1',10,2)->nullable();
+            $table->decimal('precio_venta_sug_l2',10,2)->nullable();
+            $table->enum('estado', ['Disponible','Suspendido'])->default('Disponible');
             $table->enum('tipo', ['Art. Compra','Art. Venta','Ambos'])->default('Art. Venta');
+            $table->enum('tiene_receta', ['si','no'])->default('no');
+            $table->enum('controlar_stock', ['si','no'])->default('si');
 
             $table->unsignedBigInteger('categoria_id');
             $table->foreign('categoria_id')->references('id')->on('categorias');

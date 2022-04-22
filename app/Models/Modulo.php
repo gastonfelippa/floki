@@ -10,5 +10,5 @@ class Modulo extends Model
     use HasFactory;
 
     protected $table = 'modulos';
-    protected $fillable = ['modViandas', 'modComandas', 'modDelivery', 'modConsignaciones', 'comercio_id'];
+    protected $fillable = ['modViandas', 'modComandas', 'modDelivery', 'modConsignaciones', 'modClubes', 'comercio_id'];
 }

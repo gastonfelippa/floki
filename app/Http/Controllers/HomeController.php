@@ -16,7 +16,7 @@ class HomeController extends Controller
 {
 
     public $comercioId, $comercioTipo, $arqueoGralId, $periodoArqueo;
-    public $modComandas, $modConsignaciones;
+    public $modComandas, $modConsignaciones, $modClubes;
  
     /**
      * Create a new controller instance.
@@ -56,10 +56,12 @@ class HomeController extends Controller
             session(['modComandas'       => $modulos->modComandas]);
             session(['modDelivery'       => $modulos->modDelivery]);
             session(['modConsignaciones' => $modulos->modConsignaciones]);
+            session(['modClubes'         => $modulos->modClubes]);
             $modViandas        = session('modViandas');
-            $this->modComandas       = session('modComandas');
+            $this->modComandas = session('modComandas');
             $modDelivery       = session('modDelivery');
             $this->modConsignaciones = session('modConsignaciones');
+            $this->modClubes = session('modClubes');
     
             //averiguamos la hora de apertura del comercio para comprobar el arqueo
             $horaApertura = Comercio::select('hora_apertura')

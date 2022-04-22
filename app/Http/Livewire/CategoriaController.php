@@ -5,13 +5,14 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
+use App\Models\Comercio;
 use App\Models\Producto;
 use DB;
 
 class CategoriaController extends Component
 {
 	public $descripcion, $margen_1, $margen_2, $descripcion_soft_deleted, $id_soft_deleted;
-    public $selected_id, $search, $action = 1, $recuperar_registro = 0;  
+    public $selected_id, $search, $action = 1, $recuperar_registro = 0, $calcular_precio_de_venta;  
     public $comercioId, $comercioTipo, $modComandas, $modDelivery;
 
     public function render()
@@ -23,6 +24,9 @@ class CategoriaController extends Component
          $this->modComandas = session('modComandas');
          $this->modDelivery = session('modDelivery');
          session(['facturaPendiente' => null]);  
+
+         $record = Comercio::find($this->comercioId);
+         $this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
 
         if(strlen($this->search) > 0)
         {
@@ -92,11 +96,20 @@ class CategoriaController extends Component
     }
     public function StoreOrUpdate()
     { 
-        $this->validate([
-            'descripcion' => 'required',
-            'margen_1'    => 'required|integer|min:1|max: 99',
-            'margen_2'    => 'integer|min:1|max: 99'
-        ]);
+        if ($this->calcular_precio_de_venta == 0){   //calcula el precio de venta sumando 
+            $this->validate([                        //el margen de ganancia al costo del producto
+                'descripcion' => 'required',
+                'margen_1'    => 'integer',
+                'margen_2'    => 'integer'
+            ]);
+        }else{                                      //calcula el precio de venta obteniendo 
+            $this->validate([                       //el margen de ganancia sobre el mismo
+                'descripcion' => 'required',
+                'margen_1'    => 'integer|min:1|max: 99',
+                'margen_2'    => 'integer|min:1|max: 99'
+            ]);
+        }
+        
         DB::begintransaction();
         try{
             if($this->selected_id > 0) {

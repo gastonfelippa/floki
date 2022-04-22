@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Provincia;
 use App\Models\Vianda;
 use App\Models\CajaUsuario;
+use Carbon\Carbon;
 use DB;
 
 class ClienteController extends Component
@@ -23,6 +24,7 @@ class ClienteController extends Component
     public $c_viernes_m, $c_viernes_n, $c_sabado_m, $c_sabado_n, $c_domingo_m, $c_domingo_n;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
     public $comercioId, $modViandas, $modConsignaciones;
+    public $mes, $año;
 
     public function render()
     {
@@ -81,8 +83,33 @@ class ClienteController extends Component
     protected $listeners = [
         'deleteRow'       =>'destroy',
         'createFromModal' => 'createFromModal',
-        'guardar'         => 'StoreOrUpdate'      
+        'guardar'         => 'StoreOrUpdate',
+        'cambiarFecha'        =>'cambiarFecha'     
     ]; 
+    public function cambiarFecha($data)  //esta función inhabilita la vista 'Ver Lista Facturas' 
+    {                                    //cuando estamos fuera del Arqueo Gral activo
+        $fecha_consulta = Carbon::parse($data);
+        if($data != '') {
+            $mes_en_numero = date('m',strtotime($data));
+            $this->año = date('Y',strtotime($data));
+        }
+        switch ($mes_en_numero) {
+            case '1' : $this->mes = 'ENERO'; break;
+            case '2' : $this->mes = 'FEBRERO'; break;
+            case '3' : $this->mes = 'MARZO'; break;
+            case '4' : $this->mes = 'ABRIL'; break;
+            case '5' : $this->mes = 'MAYO'; break;
+            case '6' : $this->mes = 'JUNIO'; break;
+            case '7' : $this->mes = 'JULIO'; break;
+            case '8' : $this->mes = 'AGOSTO'; break;
+            case '9' : $this->mes = 'SETIEMBRE'; break;
+            case '10': $this->mes = 'OCTUBRE'; break;
+            case '11': $this->mes = 'NOVIEMBRE'; break;
+            case '12': $this->mes = 'DICIEMBRE'; break;
+            default: $this->mes = "...";
+        }
+        //dd($this->mes,$this->año);
+    }
     public function verViandas($id, $action)
     {
         $this->action = $action;
@@ -250,7 +277,7 @@ class ClienteController extends Component
                     $this->id_soft_deleted = $existe[0]->id;
                     return;
                 }elseif( $existe->count() > 0) {
-                    session()->flash('info', 'El Cliente ya existe...e');
+                    session()->flash('info', 'El Cliente ya existe...');
                     $this->resetInput();
                     return;
                 }

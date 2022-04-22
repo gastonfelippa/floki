@@ -24,9 +24,7 @@ class ListaDePreciosController extends Component
             $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
                 ->where('comercio_id', $this->comercioId)->get();
         }
-        return view('livewire.listadeprecios.component', [
-			'info' => $info
-		]);
+        return view('livewire.listadeprecios.component', ['info' => $info]);
     }
     public function verLista($numero)
     {

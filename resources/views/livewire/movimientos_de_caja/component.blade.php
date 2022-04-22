@@ -155,7 +155,7 @@
         window.livewire.emit('createFromModal', data)
     }
     function redireccionar(data){
-        if(data == 1) window.location.href="{{ url('proveedores') }}";
+        if(data == 1) window.location.href="{{ url('gastos') }}";
         else window.location.href="{{ url('otroingreso') }}";
     }
     

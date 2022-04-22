@@ -283,8 +283,6 @@ class RemitoController extends Component
     }
     public function StoreOrUpdateButton($articuloId)
     {
-       //dd($this->es_producto,$articuloId,$this->producto);
-        //$this->es_producto = $es_producto;
         if($articuloId == 0 && $this->es_producto == 1){
             $this->validate([
                 'producto' => 'not_in:Elegir|required',

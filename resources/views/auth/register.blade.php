@@ -66,8 +66,9 @@
                                     <option value="7">Cafetería</option>
                                     <option value="8">Rotisería</option>
                                     <option value="9">Panadería</option>
-                                    <option value="10">Otro comercio gastronómico</option>
-                                    <option value="11">Otro comercio no gastronómico</option>
+                                    <option value="10">Club/Entidad Social</option>
+                                    <option value="11">Otro comercio gastronómico</option>
+                                    <option value="12">Otro comercio no gastronómico</option>
                                 </select>
                             </div>
                         </div>

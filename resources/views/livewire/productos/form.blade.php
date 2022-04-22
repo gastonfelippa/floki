@@ -32,35 +32,55 @@
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Estado</label>
                         <select wire:model="estado" class="form-control text-left">
-                            <option value="DISPONIBLE">Disponible</option>
-                            <option value="SUSPENDIDO">Suspendido</option>
-                            <option value="SIN STOCK">Sin Stock</option>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Suspendido">Suspendido</option>
                         </select>
                     </div>
                 </div>
+                <!--  sección precios -->
+                <hr/>
                 <div class="row">
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Precio/Costo</label>
                         <input wire:model.lazy="precio_costo" onblur="calcularPrecioVenta()" type="text" class="form-control">
                     </div>
-
                     <div class="form-group col-md-2 col-sm-12">
                         @if($modDelivery == "1")
-                        <label >Pr/Vta Salón</label>
+                        <label >Pr/Vta Salón (Sugerido)</label>
                         @else
-                        <label >Pr/Venta Lista 1</label>
+                        <label >Pr/Venta Lista 1 (Sugerido)</label>
                         @endif
-                        <input wire:model.lazy="precio_venta_l1" type="text" class="form-control">
+                        <input wire:model.lazy="precio_venta_sug_l1" type="text" class="form-control" disabled>
                     </div>  
                     <div class="form-group col-md-2 col-sm-12">
                         @if($modDelivery == "1")
-                        <label >Pr/Vta Delivery</label>
+                        <label >Pr/Vta Delivery (Sugerido)</label>
                         @else
-                        <label >Pr/Venta Lista 2</label>
+                        <label >Pr/Venta Lista 2 (Sugerido)</label>
+                        @endif
+                        <input wire:model.lazy="precio_venta_sug_l2" type="text" class="form-control" disabled>
+                    </div> 
+                    <div class="form-group col-md-3 col-sm-12">
+                        @if($modDelivery == "1")
+                        <label >Pr/Vta Salón (Lista)</label>
+                        @else
+                        <label >Pr/Venta Lista 1 (Lista)</label>
+                        @endif
+                        <input wire:model.lazy="precio_venta_l1" type="text" class="form-control">
+                    </div>  
+                    <div class="form-group col-md-3 col-sm-12">
+                        @if($modDelivery == "1")
+                        <label >Pr/Vta Delivery (Lista)</label>
+                        @else
+                        <label >Pr/Venta Lista 2 (Lista)</label>
                         @endif
                         <input wire:model.lazy="precio_venta_l2" type="text" class="form-control">
                     </div> 
-                    @if($tiene_sp == null)
+                </div>
+                	
+                <hr/>
+                @if($tiene_sp == null)
+                <div class="row">  
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Stock Actual</label>
                         <input wire:model.lazy="stock_actual" type="text" class="form-control">
@@ -73,10 +93,11 @@
                         <label >Stock Mínimo</label>
                         <input wire:model.lazy="stock_minimo" type="text" class="form-control">
                     </div>
-                    @endif                       
                 </div>
-                <div class="row">
+                <hr/>
+                @endif                       
                 @if($modComandas == "1")
+                <div class="row">
                     <div class="form-group col-12 col-md-2">
                         <label >Sector Comanda</label>
                         <div class="input-group">
@@ -149,7 +170,25 @@
                             </div>
                         </div>
                     </div>
+                </div>
                 @endif
+                <div class="col-9 col-md-4 layout-spacing">
+                    <div class="form-check">
+                        @if($tiene_receta == 'si')
+                        <input class="form-check-input" type="checkbox" value="si" id="receta_si" checked>
+                        @else
+                        <input class="form-check-input" type="checkbox" value="no" id="receta_si">
+                        @endif
+                        <label class="form-check-label" for="defaultCheck1">Tiene fórmula o receta</label>
+                    </div>
+                    <div class="form-check">
+                        @if($controlar_stock == 'si')
+                        <input class="form-check-input" type="checkbox" value="si" id="stock_si" checked>
+                        @else
+                        <input class="form-check-input" type="checkbox" value="no" id="stock_si">
+                        @endif
+                        <label class="form-check-label" for="defaultCheck1">Controlar stock</label>
+                    </div>
                 </div>
             </form>
             <div class="row ">
@@ -163,12 +202,19 @@
                         Guardar
                     </button> 
                     @if($selected_id > 0)      
-                    <button type="button" id="1btnGuardar"
+                    <button type="button" id="btnSubproducto"
                         wire:click="agregar_sp()"   
                         class="btn btn-danger ml-5">
                         Agregar/Modificar Subproductos
                     </button>
-                    @endif      
+                    @endif
+                    @if($tiene_receta == 'si')
+                    <button type="button" id="btnReceta"
+                        wire:click="ver_receta({{$selected_id}})"   
+                        class="btn btn-danger ml-1">
+                        Crear/Modificar Receta
+                    </button>    
+                    @endif  
                 </div>
             </div>
         </div>

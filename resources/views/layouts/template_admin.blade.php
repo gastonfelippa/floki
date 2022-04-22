@@ -31,7 +31,7 @@
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
     <style>
         body {
-            background: url('../images/fondo.jpg') no-repeat center center fixed;
+            background: url('../images/fondo_claro.jpg') no-repeat center center fixed;
             background-size: cover;
         }
     </style>

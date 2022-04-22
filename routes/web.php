@@ -31,9 +31,11 @@ Route::get('/pdfFactDel/{id}', 'PdfController@PDFFactDel')->middleware('permissi
 Route::get('/pdfViandas', 'PdfController@PDFViandas');
 Route::get('/pdfRecibos/{id}', 'PdfController@PDFRecibos');
 Route::get('/pdfListadoCtaCte', 'PdfController@PDFListadoCtaCte');
+Route::get('/pdfListadoCtaCteClub', 'PdfController@PDFListadoCtaCteClub');
 Route::get('/pdfResumenDeCuenta/{id}', 'PdfController@PDFResumenDeCuenta');
 Route::get('/pdfRemito/{id}', 'PdfController@PDFRemito');
 Route::get('/pdfListaDePrecios/{numero}', 'PdfController@PDFListaDePrecios');
+Route::get('/pdfCuotaSocio', 'PdfController@PDFCuotaSocio');
 
 Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
 Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
@@ -41,10 +43,14 @@ Route::view('permisos', 'permisos')->middleware('permission:Usuarios_index');
 
 Route::view('productos', 'productos')->middleware('permission:Productos_index');
 Route::view('categorias', 'categorias')->middleware('permission:Categorias_index');
+Route::view('categoriasclub', 'categoriasclub')->middleware('permission:Categorias_index');
 Route::view('clientes', 'clientes')->middleware('permission:Clientes_index');
 Route::view('proveedores', 'proveedores')->middleware('permission:Proveedores_index');
 Route::view('gastos', 'gastos')->middleware('permission:Gastos_index');
 Route::view('usuarios', 'usuarios')->middleware('permission:Usuarios_index');
+Route::view('socios', 'socios')->middleware('permission:Clientes_index');
+Route::view('debitos', 'debitos')->middleware('permission:Clientes_index');
+Route::view('otrosdebitos', 'otrosdebitos')->middleware('permission:Clientes_index');
 
 Route::view('salsas', 'salsas');
 Route::view('guarniciones', 'guarniciones');
@@ -56,6 +62,8 @@ Route::view('configuraciones', 'configuraciones');
 Route::view('remitos', 'remitos');
 Route::view('stock', 'stock');
 Route::view('listadeprecios', 'listadeprecios');
+Route::view('recetas', 'recetas');
+Route::view('balance', 'balance');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('facturasbar', 'facturasbar')->middleware('permission:Facturas_index');
@@ -73,6 +81,7 @@ Route::view('ventasporfechas', 'ventasporfechas')->middleware('permission:Ventas
 
 Route::view('viandas', 'viandas')->middleware('permission:Viandas_index');
 Route::view('ctacte', 'ctacte')->middleware('permission:Ctacte_index');
+Route::view('ctacteclub', 'ctacteclub')->middleware('permission:Ctacte_index');
 Route::view('otroingreso', 'otroingreso')->middleware('permission:OtroIngreso_index');
 
 

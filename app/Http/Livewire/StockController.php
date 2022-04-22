@@ -8,8 +8,8 @@ use App\Models\DetRemito;
 use App\Models\Producto;
 use App\Models\Remito;
 use App\Models\Stock;
-use App\Models\Subproducto;
 use App\Models\StockEnConsignacion;
+use App\Models\Subproducto;
 use DB;
 
 class StockController extends Component

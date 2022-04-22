@@ -739,8 +739,13 @@
         Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
             var texto = 'Solo restan ';
             var unidades = ' unidades';
-            if(stock == 0) texto = 'Restan ';
-            else if(stock == 1) texto = 'Solo resta '; unidades = ' unidad';
+            if(stock == 0 || stock == null){
+                texto = 'Restan ';
+                stock = '0';
+            }else if(stock == 1){
+                texto = 'Solo resta ';
+                unidades = ' unidad';  
+            } 
             Swal.fire({
                 position: 'center',
                 icon: 'success',

@@ -127,7 +127,7 @@ class RegisterController extends Controller
                 //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
             $this->user=$user->id;
-//dd($this->user,$this->comercioId);
+
             $userAdminComercio = UsuarioComercio::create([
                 'usuario_id'  => $this->user,            
                 'comercio_id' => $this->comercioId            
@@ -160,13 +160,33 @@ class RegisterController extends Controller
             ]); 
             
             //asigno los módulos bàsicos
-            $modulos = Modulo::create([
-                'modViandas'        => '0',
-                'modComandas'       => '0',
-                'modDelivery'       => '0',
-                'modConsignaciones' => '1',
-                'comercio_id'       => $this->comercioId
-            ]);
+            if($data['tipo'] == "10"){
+                $modulos = Modulo::create([
+                    'modViandas'        => '0',
+                    'modComandas'       => '0',
+                    'modDelivery'       => '0',
+                    'modConsignaciones' => '0',
+                    'modClubes'         => '1',
+                    'comercio_id'       => $this->comercioId
+                ]);
+            }else{
+                $modulos = Modulo::create([
+                    'modViandas'        => '0',
+                    'modComandas'       => '0',
+                    'modDelivery'       => '0',
+                    'modConsignaciones' => '1',
+                    'comercio_id'       => $this->comercioId
+                ]);
+            }
+
+            if($data['tipo'] == "10"){  //si es un club, creo el rol Cobrador
+                $rolAdmin = Role::create([
+                    'name'        => 'Cobrador'. $this->comercioId,
+                    'alias'       => 'Cobrador',
+                    'comercio_id' => $this->comercioId,
+                    'admite_caja' => null        
+                ]);
+            }
 
             //creo los roles Admin, No Usuario, Encargado, Cajero y Repartidor            
             $rolAdmin = Role::create([
@@ -199,7 +219,7 @@ class RegisterController extends Controller
                 'comercio_id' => $this->comercioId,
                 'admite_caja' => '1'         
             ]);
-            
+          
             //Asigno el rol Admin al nuevo Usuario
             ModelHasRole::create([
                 'role_id'    => $rolAdmin->id,

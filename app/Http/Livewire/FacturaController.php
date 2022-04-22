@@ -36,7 +36,7 @@ class FacturaController extends Component
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $contador_filas, $imp_por_hoja, $imp_duplicado, $lista = '1';
     public $comercioId, $modConsignaciones, $modDelivery, $facturaPendiente;
-    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $esConsFinal;
+    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no', $esConsFinal;
 	
 	public function render()
 	{
@@ -245,22 +245,23 @@ class FacturaController extends Component
     }
     public function resetInput()
     {
-        $this->cantidad       = 1;
-        $this->barcode        = null;
-        $this->precio         = '';
-        $this->producto       = 'Elegir';
-        $this->subproducto    = 'Elegir';
-        $this->action         = 1;
-        $this->estado_entrega = '0';
-        $this->salon          = null;
-        $this->f_de_pago      = null;
-        $this->nro_comp_pago  = null;
-        $this->mercadopago    = null;
-        $this->comentarioPago = '';
-        $this->forzar_arqueo  = 0;
-        $this->mostrar_sp     = 0;
-        $this->es_producto    = 1;
-        $this->selected_id    = 0;
+        $this->cantidad        = 1;
+        $this->barcode         = null;
+        $this->precio          = '';
+        $this->producto        = 'Elegir';
+        $this->subproducto     = 'Elegir';
+        $this->controlar_stock = 'no';
+        $this->action          = 1;
+        $this->estado_entrega  = '0';
+        $this->salon           = null;
+        $this->f_de_pago       = null;
+        $this->nro_comp_pago   = null;
+        $this->mercadopago     = null;
+        $this->comentarioPago  = '';
+        $this->forzar_arqueo   = 0;
+        $this->mostrar_sp      = 0;
+        $this->es_producto     = 1;
+        $this->selected_id     = 0;
     }    
     public function resetInputTodos()
     {
@@ -273,6 +274,7 @@ class FacturaController extends Component
         $this->empleado         = 'Elegir';
         $this->producto         = 'Elegir';
         $this->subproducto      = 'Elegir';
+        $this->controlar_stock  = 'no';
         $this->articulos        = '';
         $this->delivery         = 0;
         $this->selected_id      = 0;
@@ -454,110 +456,120 @@ class FacturaController extends Component
     }
     public function verificar_stock($id)
     {
+        //consulto si se controla el stock del producto o subproducto cargado
         if($this->es_producto == 1) $producto = Producto::where('id', $id)->first();
         else{
             $producto = Subproducto::join('productos as p', 'p.id', 'subproductos.producto_id')
                 ->where('subproductos.id', $id)
-                ->select('p.precio_venta_l1', 'p.precio_venta_l2')->first();
+                ->select('p.precio_venta_l1', 'p.precio_venta_l2', 'p.controlar_stock')->first();
         }
+        $this->controlar_stock = $producto->controlar_stock;
+
         if($this->inicio_factura && $this->consignatario == 'Elegir' && $this->lista == '3') $this->emit('cargar_consignatario');
         else{
-            if($this->selected_id > 0){                 //si modificamos item
-                $record = Detfactura::find($this->selected_id);
-                $cantidad_detalle = $record->cantidad;
-                if($this->lista != '3'){
-                    if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
-                    else $stock = Stock::where('subproducto_id', $id)->first();   
-                    $stock_local = $stock->stock_actual; 
-                    $stock_local_nuevo = $stock_local + $cantidad_detalle; 
-                    if($stock_local_nuevo == null) $stock_local_nuevo = 0;
-                }
-                if($this->lista == '1'){              //verifico stock local
-                    if($stock_local_nuevo >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l1;
-                        $this->StoreOrUpdate($id);
-                    }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
-                }elseif($this->lista == '2'){         //verifico stock local 
-                    if($stock_local_nuevo >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l2;
-                        $this->StoreOrUpdate($id);
-                    }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
-                }else{                                //verifico stock consignatario
-                    if($this->es_producto == 1){
-                        $stock_consignacion = StockEnConsignacion::where('producto_id', $id)
-                            ->where('cliente_id', $this->clienteId)->get()->sum('cantidad');  
-                    }else{
-                        $stock_consignacion = StockEnConsignacion::where('subproducto_id', $id)
-                            ->where('cliente_id', $this->clienteId)->get()->sum('cantidad');
+            if($this->controlar_stock == 'si'){     //si se controla el stock 
+                if($this->selected_id > 0){                 //si modificamos item
+                    $record = Detfactura::find($this->selected_id);
+                    $cantidad_detalle = $record->cantidad;
+                    if($this->lista != '3'){
+                        if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
+                        else $stock = Stock::where('subproducto_id', $id)->first();   
+                        $stock_local = $stock->stock_actual; 
+                        $stock_local_nuevo = $stock_local + $cantidad_detalle; 
+                        if($stock_local_nuevo == null) $stock_local_nuevo = 0;
                     }
-                    $stock_consignacion_nuevo = $stock_consignacion + $cantidad_detalle;
+                    if($this->lista == '1'){              //verifico stock local
+                        if($stock_local_nuevo >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l1;
+                            $this->StoreOrUpdate($id);
+                        }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
+                    }elseif($this->lista == '2'){         //verifico stock local 
+                        if($stock_local_nuevo >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l2;
+                            $this->StoreOrUpdate($id);
+                        }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
+                    }else{                                //verifico stock consignatario
+                        if($this->es_producto == 1){
+                            $stock_consignacion = StockEnConsignacion::where('producto_id', $id)
+                                ->where('cliente_id', $this->clienteId)->get()->sum('cantidad');  
+                        }else{
+                            $stock_consignacion = StockEnConsignacion::where('subproducto_id', $id)
+                                ->where('cliente_id', $this->clienteId)->get()->sum('cantidad');
+                        }
+                        $stock_consignacion_nuevo = $stock_consignacion + $cantidad_detalle;
 
-                    if($stock_consignacion_nuevo == null) $stock_consignacion_nuevo = 0;
-                    if($stock_consignacion_nuevo >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l2; 
-                        $this->StoreOrUpdate($id);
-                    }else{
-                        $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
-                        $this->resetInput();
-                    }  
-                }
-            }else{                                     //si creamos item 
-                if($this->es_producto == 1){           //si es un producto
-                    $existe = Detfactura::select('id', 'cantidad') //buscamos si ya está cargado
-                        ->where('factura_id', $this->factura_id)
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('producto_id', $id)->get();  
-                }else{                                 //sino
-                    $existe = Detfactura::select('id', 'cantidad') //buscamos si el subproducto ya está cargado
-                        ->where('factura_id', $this->factura_id)
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('subproducto_id', $id)->get();
-                }
-                if($existe->count()) $cantidad_detalle = $existe[0]->cantidad;
-                else $cantidad_detalle = 0;
+                        if($stock_consignacion_nuevo == null) $stock_consignacion_nuevo = 0;
+                        if($stock_consignacion_nuevo >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l2; 
+                            $this->StoreOrUpdate($id);
+                        }else{
+                            $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
+                            $this->resetInput();
+                        }  
+                    }
+                }else{                                     //si creamos item 
+                    if($this->es_producto == 1){           //si es un producto
+                        $existe = Detfactura::select('id', 'cantidad') //buscamos si ya está cargado
+                            ->where('factura_id', $this->factura_id)
+                            ->where('comercio_id', $this->comercioId)
+                            ->where('producto_id', $id)->get();  
+                    }else{                                 //sino
+                        $existe = Detfactura::select('id', 'cantidad') //buscamos si el subproducto ya está cargado
+                            ->where('factura_id', $this->factura_id)
+                            ->where('comercio_id', $this->comercioId)
+                            ->where('subproducto_id', $id)->get();
+                    }
+                    if($existe->count()) $cantidad_detalle = $existe[0]->cantidad;
+                    else $cantidad_detalle = 0;
 
-                if($this->lista != '3'){
-                    if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
-                    else $stock = Stock::where('subproducto_id', $id)->first();
-                    if($stock != null) $stock_local = $stock->stock_actual;
-                    else return;
-                }
-                if($this->lista == '1'){
-                    if($stock_local >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l1;
-                        $this->StoreOrUpdate($id);
-                    }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
-                }elseif($this->lista == '2'){ 
-                    if($stock_local >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l2;
-                        $this->StoreOrUpdate($id);
-                    }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
-                }else{
-                    $cliente = null;
-                    if($this->inicio_factura) $cliente = $this->consignatario;
-                    else $cliente = $this->clienteId;
-                    if($this->es_producto == 1){
-                        $stock_consignacion = StockEnConsignacion::where('producto_id', $id)
-                            ->where('cliente_id', $cliente)
-                            ->get()->sum('cantidad');
+                    if($this->lista != '3'){
+                        if($this->es_producto == 1) $stock = Stock::where('producto_id', $id)->first();
+                        else $stock = Stock::where('subproducto_id', $id)->first();
+                        if($stock != null) $stock_local = $stock->stock_actual;
+                        else return;
+                    }
+                    if($this->lista == '1'){
+                        if($stock_local >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l1;
+                            $this->StoreOrUpdate($id);
+                        }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
+                    }elseif($this->lista == '2'){ 
+                        if($stock_local >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l2;
+                            $this->StoreOrUpdate($id);
+                        }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
                     }else{
-                        $stock_consignacion = StockEnConsignacion::where('subproducto_id', $id)
-                            ->where('cliente_id', $cliente)
-                            ->get()->sum('cantidad');
-                    }                    
-                    if($stock_consignacion >= $this->cantidad){
-                        $this->precio = $producto->precio_venta_l2; 
-                        $this->StoreOrUpdate($id);
-                    }else{
-                        $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
-                        $this->resetInput();
-                    }  
+                        $cliente = null;
+                        if($this->inicio_factura) $cliente = $this->consignatario;
+                        else $cliente = $this->clienteId;
+                        if($this->es_producto == 1){
+                            $stock_consignacion = StockEnConsignacion::where('producto_id', $id)
+                                ->where('cliente_id', $cliente)
+                                ->get()->sum('cantidad');
+                        }else{
+                            $stock_consignacion = StockEnConsignacion::where('subproducto_id', $id)
+                                ->where('cliente_id', $cliente)
+                                ->get()->sum('cantidad');
+                        }                    
+                        if($stock_consignacion >= $this->cantidad){
+                            $this->precio = $producto->precio_venta_l2; 
+                            $this->StoreOrUpdate($id);
+                        }else{
+                            $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
+                            $this->resetInput();
+                        }  
+                    }
                 }
+            }else{       //si no se controla stock
+                if($this->lista == '1') $this->precio = $producto->precio_venta_l1;
+                elseif($this->lista == '2') $this->precio = $producto->precio_venta_l2;
+                else $this->precio = $producto->precio_venta_l2;
+                $this->StoreOrUpdate($id);
             }
         }
     }
     public function StoreOrUpdate($id)
-    {           
+    {       
         $this->validate([ 'precio' => 'required' ]);
         DB::begintransaction();                         //iniciar transacción para grabar
         try{
@@ -574,32 +586,36 @@ class FacturaController extends Component
                 $record = DetFactura::find($this->selected_id);//primero modificamos el detalle
                 $cantidad_detalle = $record->cantidad;         
                 $record->update(['cantidad' => $this->cantidad]);
-                //modifico stock
-                if($this->lista != '3'){        //si se descuenta solo del stock local    
-                    if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
-                    else $record = Stock::where('subproducto_id', $id)->first(); 
-                    $stockActual = $record['stock_actual'] + $cantidad_detalle;
-                    $stockNuevo = $stockActual - $this->cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);   
-                }else{                          //stock condignatario
-                    $this->cantidad = -1 * abs($this->cantidad);  //invierte el signo  
-                    if($this->es_producto == 1){
-                        $existe = StockEnConsignacion::select('id')  //solo modifico la cantidad
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('producto_id', $id)->get();
-                    }else{
-                        $existe = StockEnConsignacion::select('id')  //solo modifico la cantidad
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('subproducto_id', $id)->get();
+                
+                if($this->controlar_stock == 'si'){
+                    //si se controla el stock del producto o subproducto, lo modifico
+                    if($this->lista != '3'){        //si se descuenta solo del stock local    
+                        if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
+                        else $record = Stock::where('subproducto_id', $id)->first(); 
+                        $stockActual = $record['stock_actual'] + $cantidad_detalle;
+                        $stockNuevo = $stockActual - $this->cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);   
+                    }else{                          //stock consignatario
+                        $this->cantidad = -1 * abs($this->cantidad);  //invierte el signo  
+                        if($this->es_producto == 1){
+                            $existe = StockEnConsignacion::select('id')  //solo modifico la cantidad
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('producto_id', $id)->get();
+                        }else{
+                            $existe = StockEnConsignacion::select('id')  //solo modifico la cantidad
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('subproducto_id', $id)->get();
+                        }
+                        if($existe->count()){
+                            $record = StockEnConsignacion::find($existe[0]->id);
+                            $record->update(['cantidad' => $this->cantidad]); 
+                        }
                     }
-                    if($existe->count()){
-                        $record = StockEnConsignacion::find($existe[0]->id);
-                        $record->update(['cantidad' => $this->cantidad]); 
-                    }
-                }                   
+                }
             }else {                             //crea
+                //inicializa variables
                 if($this->lista != '3'){
                     if($this->cliente == 'Elegir') $this->cliente = null; else $this->delivery = 1;
                 }else{
@@ -616,8 +632,9 @@ class FacturaController extends Component
                         ->where('caja_usuarios.estado', '1')->get();
                     if($nroArqueo->count()) $this->nro_arqueo = $nroArqueo[0]->id;  //este es el nro_arqueo del delivery
                 }  
+                //crea la factura
                 if($this->inicio_factura) {
-                    $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio); 
+                    $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio);
                     $factura = Factura::create([
                         'numero'         => $this->numFactura,
                         'cliente_id'     => $this->cliente,
@@ -674,50 +691,52 @@ class FacturaController extends Component
                             ]);      
                         }                     
                     }
-                }                
-                //modifico stock
-                if($this->lista != '3'){        //stock local    
-                    if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first(); 
-                    else $record = Stock::where('subproducto_id', $id)->first();  
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior - $this->cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);   
-                }else{                          //stock condignatario
-                    $this->cantidad = -1 * abs($this->cantidad);  //invierte el signo 
-                    if($this->es_producto == 1){             //modifico stock en consignación
-                        $existe = StockEnConsignacion::select('id')  
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('producto_id', $id)->get();
-                    }else{
-                        $existe = StockEnConsignacion::select('id')  
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('subproducto_id', $id)->get();   
-                    }
-                    if ($existe->count()){                                //si el producto ya está cargado
-                        $edit_cantidad = StockEnConsignacion::find($existe[0]->id); 
-                        $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
-                        $edit_cantidad->update(['cantidad' => $nueva_cantidad]);//actualizamos solo la cantidad
-                    }else{
-                        if($this->es_producto == 1){
-                            $inv_en_consig = StockEnConsignacion::create([   //sino creamos uno nuevo
-                                'cliente_id'  => $cliente,
-                                'factura_id'  => $this->factura_id,
-                                'producto_id' => $id,
-                                'cantidad'    => $this->cantidad,
-                                'comercio_id' => $this->comercioId
-                            ]);
+                }  
+                if($this->controlar_stock == 'si'){
+                    //si se controla el stock del producto o subproducto, lo modifico
+                    if($this->lista != '3'){        //stock local    
+                        if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first(); 
+                        else $record = Stock::where('subproducto_id', $id)->first();  
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior - $this->cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);   
+                    }else{                          //stock condignatario
+                        $this->cantidad = -1 * abs($this->cantidad);  //invierte el signo 
+                        if($this->es_producto == 1){             //modifico stock en consignación
+                            $existe = StockEnConsignacion::select('id')  
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('producto_id', $id)->get();
                         }else{
-                            $inv_en_consig = StockEnConsignacion::create([    //sino creamos uno nuevo
-                                'cliente_id'     => $cliente,
-                                'factura_id'     => $this->factura_id,
-                                'subproducto_id' => $id,
-                                'cantidad'       => $this->cantidad,
-                                'comercio_id'    => $this->comercioId
-                            ]);  
+                            $existe = StockEnConsignacion::select('id')  
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('subproducto_id', $id)->get();   
                         }
-                    } 
+                        if ($existe->count()){                                //si el producto ya está cargado
+                            $edit_cantidad = StockEnConsignacion::find($existe[0]->id); 
+                            $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
+                            $edit_cantidad->update(['cantidad' => $nueva_cantidad]);//actualizamos solo la cantidad
+                        }else{
+                            if($this->es_producto == 1){
+                                $inv_en_consig = StockEnConsignacion::create([   //sino creamos uno nuevo
+                                    'cliente_id'  => $cliente,
+                                    'factura_id'  => $this->factura_id,
+                                    'producto_id' => $id,
+                                    'cantidad'    => $this->cantidad,
+                                    'comercio_id' => $this->comercioId
+                                ]);
+                            }else{
+                                $inv_en_consig = StockEnConsignacion::create([    //sino creamos uno nuevo
+                                    'cliente_id'     => $cliente,
+                                    'factura_id'     => $this->factura_id,
+                                    'subproducto_id' => $id,
+                                    'cantidad'       => $this->cantidad,
+                                    'comercio_id'    => $this->comercioId
+                                ]);  
+                            }
+                        } 
+                    }
                 }
             }
             //actualizo el total de la factura
@@ -887,27 +906,41 @@ class FacturaController extends Component
                 $this->totalAgrabar = $importe;
                 $record = Factura::find($this->factura_id);  
                 $record->update(['importe' => $this->totalAgrabar]);
-                //actualizo stock
-                if($this->lista != '3'){    //si está en uso el stock local
-                    if($this->es_producto == 1) $record = Stock::where('producto_id', $producto_id)->first();   
-                    else $record = Stock::where('subproducto_id', $producto_id)->first();  
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior + $cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);   
-                }else{                       //si está en uso el stock en consignación
-                    if($this->es_producto == 1){            //elimino item del producto
-                        $existe = StockEnConsignacion::select('id')  
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('producto_id', $producto_id)->get();
-                    }else{                                  //elimino item del subproducto
-                        $existe = StockEnConsignacion::select('id')  
-                            ->where('factura_id', $this->factura_id)
-                            ->where('comercio_id', $this->comercioId)
-                            ->where('subproducto_id', $producto_id)->get();   
-                    }
-                    $record = StockEnConsignacion::find($existe[0]->id)->delete(); 
+
+                //consulto si se controla stock del producto o subproducto a eliminar
+                if($this->es_producto == 1){
+                    $record = Producto::where('id', $producto_id)->first();
+                }else{
+                    $record = Subproducto::where('id', $producto_id)->first();  
+                    $producto = $record['producto_id'];
+                    $record = Producto::where('id', $producto)->first();
                 }
+                $controlar_stock = $record->controlar_stock;
+
+                if($controlar_stock == 'si'){  //si se controla el stock 
+                    //actualizo stock
+                    if($this->lista != '3'){    //si está en uso el stock local
+                        if($this->es_producto == 1) $record = Stock::where('producto_id', $producto_id)->first();   
+                        else $record = Stock::where('subproducto_id', $producto_id)->first();  
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior + $cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);   
+                    }else{                       //si está en uso el stock en consignación
+                        if($this->es_producto == 1){            //elimino item del producto
+                            $existe = StockEnConsignacion::select('id')  
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('producto_id', $producto_id)->get();
+                        }else{                                  //elimino item del subproducto
+                            $existe = StockEnConsignacion::select('id')  
+                                ->where('factura_id', $this->factura_id)
+                                ->where('comercio_id', $this->comercioId)
+                                ->where('subproducto_id', $producto_id)->get();   
+                        }
+                        $record = StockEnConsignacion::find($existe[0]->id)->delete(); 
+                    }
+                }
+
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
                     'tabla' => 'Detalle de Facturas',
@@ -946,15 +979,27 @@ class FacturaController extends Component
                 //actualizo stock
                 $record = Detfactura::where('factura_id', $id)->get();
                 foreach ($record as $i){
-                    if($this->lista != '3'){    //si está en uso el stock local
-                        if($i->producto_id != null) $record = Stock::where('producto_id', $i->producto_id)->first(); 
-                        else $record = Stock::where('subproducto_id', $i->subproducto_id)->first();  
-                        $stockAnterior = $record['stock_actual'];
-                        $stockNuevo = $stockAnterior + $i->cantidad;  
-                        $record->update(['stock_actual' => $stockNuevo]);   
-                    }else{                       //si está en uso el stock en consignación
-                        $record = StockEnConsignacion::where('factura_id', $id)->get();
-                        foreach ($record as $i) $i->delete();
+                    //consulto si se controla stock del producto o subproducto a eliminar
+                    if($i->producto_id != null){
+                        $producto = Producto::where('id', $i->producto_id)->first();
+                    }else{
+                        $subproducto = Subproducto::where('id', $i->subproducto_id)->first();  
+                        $producto_id = $subproducto['producto_id'];
+                        $producto = Producto::where('id', $producto_id)->first();
+                    }
+                    $controlar_stock = $producto->controlar_stock;
+                    
+                    if($controlar_stock == 'si'){  //si se controla el stock 
+                        if($this->lista != '3'){    //si está en uso el stock local
+                            if($i->producto_id != null) $record = Stock::where('producto_id', $i->producto_id)->first(); 
+                            else $record = Stock::where('subproducto_id', $i->subproducto_id)->first();  
+                            $stockAnterior = $record['stock_actual'];
+                            $stockNuevo = $stockAnterior + $i->cantidad;  
+                            $record->update(['stock_actual' => $stockNuevo]);   
+                        }else{                       //si está en uso el stock en consignación
+                            $record = StockEnConsignacion::where('factura_id', $id)->get();
+                            foreach ($record as $i) $i->delete();
+                        }
                     }
                 }
                 session()->flash('msg-ok', 'Registro Anulado con éxito!!');

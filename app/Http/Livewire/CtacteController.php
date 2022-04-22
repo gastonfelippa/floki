@@ -15,7 +15,7 @@ use DB;
 class CtacteController extends Component
 {
     //public properties
-	public  $cliente = 'Elegir', $importeCobrado, $comentario, $suma = 0, $sumaFacturas = 0, $sumaRecibos = 0;           
+	public $cliente = 'Elegir', $importeCobrado, $comentario, $suma = 0, $sumaFacturas = 0, $sumaRecibos = 0;           
     public $selected_id = null, $search = '', $ver_historial = 0, $verHistorial = 0;  
     public $comercioId, $action = 1, $nomCli, $numRecibo, $cliSelected = '', $clienteId = '';
     public $nomApeCli, $totalCli, $facturas_a_cobrar = array(), $entrega = 0;

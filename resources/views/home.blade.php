@@ -2,8 +2,9 @@
     'modComandas'       => session('modComandas'),
     'modConsignaciones' => session('modConsignaciones'),
     'modViandas'        => session('modViandas'),
-    'modDelivery'       => session('modDelivery')
-  ])
+    'modDelivery'       => session('modDelivery'),
+    'modClubes'         => session('modClubes')
+])
 
 @section('logo')     
   @livewire('logo-controller')
@@ -22,6 +23,10 @@
                     <h1 class="text-center">Bienvenido <strong>{{Auth::user()->name}}!!!</strong></h1>
                 @endif             
             </div>
+            <!-- <div class="visible-print text-center">
+                {!! QrCode::size(100)->generate("www.floki.ar") !!}
+                <p>Escanéame para hacer tu pedido.</p>
+            </div> -->
         </div>
     </div>
 </div>

@@ -22,7 +22,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
         body {
-            background: url('../images/resto.jpg') no-repeat center center fixed;
+            background: url('../images/resto2.webp') no-repeat center center fixed;
             background-size: cover;
         }
     </style>

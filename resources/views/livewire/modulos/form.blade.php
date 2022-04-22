@@ -33,6 +33,12 @@
                     Módulo Consignaciones
                 </label>
             </div>           
+            <div class="form-check">
+                <input class="form-check-input" data-name="modClubes" {{$modClubes == 1 ? 'checked' : ''}} type="checkbox" id="mClubes">
+                <label class="form-check-label" for="mClubes">
+                    Módulo Clubes
+                </label>
+            </div>           
             </div>           
             </div>           
             </div>           

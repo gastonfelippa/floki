@@ -8,7 +8,7 @@ use App\Models\Modulo;
 class ModuloController extends Component
 {
     public $selected_id, $search, $action = 1; 
-    public $comercio, $modViandas, $modComandas, $modDelivery, $modConsignaciones; 
+    public $comercio, $modViandas, $modComandas, $modDelivery, $modConsignaciones, $modClubes; 
     public $comercioId;
 
     public function render()
@@ -21,9 +21,6 @@ class ModuloController extends Component
             $info = Modulo::join('comercios as c', 'c.id', 'modulos.comercio_id')
             ->select('modulos.*', 'c.nombre')->get();
         }
-
-
-
 
         return view('livewire.modulos.component', [
             'info' => $info
@@ -50,6 +47,7 @@ class ModuloController extends Component
         $this->modComandas       = $record->modComandas;
         $this->modDelivery       = $record->modDelivery;
         $this->modConsignaciones = $record->modConsignaciones;
+        $this->modClubes         = $record->modClubes;
     }
     public function AsignarModulos($modulosList)
     {
@@ -62,6 +60,8 @@ class ModuloController extends Component
         else $record->update([ 'modDelivery' => '0' ]);
         if (in_array('modConsignaciones', $modulosList)) $record->update([ 'modConsignaciones' => '1' ]);
         else $record->update([ 'modConsignaciones' => '0' ]);
+        if (in_array('modClubes', $modulosList)) $record->update([ 'modClubes' => '1' ]);
+        else $record->update([ 'modClubes' => '0' ]);
 
         $this->action = 1;
         session()->flash('msg-ok', 'Módulos asignados correctamente');

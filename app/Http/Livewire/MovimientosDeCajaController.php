@@ -82,13 +82,13 @@ class MovimientosDeCajaController extends Component
                 $record = MovimientoDeCaja::find($data->mov_id);  
                 $record->update([                       
                     'egreso_id' => $data->ing_egr_id,
-                    'importe' => $data->mov_importe
+                    'importe'   => $data->mov_importe
                 ]);
             }elseif($data->edit_ing_egr == 2){          //editar ingreso
                 $record = MovimientoDeCaja::find($data->mov_id);  
                 $record->update([                       
                     'ingreso_id' => $data->ing_egr_id,
-                    'importe' => $data->mov_importe
+                    'importe'    => $data->mov_importe
                 ]);
             }else{                                      //registro nuevo
                 if($this->estado == 1) $this->proveedor = $data->ing_egr_id;
@@ -98,12 +98,12 @@ class MovimientosDeCajaController extends Component
                 if($this->otro_ingreso == 'Elegir') $this->otro_ingreso = null;
 
                 MovimientoDeCaja::create([
-                    'ingreso_id' => $this->otro_ingreso,
-                    'egreso_id' => $this->proveedor,
-                    'importe' => $data->mov_importe,
-                    'user_id' => auth()->user()->id,
+                    'ingreso_id'  => $this->otro_ingreso,
+                    'egreso_id'   => $this->proveedor,
+                    'importe'     => $data->mov_importe,
+                    'user_id'     => auth()->user()->id,
                     'comercio_id' => $this->comercioId,
-                    'arqueo_id' => $this->nro_arqueo
+                    'arqueo_id'   => $this->nro_arqueo
                 ]);
             }
             session()->flash('msg-ok', 'Movimiento creado exitosamente!!!');

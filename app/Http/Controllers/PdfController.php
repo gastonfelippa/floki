@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\Comercio;
 use App\Models\Ctacte;
+use App\Models\CtaCteClub;
+use App\Models\Debito;
+use App\Models\DebitoGenerado;
 use App\Models\Detfactura;
 use App\Models\DetRemito;
 use App\Models\Factura;
@@ -26,7 +29,89 @@ use DB;
 class PdfController extends Controller
 {
     public $comercioId, $entrega = 0, $suma;
-    
+
+    public function PDFCuotaSocio()
+    {
+        $ultimo_debito_generado = DebitoGenerado::select('mes_año')->orderBy('id', 'desc')->first();
+ 
+        $debitos = Debito::join('socios as s', 's.id', 'debitos.socio_id')
+            ->join('det_debitos as dd', 'dd.debito_id', 'debitos.id')
+            ->join('debitos_generados as dg', 'dg.id', 'dd.debito_generado_id')
+            ->where('dg.mes_año', $ultimo_debito_generado->mes_año)
+            ->select('s.apellido', 's.nombre', 'debitos.numero', 'debitos.importe', 'dg.mes_año', DB::RAW("'' as nomApe"))->orderBy('s.apellido')->get();
+        foreach($debitos as $d){
+            $d->nomApe = substr($d->apellido . ' ' . $d->nombre,0,22);
+        }
+        $pdf = PDF::loadView('livewire.pdf.pdfCuotaSocio', compact('debitos'));
+        $pdf->setPaper('A4', 'portrait');
+        return $pdf->stream();
+        // return $pdf->download('cuotasocio.pdf');
+    }    
+    public function PDFResumenDeCuentaClub($socioId)
+    {
+        $importeEntrega =0;
+        $info = CtaCteClub::join('socios as s', 's.id', 'cta_cte_club.socio_id')
+            ->join('facturas as f', 'f.id', 'cta_cte_club.factura_id')
+            ->where('cta_cte_club.socio_id', $cliId)
+            ->where('f.estado', 'ctacte')
+            ->where('f.estado_pago', '0')
+            ->orWhere('cta_cte_club.socio_id', $cliId)
+            ->where('f.estado', 'ctacte')
+            ->where('f.estado_pago', '2')
+            ->select('cta_cte_club.factura_id', 'cta_cte_club.recibo_id', 'cta_cte_club.socio_id', 
+                    's.nombre', 's.apellido', DB::RAW("'' as fecha"), DB::RAW("'' as numero") , DB::RAW("'' as importe"), 
+                    DB::RAW("'' as importe_factura"), DB::RAW("'' as resto"))
+            ->orderBy('cta_cte_club.created_at')->get();
+
+        $infoEntrega = CtaCteClub::join('recibos as r', 'r.id', 'cta_cte.recibo_id')
+            ->where('cta_cte.socio_id', $cliId)
+            ->where('r.entrega', '1')
+            ->select('r.id','r.importe')->get();
+        foreach($infoEntrega as $i){
+            $verEstadoPagoFactura = ReciboFactura::join('facturas as f','f.id','recibo_facturas.factura_id')
+                ->where('recibo_facturas.recibo_id',$i->id)
+                ->where('f.estado_pago','2')->get();
+            if($verEstadoPagoFactura->count() > 0)
+            $importeEntrega += $i->importe; 
+        }  
+
+        $sumaDebitos=0;
+        $sumaRecibos=0;
+        foreach($info as $i) {
+            //busco todas las facturas
+            $importe = CtaCteClub::join('facturas as f', 'f.id', 'cta_cte.factura_id') 
+                ->where('f.id', $i->factura_id)
+                ->where('f.estado', 'ctacte')
+                ->where('f.estado_pago', '0')
+                ->orWhere('f.id', $i->factura_id)
+                ->where('f.estado', 'ctacte')
+                ->where('f.estado_pago', '2')
+                ->select('f.estado_pago', 'f.importe as importe', 'f.numero', 'f.created_at')->get();
+            $sumaDebitos += $importe[0]->importe; //calculo el total de las facturas de cada cliente
+            if($importe[0]->estado_pago == 0) $i->importe_factura = 1; //aviso de factura para pintar rojo   
+            else $i->importe_factura = 2;  //aviso de factura para pintar rojo/negrita            
+        
+            $i->fecha = $importe[0]->created_at;                        
+            $i->numero = $importe[0]->numero;                        
+            $i->importe = $importe[0]->importe;
+            //recupero las entregas y calculo el resto las facturas que correspondan
+            if($importe[0]->estado_pago == 2){
+                $entregas = 0;
+                $pagos = ReciboFactura::join('recibos as r', 'r.id', 'recibo_facturas.recibo_id')
+                    ->where('recibo_facturas.factura_id', $i->factura_id)
+                    ->select('r.importe')->get();
+                foreach($pagos as $p){
+                    $entregas += $p->importe;
+                }
+                $i->resto = $i->importe - $entregas;
+            }
+        } 
+        $totalCli = $sumaDebitos;
+        //calculo el saldo del cliente seleccionado
+        $saldo = $totalCli - $importeEntrega;
+        $pdf = PDF::loadView('livewire.pdf.pdfResumenDeCuenta', compact('info','importeEntrega','totalCli','saldo'));
+        return $pdf->stream();
+    }    
     public function PDF() 
     {
         $pdf = PDF::loadView('prueba');
@@ -40,7 +125,7 @@ class PdfController extends Controller
         $info = Factura::leftjoin('clientes as c','c.id','facturas.cliente_id')
             ->leftjoin('empleados as r','r.id','facturas.repartidor_id')
             ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli',
-                     'r.nombre as nomRep', 'r.apellido as apeRep',DB::RAW("'' as total"))
+                     'r.nombre as nomRep', 'r.apellido as apeRep', DB::RAW("'' as total"))
             ->where('facturas.estado','CTACTE')
             ->where('facturas.comercio_id', $this->comercioId)
             ->orderBy('facturas.id', 'asc')->get(); 
@@ -242,7 +327,7 @@ class PdfController extends Controller
             ->orderBy('c.apellido')->orderBy('c.nombre')->get();
         $suma=0;
         foreach($info as $i) {
-            $sumaFacturas=0;
+            $sumaDebitos=0;
             $sumaRecibos=0;
             //verifico si el registro es una factura o es un recibo
             $registroCtaCte = Ctacte::where('cta_cte.cliente_id', $i->cliente_id)->get();
@@ -256,10 +341,10 @@ class PdfController extends Controller
                         ->where('estado_pago', '2')
                         ->select('importe')->get();
                     foreach($importe as $imp){
-                           $sumaFacturas += $imp->importe; //calculo el total de las facturas de cada cliente
+                           $sumaDebitos += $imp->importe; //calculo el total de las facturas de cada cliente
                     }
                 }else { 
-                    if($sumaFacturas != 0){
+                    if($sumaDebitos != 0){
                         $importe = Recibo::where('id', $r->recibo_id)   //busco todos los recibos
                             ->where('entrega', 1)
                             ->select('importe')->get();
@@ -270,11 +355,59 @@ class PdfController extends Controller
                 }
             }
             // calculo el total para cada cliente
-            $i->importe = $sumaFacturas - $sumaRecibos;
+            $i->importe = $sumaDebitos - $sumaRecibos;
             // solo calculo el importe del total gral si se están mostrando todos los clientes
             $suma += $i->importe;
         }  
         $pdf = PDF::loadView('livewire.pdf.pdfListadoCtaCte', compact('info','suma'));
+        return $pdf->stream();  
+    }
+    public function PDFListadoCtaCteClub()
+    {
+        //busca el comercio que está en sesión
+        $this->comercioId = session('idComercio');
+
+        $info = CtaCteClub::join('socios as c', 'c.id', 'cta_cte_clubs.socio_id')
+            ->where('c.comercio_id', $this->comercioId)
+            ->where('c.saldo', '1')
+            ->select('cta_cte_clubs.socio_id', 'c.nombre', 'c.apellido', DB::RAW("'' as importe"))
+            ->groupBy('cta_cte_clubs.socio_id', 'c.nombre', 'c.apellido')
+            ->orderBy('c.apellido')->orderBy('c.nombre')->get();
+        $suma=0;
+        foreach($info as $i) {
+            $sumaDebitos=0;
+            $sumaRecibos=0;
+            //verifico si el registro es una factura o es un recibo
+            $registroCtaCte = CtaCteClub::where('cta_cte_clubs.socio_id', $i->socio_id)->get();
+            foreach($registroCtaCte as $r) {   
+                if($r->debito_id != null) {    //si es factura las voy sumando
+                    $importe = Debito::where('id', $r->debito_id)
+                        ->where('estado', 'ctacte')
+                        ->where('estado_pago', '0')
+                        ->orWhere('id', $r->debito_id)
+                        ->where('estado', 'ctacte')
+                        ->where('estado_pago', '2')
+                        ->select('importe')->get();
+                    foreach($importe as $imp){
+                           $sumaDebitos += $imp->importe; //calculo el total de los débitos de cada socio
+                    }
+                }else { 
+                    if($sumaDebitos != 0){
+                        $importe = Recibo::where('id', $r->recibo_id)   //busco todos los recibos
+                            ->where('entrega', 1)
+                            ->select('importe')->get();
+                        foreach($importe as $imp){
+                            $sumaRecibos += $imp->importe; //calculo el total de recibos de cada socio
+                        }
+                    }                        
+                }
+            }
+            // calculo el total para cada socio
+            $i->importe = $sumaDebitos - $sumaRecibos;
+            // solo calculo el importe del total gral si se están mostrando todos los socios
+            $suma += $i->importe;
+        }  
+        $pdf = PDF::loadView('livewire.pdf.pdfListadoCtaCteClub', compact('info','suma'));
         return $pdf->stream();  
     }
     public function PDFResumenDeCuenta($cliId)
@@ -305,7 +438,7 @@ class PdfController extends Controller
             $importeEntrega += $i->importe; 
         }  
 
-        $sumaFacturas=0;
+        $sumaDebitos=0;
         $sumaRecibos=0;
         foreach($info as $i) {
             //busco todas las facturas
@@ -317,7 +450,7 @@ class PdfController extends Controller
                 ->where('f.estado', 'ctacte')
                 ->where('f.estado_pago', '2')
                 ->select('f.estado_pago', 'f.importe as importe', 'f.numero', 'f.created_at')->get();
-            $sumaFacturas += $importe[0]->importe; //calculo el total de las facturas de cada cliente
+            $sumaDebitos += $importe[0]->importe; //calculo el total de las facturas de cada cliente
             if($importe[0]->estado_pago == 0) $i->importe_factura = 1; //aviso de factura para pintar rojo   
             else $i->importe_factura = 2;  //aviso de factura para pintar rojo/negrita            
         
@@ -336,7 +469,7 @@ class PdfController extends Controller
                 $i->resto = $i->importe - $entregas;
             }
         } 
-        $totalCli = $sumaFacturas;
+        $totalCli = $sumaDebitos;
         //calculo el saldo del cliente seleccionado
         $saldo = $totalCli - $importeEntrega;
         $pdf = PDF::loadView('livewire.pdf.pdfResumenDeCuenta', compact('info','importeEntrega','totalCli','saldo'));
@@ -357,4 +490,5 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
         return $pdf->stream();
     }
+
 }

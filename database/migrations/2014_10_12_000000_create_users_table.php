@@ -36,13 +36,9 @@ class CreateUsersTable extends Migration
             $table->datetime('fecha_ingreso')->nullable();
             $table->datetime('fecha_nac')->nullable();
 
-            // $table->unsignedBigInteger('comercio_id');
-            // $table->foreign('comercio_id')->references('id')->on('comercios');
-
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
-            // $table->enum('tipo', ['Empleado', 'Admin', 'Cliente'])->default('Empleado');
         });
     }
 
