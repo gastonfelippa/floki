@@ -104,7 +104,7 @@ class StockController extends Component
             $this->verStockEnConsignacion($this->producto_id, null);   //null,null
             $this->verHistorialStockEnConsignacion($this->producto_id, $this->cliente_id, null);  //null,null
 		}elseif($this->action == 2){  //stock consignatario
-            $info = Producto::select('id', 'codigo', 'descripcion', 'stock', DB::RAW("'' as stock_en_consignacion"), 
+            $info = Producto::select('id', 'codigo', 'descripcion', DB::RAW("'' as stock_en_consignacion"), 
             DB::RAW("'' as stock_total"), DB::RAW("'' as producto"), DB::RAW("'' as descProducto"))
                 ->where('comercio_id', $this->comercioId)
                 ->orderBy('descripcion')

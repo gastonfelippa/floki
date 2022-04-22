@@ -193,7 +193,7 @@
         }
         var data = JSON.stringify({
             'localidad': $('#localidad').val(),
-            'provincia_id'  : $('#provincia option:selected').val()
+            'provincia_id' : $('#provincia option:selected').val()
         });
 
         $('#modalAddLocalidad').modal('hide')
