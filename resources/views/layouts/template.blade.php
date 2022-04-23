@@ -183,7 +183,7 @@
                             @endcan -->
                             @can('Usuarios_index')
                                 <li>
-                                    <a href="{{ url('usuarios') }}"> EMPLEADOS  </a>
+                                    <a href="{{ url('usuarios') }}"> USUARIOS/EMPLEADOS  </a>
                                 </li>
                             @endcan
                             @if($modComandas == "1")

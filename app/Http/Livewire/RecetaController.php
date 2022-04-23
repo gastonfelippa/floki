@@ -108,11 +108,8 @@ class RecetaController extends Component
             $this->precio_venta_l2 = $precio_costo * 100 / (100 - $this->porcentaje_margen_2);
         }
         if ($this->redondear_precio_de_venta == 1){
-            $this->precio_venta_l1 = number_format(round($this->precio_venta_l1, 0),2);
-            $this->precio_venta_l2 = number_format(round($this->precio_venta_l2, 0),2);
-        }else{
-            $this->precio_venta_l1 = number_format($this->precio_venta_l1,2);
-            $this->precio_venta_l2 = number_format($this->precio_venta_l2,2);
+            $this->precio_venta_l1 = round($this->precio_venta_l1, 0);
+            $this->precio_venta_l2 = round($this->precio_venta_l2, 0);
         }
         ////////////////
         DB::begintransaction();

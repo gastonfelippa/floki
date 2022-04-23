@@ -177,6 +177,9 @@
         $.ajax('/keepAlive');
     }
     /////
+    function setfocus(id) {
+        document.getElementById(id).focus();
+    }
     window.onload = function() {
         if($('#caja_abierta').val() == 0){
             swal({

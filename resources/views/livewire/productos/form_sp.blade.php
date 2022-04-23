@@ -64,7 +64,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <button type="button" wire:click="doAction(2)" onclick="setfocus('nombre')"  class="btn btn-dark mr-1">
+                    <button type="button" wire:click="doAction(1)" onclick="setfocus('nombre')"  class="btn btn-dark mr-1">
                         <i class="mbri-left"></i> Volver
                     </button>
                 </div>

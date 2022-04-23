@@ -16,7 +16,7 @@ use DB;
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $tipo = 'Art. Venta', $sector ='0', $texto ='Elegir', $estado='Disponible';
+	public $categoria ='Elegir', $tipo = 'Ambos', $sector ='0', $texto ='Elegir', $estado='Disponible';
 	public $codigo = null, $codigo_sugerido, $descripcion, $categorias, $producto;
 	public $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
@@ -156,7 +156,7 @@ class ProductoController extends Component
 		$this->stock_actual        = null; 
 		$this->stock_ideal         = null; 
 		$this->stock_minimo        = null;
-		$this->tipo                = 'Art. Venta';
+		$this->tipo                = 'Ambos';
 		$this->categoria           = 'Elegir';
 		$this->sector              = '0';
 		$this->texto               = 'Elegir';

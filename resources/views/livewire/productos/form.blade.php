@@ -24,9 +24,9 @@
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Tipo</label>
                         <select wire:model="tipo" class="form-control text-left">
+                            <option value="Ambos">Ambos</option>
                             <option value="Art. Venta">Art. Venta</option>
                             <option value="Art. Compra">Art. Compra</option>
-                            <option value="Ambos">Ambos</option>
                         </select>
                     </div>
                     <div class="form-group col-md-2 col-sm-12">
