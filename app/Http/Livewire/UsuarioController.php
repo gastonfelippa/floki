@@ -279,56 +279,57 @@ class UsuarioController extends Component
             if($this->selected_id <= 0)
             {
                 $user = User::create([
-                    'name' => ucwords($this->name),
-                    'apellido' => ucwords($this->apellido),
-                    'documento' => $this->documento,
-                    'calle' => ucwords($this->calle),
-                    'numero' => $this->numero,
-                    'localidad_id' => $this->localidad,
-                    'telefono1' => $this->telefono1,
-                    'fecha_ingreso' => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
-                    'fecha_nac' => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
-                    'sexo' => $this->sexo,
-                    'email' => strtolower($this->email),
-                    'username' => $username,
-                    'password' => Hash::make($password),
-                    'pass' => $password,
-                    'abonado' => 'No'
-                    //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                    'name'              => ucwords($this->name),
+                    'apellido'          => ucwords($this->apellido),
+                    'documento'         => $this->documento,
+                    'calle'             => ucwords($this->calle),
+                    'numero'            => $this->numero,
+                    'localidad_id'      => $this->localidad,
+                    'telefono1'         => $this->telefono1,
+                    'fecha_ingreso'     => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
+                    'fecha_nac'         => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
+                    'sexo'              => $this->sexo,
+                    'email'             => strtolower($this->email),
+                    'username'          => $username,
+                    'password'          => Hash::make($password),
+                    'pass'              => $password,
+                    'abonado'           => 'No',
+                    'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
                 ]);
                     
                 UsuarioComercio::create([
-                    'usuario_id' => $user->id,            
+                    'usuario_id'  => $user->id,            
                     'comercio_id' => $this->comercioId           
                 ]);
 
                 ModelHasRole::create([
-                    'role_id' => $rolNoUsuario[0]->id,
+                    'role_id'    => $rolNoUsuario[0]->id,
                     'model_type' => 'App\Models\User',           
-                    'model_id' => $user->id           
+                    'model_id'   => $user->id           
                 ]);
             }
             else{
                 $user = User::find($this->selected_id);
                 $user->update([
-                    'name' => ucwords($this->name),
-                    'apellido' => ucwords($this->apellido),
-                    'documento' => $this->documento,
-                    'calle' => ucwords($this->calle),
-                    'numero' => $this->numero,
-                    'localidad_id' => $this->localidad,
-                    'telefono1' => $this->telefono1,
-                    'fecha_ingreso' => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
-                    'fecha_nac' => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
-                    'sexo' => $this->sexo,
-                    'email' => strtolower($this->email),
-                    'username' => $username,
+                    'name'              => ucwords($this->name),
+                    'apellido'          => ucwords($this->apellido),
+                    'documento'         => $this->documento,
+                    'calle'             => ucwords($this->calle),
+                    'numero'            => $this->numero,
+                    'localidad_id'      => $this->localidad,
+                    'telefono1'         => $this->telefono1,
+                    'fecha_ingreso'     => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
+                    'fecha_nac'         => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
+                    'sexo'              => $this->sexo,
+                    'email'             => strtolower($this->email),
+                    'username'          => $username,
                     'email_verified_at' => Carbon::now(),    //comentar cuando funcione la autenticacion en la nube
-                    'abonado' => 'No'
+                    'abonado'           => 'No'
                 ]);
             }
             DB::commit();
-            $this->sendEmail($user, $this->comercio, $this->admin);
+            //descomentar cuando funcione la autenticacion en la nube
+            //$this->sendEmail($user, $this->comercio, $this->admin);
             $this->doAction(1);
             if($this->selected_id > 0) session()->flash('message', 'Usuario Actualizado');            
             else session()->flash('message', 'Usuario creado exitosamente! Verificar envío de email');       

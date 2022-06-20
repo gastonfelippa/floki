@@ -156,17 +156,17 @@
             if (metaChar) {
                 metaChar = false;
             } else { 
-                if(key == 97){
+                if(key == 97){         //tecla a
                     document.getElementById("btnEnEspera").click();
-                }else if(key == 98){
+                }else if(key == 98){   //tecla b
                     document.getElementById("btnProcesando").click();
-                }else if(key == 99){
+                }else if(key == 99){   //tecla c
                     document.getElementById("btnTerminado").click();
-                }else if(key == 37){ //vuelve un estado
+                }else if(key == 37){ //vuelve un estado                 
                     cambiarEstado('atras');
                 }else if(key == 39){ //pasa al estado siguiente
                     cambiarEstado('adelante');
-                }else if(key == 104){ //sube a la comanda siguiente 38
+                }else if(key == 104){ //sube a la comanda siguiente 38     
                     seleccionarComanda('arriba');
                 }else if(key == 101){ //baja a la comanda siguiente 40
                     seleccionarComanda('abajo');

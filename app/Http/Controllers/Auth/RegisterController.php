@@ -74,7 +74,7 @@ class RegisterController extends Controller
             'apellido'       => ['required', 'string', 'max:255'],
             'nombreComercio' => ['required', 'string', 'max:255','unique:comercios,nombre'],
             'sexo'           => ['required', 'not_in:0'],
-            'email'          => ['required', 'string', 'email', 'max:255'],
+            'email'          => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
         ]);
     }
 
@@ -83,7 +83,7 @@ class RegisterController extends Controller
      *
      * @param  array  $data
      * @return \App\User
-     */
+     */ 
     protected function create(array $data)
     {
         //genera un password random de 8 caracteres y crea una sesion con ese password
@@ -123,8 +123,8 @@ class RegisterController extends Controller
                 'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
                 'pass'     => $password,
-                'abonado'  => 'Si'
-                //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                'abonado'  => 'Si',
+                'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
             $this->user=$user->id;
 
@@ -159,7 +159,7 @@ class RegisterController extends Controller
                 'comercio_id'  => $this->comercioId   
             ]); 
             
-            //asigno los módulos bàsicos
+            //asigno los módulos básicos
             if($data['tipo'] == "10"){
                 $modulos = Modulo::create([
                     'modViandas'        => '0',
@@ -309,7 +309,7 @@ class RegisterController extends Controller
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
             DB::commit();
-            $this->sendEmail($user, $this->comercio);
+            //$this->sendEmail($user, $this->comercio);  //descomentar cuando funcione la autenticacion en la nube
             
             return $user;
         }catch (Exception $e){

@@ -44,7 +44,7 @@ class PdfController extends Controller
         }
         $pdf = PDF::loadView('livewire.pdf.pdfCuotaSocio', compact('debitos'));
         $pdf->setPaper('A4', 'portrait');
-        return $pdf->stream();
+        return $pdf->stream('cuotasocio.pdf');
         // return $pdf->download('cuotasocio.pdf');
     }    
     public function PDFResumenDeCuentaClub($socioId)
@@ -408,7 +408,7 @@ class PdfController extends Controller
             $suma += $i->importe;
         }  
         $pdf = PDF::loadView('livewire.pdf.pdfListadoCtaCteClub', compact('info','suma'));
-        return $pdf->stream();  
+        return $pdf->stream('listactacte.pdf');  
     }
     public function PDFResumenDeCuenta($cliId)
     {

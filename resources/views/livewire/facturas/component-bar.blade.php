@@ -4,14 +4,17 @@
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
                 <div class="row">
-                    <div class="col-md-6 text-center">
-                        <h3 class="bg-danger" style="border-radius: 5px;">Mesa: {{$mesa}} - Mozo: {{$mozo}}</h3>
+                    <div class="col-md-4 text-center">
+                        <h4 class="bg-danger" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h4>
                         <!-- <h3>Factura N°: {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}}</h3> -->
                         <!-- <h6>{{$comanda_id}}</h6>
                         <h6>{{$unirComandas}}</h6> -->
                     </div>
-                    <div class="col-md-6 text-center">
-                        <h3 class="bg-danger" style="border-radius: 5px;">Total : $ {{number_format($total,2,',','.')}}</h3> 
+                    <div class="col-md-4 text-center">
+                        <h4 class="bg-danger" style="border-radius: 5px;">Total : $ {{number_format($total,2,',','.')}}</h4> 
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h4 class="bg-danger" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h4>
                     </div>
                 </div>  
                 <div class="row">
@@ -281,7 +284,7 @@
             <input type="hidden" id="tiene_comentario" value="{{$comentario_comanda}}">  
         </div> 
     </div>
-    @include('livewire.facturas.modal')  
+    @include('livewire.facturas.modal-bar')  
     @include('livewire.facturas.modalMesa')  
     @include('livewire.facturas.modalCtacte')  
     @include('livewire.facturas.modalSalsas')   
@@ -462,8 +465,8 @@
             return;
         }
         var data = JSON.stringify({
-            'mesa_id'   : $('#mesa option:selected').val(),
-            'mozo_id'   : $('#mozo option:selected').val()
+            'mesa_id' : $('#mesa option:selected').val(),
+            'mozo_id' : $('#mozo option:selected').val()
         });
         $('#modalMesa').modal('hide')
         window.livewire.emit('abrirMesa', data)
@@ -629,7 +632,7 @@
             })
         }
        
-        if($('#inicio_factura').val()) openModalMesa();
+        //if($('#inicio_factura').val()) openModalMesa();
 
         Livewire.on('facturaCobrada',()=>{
             Swal.fire({

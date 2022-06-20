@@ -16,14 +16,15 @@ use DB;
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $tipo = 'Ambos', $sector ='0', $texto ='Elegir', $estado='Disponible';
+	public $categoria ='Elegir', $tipo = 'Ambos', $sector = null, $texto = null, $estado='Disponible';
 	public $codigo = null, $codigo_sugerido, $descripcion, $categorias, $producto;
 	public $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
 	public $selected_id = null, $calcular_precio_de_venta, $redondear_precio_de_venta;
 	public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
 	public $action = 1, $search, $habilitar_model = false;
-	public $sectores, $textos, $salsa = false, $guarnicion = false, $tiene_receta = 'no', $controlar_stock = 'si';
+	public $sectores, $se_imprime = 0, $textos;
+	public $salsa = false, $guarnicion = false, $tiene_receta = 'no', $controlar_stock = 'si';
 	public $descripcion_sp, $search_sp, $tiene_sp = null;
 	public $comercioId, $comercioTipo, $modComandas, $modDelivery; 
 	
@@ -34,7 +35,9 @@ class ProductoController extends Component
 		$this->comercioTipo = session('tipoComercio');
 		$this->modDelivery = session('modDelivery');
 		$this->modComandas = session('modComandas');
-        session(['facturaPendiente' => null]);  
+        session(['facturaPendiente' => null]); 
+		
+		if($this->sector == null) $this->se_imprime = 0; else $this->se_imprime = 1;
 		
 		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
@@ -158,8 +161,9 @@ class ProductoController extends Component
 		$this->stock_minimo        = null;
 		$this->tipo                = 'Ambos';
 		$this->categoria           = 'Elegir';
-		$this->sector              = '0';
-		$this->texto               = 'Elegir';
+		$this->sector              = null;
+		$this->texto               = null;
+		$this->salsa               = false;
 		$this->estado              = 'Disponible';
 		$this->selected_id         = null;
 		$this->search              = '';

@@ -166,16 +166,7 @@
 			var dni = document.getElementById("documento");
 			toastr.error('El DNI ya está registrado...', 'Verifica los datos!')
 			dni.focus();
-			return false;		
-			// Swal.fire(
-			// 	'Verifica los datos!',
-			// 	'El DNI ya está registrado...',
-			// 	'error'
-			// )
-			// var dni = document.getElementById("documento");
-			// dni.text('');
-			// dni.focus();
-			// return false;
+			return false;	
 		})
 	}
 </script>

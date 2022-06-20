@@ -1,9 +1,10 @@
+
 @extends('layouts.template',[
-    'modComandas'       => session('modComandas'),
-    'modConsignaciones' => session('modConsignaciones'),
-    'modViandas'        => session('modViandas'),
-    'modDelivery'       => session('modDelivery'),
-    'modClubes'         => session('modClubes')
+  'modComandas'       => session('modComandas'),
+  'modConsignaciones' => session('modConsignaciones'),
+  'modViandas'        => session('modViandas'),
+  'modDelivery'       => session('modDelivery'),
+  'modClubes'         => session('modClubes')
 ])
 
 @section('logo')

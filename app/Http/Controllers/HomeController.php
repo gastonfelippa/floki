@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ArqueoGral;
 use App\Models\Comercio;
-use App\Models\Mesa;
 use App\Models\Modulo;
 use App\Models\User;
 use App\Models\UsuarioComercio;
@@ -146,7 +145,7 @@ class HomeController extends Controller
             {
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
                 else{
-                    return view('home');
+                    if ($this->comercioTipo == 10) return view('home-club'); else return view('home');
                 }
             }              
             
@@ -162,6 +161,6 @@ class HomeController extends Controller
     }
     public function notificado()
     {
-        return view('home');
+        if (session('tipoComercio') == 10) return view('home-club'); else return view('notify');
     }
 }

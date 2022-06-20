@@ -21,7 +21,7 @@ class CompraController extends Component
     public $selected_id = null, $search, $numFactura, $action = 1, $mostrar_datos;
     public $compras, $total, $importe, $totalAgrabar;  
     public $inicio_factura = true, $habilitar_botones =null,$modificar, $codigo;
-    public $comercioId, $factura_id;
+    public $comercioId, $comercioTipo, $factura_id;
     public $numeroFactura, $letra, $sucursal, $numFact, $fecha;
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
@@ -29,6 +29,7 @@ class CompraController extends Component
 	public function render()
 	{        
         $this->comercioId = session('idComercio');
+        $this->comercioTipo = session('tipoComercio');
                 
         $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
         if ($this->subproducto == 'Elegir'){
@@ -96,10 +97,12 @@ class CompraController extends Component
             }
         } 
 
-		return view('livewire.compras.component', [
-            'info' => $info,
-            'encabezado' => $encabezado
-		]);
+    return view('livewire.compras.component', [
+        'info' => $info,
+        'encabezado' => $encabezado
+    ]);
+
+	
     }
     
     protected $listeners = [

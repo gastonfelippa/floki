@@ -30,7 +30,7 @@ class CreateUsersTable extends Migration
             $table->enum('abonado', ['Si', 'No', 'Admin'])->default('No');
             $table->string('username')->unique()->nullable();
             $table->string('pass')->nullable();
-            $table->string('email')->nullable();
+            $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->datetime('fecha_ingreso')->nullable();

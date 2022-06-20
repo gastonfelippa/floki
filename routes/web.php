@@ -38,16 +38,22 @@ Route::get('/pdfListaDePrecios/{numero}', 'PdfController@PDFListaDePrecios');
 Route::get('/pdfCuotaSocio', 'PdfController@PDFCuotaSocio');
 
 Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
+Route::view('auditorias-club', 'auditorias-club')->middleware('permission:Auditorias_index');
 Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
+Route::view('empresa-club', 'empresa-club')->middleware('permission:Empresa_index');
 Route::view('permisos', 'permisos')->middleware('permission:Usuarios_index');
+Route::view('permisos-club', 'permisos-club')->middleware('permission:Usuarios_index');
 
 Route::view('productos', 'productos')->middleware('permission:Productos_index');
 Route::view('categorias', 'categorias')->middleware('permission:Categorias_index');
-Route::view('categoriasclub', 'categoriasclub')->middleware('permission:Categorias_index');
+Route::view('categorias-club', 'categorias-club')->middleware('permission:Categorias_index');
 Route::view('clientes', 'clientes')->middleware('permission:Clientes_index');
 Route::view('proveedores', 'proveedores')->middleware('permission:Proveedores_index');
+Route::view('proveedores-club', 'proveedores-club')->middleware('permission:Proveedores_index');
 Route::view('gastos', 'gastos')->middleware('permission:Gastos_index');
+Route::view('gastos-club', 'gastos-club')->middleware('permission:Gastos_index');
 Route::view('usuarios', 'usuarios')->middleware('permission:Usuarios_index');
+Route::view('usuarios-club', 'usuarios-club')->middleware('permission:Usuarios_index');
 Route::view('socios', 'socios')->middleware('permission:Clientes_index');
 Route::view('debitos', 'debitos')->middleware('permission:Clientes_index');
 Route::view('otrosdebitos', 'otrosdebitos')->middleware('permission:Clientes_index');
@@ -59,30 +65,39 @@ Route::view('textobasecomanda', 'textobasecomanda');
 Route::view('comandas', 'comandas');
 Route::view('mesas', 'mesas');
 Route::view('configuraciones', 'configuraciones');
+Route::view('configuraciones-club', 'configuraciones-club');
 Route::view('remitos', 'remitos');
 Route::view('stock', 'stock');
 Route::view('listadeprecios', 'listadeprecios');
 Route::view('recetas', 'recetas');
 Route::view('balance', 'balance');
+Route::view('balance-club', 'balance-club');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('facturasbar', 'facturasbar')->middleware('permission:Facturas_index');
 Route::view('compras', 'compras')->middleware('permission:Compras_index');
+Route::view('compras-club', 'compras-club')->middleware('permission:Compras_index');
 Route::view('facturasacobrar', 'facturasacobrar')->middleware('permission:Facturas_index');
 
 Route::view('habilitarcaja', 'habilitarcaja')->middleware('permission:HabilitarCaja_index');
+Route::view('habilitarcaja-club', 'habilitarcaja-club')->middleware('permission:HabilitarCaja_index');
 Route::view('arqueodecaja', 'arqueodecaja')->middleware('permission:ArqueoDeCaja_index');
+Route::view('arqueodecaja-club', 'arqueodecaja-club')->middleware('permission:ArqueoDeCaja_index');
 Route::view('arqueogral', 'arqueogral');
+Route::view('arqueogral-club', 'arqueogral-club');
 Route::view('cajarepartidor', 'cajarepartidor')->middleware('permission:CajaRepartidor_index');
+Route::view('cajarepartidor-club', 'cajarepartidor-club')->middleware('permission:CajaRepartidor_index');
 Route::view('movimientosdecaja', 'movimientosdecaja')->middleware('permission:MovimientosDiarios_index');
+Route::view('movimientosdecaja-club', 'movimientosdecaja-club')->middleware('permission:MovimientosDiarios_index');
 
 Route::view('ventasdiarias', 'ventasdiarias')->middleware('permission:VentasDiarias_index');
 Route::view('ventasporfechas', 'ventasporfechas')->middleware('permission:VentasPorFechas_index');
 
 Route::view('viandas', 'viandas')->middleware('permission:Viandas_index');
 Route::view('ctacte', 'ctacte')->middleware('permission:Ctacte_index');
-Route::view('ctacteclub', 'ctacteclub')->middleware('permission:Ctacte_index');
+Route::view('ctacte-club', 'ctacte-club')->middleware('permission:Ctacte_index');
 Route::view('otroingreso', 'otroingreso')->middleware('permission:OtroIngreso_index');
+Route::view('otroingreso-club', 'otroingreso-club')->middleware('permission:OtroIngreso_index');
 
 
 //rutas ADMIN
