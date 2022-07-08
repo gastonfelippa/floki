@@ -145,7 +145,7 @@ class UserSeeder extends Seeder
             'name'        => 'SuperAdmin', 
             'alias'       => 'SuperAdmin',
             'comercio_id' => '1',
-            'admite_caja'  => null
+            'admite_caja' => null
         ]); 
         
         //asignación de permisos a roles
@@ -186,22 +186,23 @@ class UserSeeder extends Seeder
         CondIva::create(['descripcion' => 'IVA No Alcanzado']);
 
         User::create([
-            'name' => 'Gastón',
-            'apellido'=> 'Felippa', 
-            'sexo' => '2',
-            'username' => 'admin@floki',
-            'email' => 'floki.adm@gmail.com',
-            'password' => bcrypt('123floki'),
-            'pass' => '123floki',
-            'abonado' => 'Admin'
+            'name'              => 'Gastón',
+            'apellido'          => 'Felippa', 
+            'sexo'              => '2',
+            'username'          => 'admin@floki',
+            'email'             => 'floki.adm@gmail.com',
+            'password'          => bcrypt('123floki'),
+            'pass'              => '123floki',
+            'abonado'           => 'Admin',
+            'email_verified_at' => Carbon::now() //comentar cuando funcione la autenticacion en la nube
         ]);     
 
         // $user = User::find(1);
         // $user->assignRole('SuperAdmin');
         ModelHasRole::create([
-            'role_id' => 1,
+            'role_id'    => 1,
             'model_type' => 'App\Models\User',           
-            'model_id' => 1           
+            'model_id'   => 1           
         ]);
 
         Proceso::create(['descripcion' => 'Renovación Automática De Planes', 'dia_ejecucion'=> '1']);

@@ -129,7 +129,7 @@
                             </div>
                         </div>
                     </div>
-                    @endif
+                   
                     <div class="form-group col-9 col-md-2">
                         <label>¿Lleva salsa?</label>
                         <div class="input-group">
@@ -172,6 +172,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
                 @endif
                 <div class="col-9 col-md-4 layout-spacing">

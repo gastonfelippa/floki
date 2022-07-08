@@ -266,7 +266,7 @@
                         <ul class="collapse submenu list-unstyled" id="ventas"  data-parent="#topAccordion">
                             @if($modComandas == "1")
                                 <li>
-                                    <a href="{{ url('mesas') }}" >FACTURA</a>
+                                    <a href="{{ url('abrir-mesa') }}" >FACTURA</a>
                                 </li>
                             @else
                                 <li>

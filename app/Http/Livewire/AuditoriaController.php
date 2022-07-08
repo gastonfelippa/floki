@@ -110,6 +110,11 @@ class AuditoriaController extends Component
                         ->select('df.cantidad', 'p.descripcion', 'f.numero')->get();
                     $i->item = number_format($info2[0]->cantidad,2,',','.') . ' ' . $info2[0]->descripcion . ' - ' . 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);
                     break; 
+                case 'Mesas':                           
+                    $info2 = Auditoria::join('mesas as c', 'c.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)->select('c.descripcion')->get();
+                    $i->item = 'Mesa ' . $info2[0]->descripcion;
+                    break; 
                 default:
             } 
         }

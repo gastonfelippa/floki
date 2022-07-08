@@ -25,13 +25,14 @@ class ComandaController extends Component
         $this->contadorP  = -1;
         $this->contadorT  = -1;
         
-        if($this->vista == null) $this->vista = 1;
+        if($this->vista == null) $this->vista = '1';
         
         $this->infoEnEspera = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
             ->join('users as u', 'u.id', 'f.mozo_id')
             ->join('mesas as m', 'm.id', 'f.mesa_id')
+            ->where('f.estado', 'abierta')
             ->where('comandas.estado', 'en espera')
-            ->where('sectorcomanda_id', 1)
+            ->where('sectorcomanda_id', 4)
             ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
             ->orderBy('comandas.sent_at', 'asc')->get(); 
         foreach($this->infoEnEspera as $i){
@@ -47,12 +48,13 @@ class ComandaController extends Component
             ->where('c.estado', 'en espera')->orderBy('descripcion')->get();
     
         $this->infoProcesando = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
-        ->join('users as u', 'u.id', 'f.mozo_id')
-        ->join('mesas as m', 'm.id', 'f.mesa_id')
-        ->where('comandas.estado', 'procesando')
-        ->where('sectorcomanda_id', 1)
-        ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-        ->orderBy('comandas.sent_at')->get();
+            ->join('users as u', 'u.id', 'f.mozo_id')
+            ->join('mesas as m', 'm.id', 'f.mesa_id')
+            ->where('f.estado', 'abierta')
+            ->where('comandas.estado', 'procesando')
+            ->where('sectorcomanda_id', 4)
+            ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
+            ->orderBy('comandas.sent_at')->get();
         foreach($this->infoProcesando as $i){
             $this->contadorP = $this->contadorP + 1;
             $date = Carbon::parse($i->sent_at);
@@ -67,12 +69,13 @@ class ComandaController extends Component
 
 
         $this->infoTerminado = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
-        ->join('users as u', 'u.id', 'f.mozo_id')
-        ->join('mesas as m', 'm.id', 'f.mesa_id')
-        ->where('comandas.estado', 'terminado')
-        ->where('sectorcomanda_id', 1)
-        ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-        ->orderBy('finished_at','desc')->get();
+            ->join('users as u', 'u.id', 'f.mozo_id')
+            ->join('mesas as m', 'm.id', 'f.mesa_id')
+            ->where('f.estado', 'abierta')
+            ->where('comandas.estado', 'terminado')
+            ->where('sectorcomanda_id', 4)
+            ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
+            ->orderBy('finished_at','desc')->get();
         foreach($this->infoTerminado as $i){
             $this->contadorT = $this->contadorT + 1;
             $date = Carbon::parse($i->finished_at);
@@ -136,12 +139,13 @@ class ComandaController extends Component
                 }else $record->update(['estado' => $estado]);
                 
                 $this->infoEnEspera = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
-                ->join('users as u', 'u.id', 'f.mozo_id')
-                ->join('mesas as m', 'm.id', 'f.mesa_id')
-                ->where('comandas.estado', 'en espera')
-                ->where('sectorcomanda_id', 1)
-                ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-                ->orderBy('comandas.sent_at', 'asc')->get(); 
+                    ->join('users as u', 'u.id', 'f.mozo_id')
+                    ->join('mesas as m', 'm.id', 'f.mesa_id')
+                    ->where('f.estado', 'abierta')
+                    ->where('comandas.estado', 'en espera')
+                    ->where('sectorcomanda_id', 4)
+                    ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
+                    ->orderBy('comandas.sent_at', 'asc')->get(); 
                 foreach($this->infoEnEspera as $i){
                     $this->contadorEE = $this->contadorEE + 1;
                     $date = Carbon::parse($i->sent_at);
@@ -155,12 +159,13 @@ class ComandaController extends Component
                     ->where('c.estado', 'en espera')->orderBy('descripcion')->get();
         
                 $this->infoProcesando = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
-                ->join('users as u', 'u.id', 'f.mozo_id')
-                ->join('mesas as m', 'm.id', 'f.mesa_id')
-                ->where('comandas.estado', 'procesando')
-                ->where('sectorcomanda_id', 1)
-                ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-                ->orderBy('comandas.sent_at')->get();
+                    ->join('users as u', 'u.id', 'f.mozo_id')
+                    ->join('mesas as m', 'm.id', 'f.mesa_id')
+                    ->where('f.estado', 'abierta')
+                    ->where('comandas.estado', 'procesando')
+                    ->where('sectorcomanda_id', 4)
+                    ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
+                    ->orderBy('comandas.sent_at')->get();
                 foreach($this->infoProcesando as $i){
                     $this->contadorP = $this->contadorP + 1;
                     $date = Carbon::parse($i->sent_at);
@@ -175,12 +180,13 @@ class ComandaController extends Component
         
     
                 $this->infoTerminado = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
-                ->join('users as u', 'u.id', 'f.mozo_id')
-                ->join('mesas as m', 'm.id', 'f.mesa_id')
-                ->where('comandas.estado', 'terminado')
-                ->where('sectorcomanda_id', 1)
-                ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
-                ->orderBy('finished_at','desc')->get();
+                    ->join('users as u', 'u.id', 'f.mozo_id')
+                    ->join('mesas as m', 'm.id', 'f.mesa_id')
+                    ->where('f.estado', 'abierta')
+                    ->where('comandas.estado', 'terminado')
+                    ->where('sectorcomanda_id', 4)
+                    ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
+                    ->orderBy('finished_at','desc')->get();
                 foreach($this->infoTerminado as $i){
                     $this->contadorT = $this->contadorT + 1;
                     $date = Carbon::parse($i->finished_at);

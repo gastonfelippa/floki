@@ -9,7 +9,7 @@ use DB;
 
 class ListaDePreciosController extends Component
 {
-    public $comercioId, $action = 1, $lista = 1;
+    public $search, $comercioId, $action = 1, $lista = 1;
 
     public function render()
     {
@@ -18,11 +18,23 @@ class ListaDePreciosController extends Component
         session(['facturaPendiente' => null]);  
 
         if($this->lista == 1){
-            $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')
-                ->where('comercio_id', $this->comercioId)->get();
+            if(strlen($this->search) > 0){
+                $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')
+                ->where('comercio_id', $this->comercioId)
+                ->where('descripcion', 'like', '%' .  $this->search . '%')->get();
+            }else{
+                $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')
+                    ->where('comercio_id', $this->comercioId)->get();
+            }
         }else{
-            $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
-                ->where('comercio_id', $this->comercioId)->get();
+            if(strlen($this->search) > 0){
+                $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
+                ->where('comercio_id', $this->comercioId)
+                ->where('descripcion', 'like', '%' .  $this->search . '%')->get();
+            }else{
+                $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
+                    ->where('comercio_id', $this->comercioId)->get();
+            }
         }
         return view('livewire.listadeprecios.component', ['info' => $info]);
     }

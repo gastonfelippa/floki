@@ -72,6 +72,7 @@ Route::view('listadeprecios', 'listadeprecios');
 Route::view('recetas', 'recetas');
 Route::view('balance', 'balance');
 Route::view('balance-club', 'balance-club');
+Route::view('abrir-mesa', 'abrir-mesa');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('facturasbar', 'facturasbar')->middleware('permission:Facturas_index');

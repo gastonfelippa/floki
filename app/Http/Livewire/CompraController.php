@@ -31,7 +31,10 @@ class CompraController extends Component
         $this->comercioId = session('idComercio');
         $this->comercioTipo = session('tipoComercio');
                 
-        $this->productos = Producto::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion', 'asc')->get();
+        $this->productos = Producto::select()
+            ->where('comercio_id', $this->comercioId)
+            ->where('tipo', '<>', 'Art. Venta')
+            ->orderBy('descripcion', 'asc')->get();
         if ($this->subproducto == 'Elegir'){
             $this->subproductos = Subproducto::where('producto_id', $this->producto)
                 ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();

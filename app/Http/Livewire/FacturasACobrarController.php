@@ -16,7 +16,7 @@ use DB;
 class FacturasACobrarController extends Component
 {
 
-    public $comercioId, $salon, $action='1', $nombreCliente, $infoDetalle, $selected_id = null;
+    public $comercioId, $modDelivery, $salon, $action='1', $nombreCliente, $infoDetalle, $selected_id = null;
     public $producto, $productos, $cantidadEdit, $productoEdit, $precioEdit;
     public $editFacturaId ='', $comentario = '', $caja_abierta, $importeFactura;
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
@@ -26,6 +26,7 @@ class FacturasACobrarController extends Component
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        $this->modDelivery = session('modDelivery');
         session(['facturaPendiente' => null]); 
         
         //averiguo el id del Cons Final
@@ -65,16 +66,33 @@ class FacturasACobrarController extends Component
                 $this->importeFactura += $i->importe;
             }
         }
-        $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
-            ->join('users as u','u.id','facturas.repartidor_id')
-            ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
-                    'u.apellido as apeRep')
-            ->where('facturas.comercio_id', $this->comercioId)
-            ->where('facturas.estado','like','pendiente')
-            ->where('facturas.repartidor_id', $this->salon[0]->id)
-            ->where('facturas.user_id', auth()->user()->id)
-            ->orderBy('facturas.id', 'asc')->get();
-
+        if($this->modDelivery == '1'){
+            $info = Factura::join('mesas as m','m.id','facturas.mesa_id')
+                ->select('facturas.*', 'm.descripcion')
+                ->where('facturas.comercio_id', $this->comercioId)
+                ->where('facturas.estado','like','abierta')
+                ->where('facturas.user_id', auth()->user()->id)
+                ->orderBy('id', 'asc')->get();
+                //dd($info);
+            // $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
+            //     ->join('users as u','u.id','facturas.repartidor_id')
+            //     ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
+            //             'u.apellido as apeRep')
+            //     ->where('facturas.comercio_id', $this->comercioId)
+            //     ->where('facturas.estado','like','abierta')
+            //     ->where('facturas.user_id', auth()->user()->id)
+            //     ->orderBy('facturas.id', 'asc')->get();
+        }else{
+            $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
+                ->join('users as u','u.id','facturas.repartidor_id')
+                ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
+                        'u.apellido as apeRep')
+                ->where('facturas.comercio_id', $this->comercioId)
+                ->where('facturas.estado','like','pendiente')
+                ->where('facturas.repartidor_id', $this->salon[0]->id)
+                ->where('facturas.user_id', auth()->user()->id)
+                ->orderBy('facturas.id', 'asc')->get(); 
+        }
         return view('livewire.facturasacobrar.component', [
             'info' => $info
         ]);

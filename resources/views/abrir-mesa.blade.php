@@ -6,19 +6,15 @@
   'modClubes'         => session('modClubes')
 ])
 
-@section('logo')     
+@section('logo')
+
   @livewire('logo-controller')
+
 @endsection
 
+@section('content')
+     
+<!-- @livewire('abrir-mesa-controller') -->
+  @livewire('reservas-estado-mesas-controller')
 
-
-@if(session('modComandas') == "1")
-<script type="text/javascript">
-    window.onkeydown=PulsarTecla;
-    function PulsarTecla(event)
-    {
-        tecla = event.keyCode;
-        if(tecla==13) window.location.href="{{ url('abrir-mesa') }}";
-    }
-</script>
-@endif
+@endsection

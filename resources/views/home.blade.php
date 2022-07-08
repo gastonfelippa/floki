@@ -38,7 +38,7 @@
     function PulsarTecla(event)
     {
         tecla = event.keyCode;
-        if(tecla==13) window.location.href="{{ url('mesas') }}";
+        if(tecla==13) window.location.href="{{ url('abrir-mesa') }}";
     }
 </script>
 @endif

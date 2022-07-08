@@ -4,23 +4,20 @@
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
                 <div class="row">
-                    <div class="col-md-4 text-center">
-                        <h4 class="bg-danger" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h4>
-                        <!-- <h3>Factura N°: {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}}</h3> -->
-                        <!-- <h6>{{$comanda_id}}</h6>
-                        <h6>{{$unirComandas}}</h6> -->
+                    <div class="col-md-2 text-left">
+                        <h4 class="bg-danger" style="border-radius: 5px;">M: {{$mesaDesc}}</h4>
                     </div>
-                    <div class="col-md-4 text-center">
+                    <div class="col-md-5 text-center">
                         <h4 class="bg-danger" style="border-radius: 5px;">Total : $ {{number_format($total,2,',','.')}}</h4> 
                     </div>
-                    <div class="col-md-4 text-center">
+                    <div class="col-md-5 text-center">
                         <h4 class="bg-danger" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h4>
                     </div>
                 </div>  
                 <div class="row">
                     <div class="col-md-3">
-                        <p style="font-size:14px;">Fact. N°: {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}} <p>
-                        <p style="font-size:14px;">Fecha {{\Carbon\Carbon::now()->format('d-m-Y')}} <p>
+                        <div style="font-size:13px;"><b>Fact. N° </b> {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}} </div>
+                        <div style="font-size:13px;"><b>Fecha</b> {{\Carbon\Carbon::parse(strtotime($fecha))->format('d-m-Y')}} </div>
                     </div>                    
                     <div class="col-md-9 text-right">
                         <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
@@ -144,7 +141,7 @@
                 <a class="nav-link {{$tab == 'factura' ? 'active' : ''}}" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Factura</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{$tab == 'comanda' ? 'active' : ''}}" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Comanda</a>
+                <a class="nav-link {{$tab == 'comanda' ? 'active' : ''}}"  style="color:red;" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false"><b>Comanda</b></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" wire:click="enviarComanda()" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="false">Enviar Comanda</a>
@@ -285,7 +282,7 @@
         </div> 
     </div>
     @include('livewire.facturas.modal-bar')  
-    @include('livewire.facturas.modalMesa')  
+    <!-- @include('livewire.facturas.modalMesa')   -->
     @include('livewire.facturas.modalCtacte')  
     @include('livewire.facturas.modalSalsas')   
     @else    
@@ -448,29 +445,29 @@
         $('#modalCtacte').modal('hide')
         window.livewire.emit('factura_ctacte', data)
     } 
-    function openModalMesa()
-    {
-        $('#mesa').val('Elegir')
-        $('#mozo').val('Elegir')
-        $('#modalMesa').modal('show')
-	}
-    function abrirMesa()
-    {
-        if($('#mesa option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para la Mesa')
-            return;
-        }
-        if($('#mozo option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Mozo')
-            return;
-        }
-        var data = JSON.stringify({
-            'mesa_id' : $('#mesa option:selected').val(),
-            'mozo_id' : $('#mozo option:selected').val()
-        });
-        $('#modalMesa').modal('hide')
-        window.livewire.emit('abrirMesa', data)
-    }
+    // function openModalMesa()
+    // {
+    //     $('#mesa').val('Elegir')
+    //     $('#mozo').val('Elegir')
+    //     $('#modalMesa').modal('show')
+	// }
+    // function abrirMesa()
+    // {
+    //     if($('#mesa option:selected').val() == 'Elegir') {
+    //         toastr.error('Elige una opción válida para la Mesa')
+    //         return;
+    //     }
+    //     if($('#mozo option:selected').val() == 'Elegir') {
+    //         toastr.error('Elige una opción válida para el Mozo')
+    //         return;
+    //     }
+    //     var data = JSON.stringify({
+    //         'mesa_id' : $('#mesa option:selected').val(),
+    //         'mozo_id' : $('#mozo option:selected').val()
+    //     });
+    //     $('#modalMesa').modal('hide')
+    //     window.livewire.emit('abrirMesa', data)
+    // }
     function openModal(id)
     {
         $('#facturaId').val(id)
@@ -585,7 +582,7 @@
     {
         var texto_comanda = $('#texto_comanda').val();
         $('#modalSalsas').modal('hide')
-        window.livewire.emit('StoreOrUpdate', texto_comanda,1);
+        window.livewire.emit('StoreOrUpdate', texto_comanda);
     } 
     /////código para prolongar la session
     var keep_alive = false;
@@ -644,7 +641,7 @@
             })
             if($('#ultima_factura').val() == 1){
                 window.location.href="{{ url('notify') }}";
-            }
+            }else window.location.href="{{ url('abrir-mesa') }}";
 		})          
         Livewire.on('facturaCtaCte',()=>{
             Swal.fire({

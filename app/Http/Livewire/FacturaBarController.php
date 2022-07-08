@@ -24,11 +24,11 @@ use DB;
 class FacturaBarController extends Component
 {
 	//properties
-    public $cantidad = 1, $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos;
+    public $cantidad = '', $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos;
     public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $mesa="Elegir", $mozo="Elegir", $salon =null;
     public $clientes, $empleados, $productos, $mesas, $mozos;
     public $selected_id = null, $search, $numFactura, $action = 1;
-    public $facturas,  $total, $importe, $totalAgrabar, $delivery = 0;  
+    public $facturas, $fecha, $total, $importe, $totalAgrabar, $delivery = 0;  
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
     public $comercioId, $arqueoGralId, $factura_id = null, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
@@ -37,7 +37,7 @@ class FacturaBarController extends Component
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $salsas, $guarniciones, $salsa = 0, $guarnicion = 0, $texto_base = null, $comentario_comanda='null';
     public $comanda_id, $inicio_comanda, $sector_comanda, $texto_comanda, $cantidad_comanda;
-    public $tabFactura = 'factura', $unirComandas = 'no', $estadoComanda, $tab = 'factura';
+    public $tabFactura = 'factura', $unir_comandas = 'no', $estadoComanda, $tab = 'factura';
     public $modDelivery, $mesaId, $mozoId, $mesaDesc, $mozoDesc;
 	
 	public function render()
@@ -53,19 +53,22 @@ class FacturaBarController extends Component
         $buscar_mesa = Mesa::find($this->mesaId);
         $this->mesaDesc = $buscar_mesa->descripcion;
 
-        if(session()->has('idMozo')){
+        if(session()->has('idMozo')){             //si es una mesa nueva
             //$this->mozoDesc = session("idMozo");       //si queremos que muestre el id del mozo en la factura
             $buscar_mozo = User::find(session("idMozo")); //si queremos que muestre el nombre del mozo en la factura
-            //dd($buscar_mozo);
             $this->mozoDesc = $buscar_mozo->apellido . ' ' . $buscar_mozo->name;
+            $this->mozoId = $buscar_mozo->id;
         }else{
             $buscarMozo = Factura::where('comercio_id', $this->comercioId)
                 ->where('mesa_id', $this->mesaId)
-                ->where('estado', 'abierta')->select('id', 'mozo_id')->get();
+                ->where('estado', 'abierta')
+                ->select('id', 'mozo_id')->get();
+          
             $this->factura_id = $buscarMozo[0]->id; 
             //$this->mozoDesc  = $buscarMozo[0]->mozo_id;    //si queremos que muestre el id del mozo en la factura
-             $buscar_mozo = User::find($this->mozoId ); //si queremos que muestre el nombre del mozo en la factura
-             $this->mozoDesc = $buscar_mozo->name;
+            $buscar_mozo = User::find($buscarMozo[0]->mozo_id); //si queremos que muestre el nombre del mozo en la factura
+            $this->mozoDesc = $buscar_mozo->apellido . ' ' . $buscar_mozo->name;
+            $this->mozoId = $buscar_mozo->id;
         }
          
         //busco el estado del Arqueo Gral
@@ -136,39 +139,39 @@ class FacturaBarController extends Component
             $this->inicio_factura = true;
         }else{  //sino, busco si hay alguna factura abierta
             if($this->factura_id){
-                $encabezado = Factura::find($this->factura_id);
-                // $encabezado = Factura::join('mesas as m', 'm.id', 'facturas.mesa_id')
-                //     ->where('facturas.estado','like','abierta')->where('facturas.comercio_id', $this->comercioId)
-                //     ->select('facturas.*', 'facturas.numero as nroFact', 'm.descripcion')->get();
+                //$encabezado = Factura::find($this->factura_id);
+                $encabezado = Factura::join('mesas as m', 'm.id', 'facturas.mesa_id')
+                    ->where('facturas.id', $this->factura_id)
+                    ->select('facturas.*', 'facturas.numero as nroFact', 'm.descripcion')->get();
                     //verifico si es delivery para recuperar los datos de Cli/Rep
-                   // dd($this->factura_id);
-                if($encabezado->count() && $encabezado->cliente_id <> null){                
+                if($encabezado->count() && $encabezado[0]->cliente_id){                
                     $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
                         ->join('users as u','u.id','facturas.repartidor_id')
                         ->join('mesas as m','m.id','facturas.mesa_id')
-                        ->where('facturas.estado','like','abierta')
-                        ->where('facturas.comercio_id', $this->comercioId)
+                        ->where('facturas.id', $this->factura_id)
                         ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
                                 'c.numero', 'u.name as nomRep', 'u.apellido as apeRep', 'm.descripcion')->get();
-                    $this->numFactura = $encabezado->nroFact;
-                    $this->clienteId = $encabezado->cliente_id;
-                    $this->factura_id = $encabezado->id;
-                    $this->mesa = $encabezado->descripcion;
-                    $this->mozo = $encabezado->mozo_id;
-                    $this->mesaId = $encabezado->descripcion;
-                    $this->mozo_id = $encabezado->mozo_id;
+                    $this->numFactura = $encabezado[0]->nroFact;
+                    $this->fecha = $encabezado[0]->created_at;
+                    $this->clienteId = $encabezado[0]->cliente_id;
+                    $this->factura_id = $encabezado[0]->id;
+                    $this->mesa = $encabezado[0]->descripcion;
+                    $this->mozo = $encabezado[0]->mozo_id;
+                    $this->mesaId = $encabezado[0]->descripcion;
+                    $this->mozo_id = $encabezado[0]->mozo_id;
                     $this->inicio_factura = false;
                     $this->delivery = 1;
-                    $this->estado_entrega = $encabezado->estado_entrega;
-                    $this->dirCliente = $encabezado->calle . ' ' . $encabezado[0]->numero;
-                    $this->verSaldo($encabezado->cliente_id);
+                    $this->estado_entrega = $encabezado[0]->estado_entrega;
+                    $this->dirCliente = $encabezado[0]->calle . ' ' . $encabezado[0]->numero;
+                    $this->verSaldo($encabezado[0]->cliente_id);
                     $this->mostrar_datos = 0;
                 }elseif($encabezado->count()) {
                     $this->inicio_factura = false;
-                    $this->numFactura = $encabezado->nroFact;
-                    $this->factura_id = $encabezado->id;
-                    $this->mesa = $encabezado->descripcion;
-                    $this->mozo = $encabezado->mozo_id;
+                    $this->numFactura = $encabezado[0]->nroFact;
+                    $this->fecha = $encabezado[0]->created_at;
+                    $this->factura_id = $encabezado[0]->id;
+                    $this->mesa = $encabezado[0]->descripcion;
+                    $this->mozo = $encabezado[0]->mozo_id;
                     $this->delivery = 0;          //dice si la factura es delivery
                     $this->mostrar_datos = 0;     //muestra datos del modal, no de la BD       
                 }
@@ -179,19 +182,17 @@ class FacturaBarController extends Component
                     ->withTrashed()
                     ->orderBy('numero', 'desc')->get();                             
                 $this->numFactura = $encabezado[0]->numero + 1;
+                $this->fecha = intval(date('Ymd'));
                 $this->delivery = 0;
             }
         }
         $info = Detfactura::select('*')->where('comercio_id', $this->comercioId)->get();
-        if($info->count() > 0){
+        if($info->count()){
             $info = Detfactura::join('facturas as f','f.id','detfacturas.factura_id')
             ->join('productos as p','p.id','detfacturas.producto_id')
             ->select('detfacturas.*', 'p.descripcion as producto', DB::RAW("'' as importe"))
             ->where('detfacturas.factura_id', $this->factura_id)
-            ->where('detfacturas.comercio_id', $this->comercioId)
-            ->where('f.estado', 'like', 'abierta')
-            ->orderBy('detfacturas.id', 'asc')->get();  
-            //dd($info); 
+            ->orderBy('detfacturas.id', 'asc')->get(); 
         }  
         $this->total = 0;
         foreach ($info as $i){
@@ -200,7 +201,6 @@ class FacturaBarController extends Component
         }
 
     //COMANDAS/////
-
         $estadoCom = Comanda::select('*')
             ->where('factura_id', $this->factura_id)
             ->where('estado', 'cargado')->get();
@@ -221,14 +221,8 @@ class FacturaBarController extends Component
             ->where('f.estado', 'like', 'pendiente')
             ->select('detcomandas.*')
             ->orderBy('detcomandas.descripcion')->get(); 
-
     ///////////////    
-// }else {
-//     $info= null;
-//     $encabezado = null;
-//     $infoComanda = null;
-//     $this->inicio_comanda = true;
-// }
+
 		return view('livewire.facturas.component-bar', [
             'info'        => $info,
             'encabezado'  => $encabezado,
@@ -241,7 +235,7 @@ class FacturaBarController extends Component
     }
     public function resetInput()
     {
-        $this->cantidad           = 1;
+        $this->cantidad           = '';
         $this->barcode            = '';
         $this->precio             = '';
         $this->producto           = 'Elegir';
@@ -262,7 +256,7 @@ class FacturaBarController extends Component
     }    
     public function resetInputTodos()
     {
-        $this->cantidad       = 1;
+        $this->cantidad       = '';
         $this->barcode        = '';
         $this->precio         = '';        
         $this->cliente        = 'Elegir';
@@ -291,17 +285,15 @@ class FacturaBarController extends Component
         'enviarDatosPago'   => 'enviarDatosPago',
         'dejar_pendiente'   => 'dejar_pendiente', 
         'StoreOrUpdate'     => 'StoreOrUpdate',
-        'unirComandas'      => 'unirComandas',
-        'abrirMesa'         => 'abrirMesa'
+        'unirComandas'      => 'unirComandas'
+        //'abrirMesa'         => 'abrirMesa'
     ];
-    public function abrirMesa($data)
-    {
-        $info = json_decode($data);
-        $this->mesaId = $info->mesa_id;
-        $this->mozo = $info->mozo_id;
-
-        //dd($this->mesa,$this->mozo);
-    }
+    // public function abrirMesa($data)
+    // {
+    //     $info = json_decode($data);
+    //     $this->mesaId = $info->mesa_id;
+    //     $this->mozo = $info->mozo_id;
+    // }
     public function verSaldo($id)
     {            
         $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
@@ -348,11 +340,11 @@ class FacturaBarController extends Component
             'Concepto' 	=> 1,  // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
             'DocTipo' 	=> 99, // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
             'DocNro' 	=> 0,  // Número de documento del comprador (0 consumidor final)
-            'CbteDesde' 	=> 1,  // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
-            'CbteHasta' 	=> 1,  // Número de comprobante o numero del último comprobante en caso de ser mas de uno
+            'CbteDesde' => 1,  // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
+            'CbteHasta' => 1,  // Número de comprobante o numero del último comprobante en caso de ser mas de uno
             'CbteFch' 	=> intval(date('Ymd')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
             'ImpTotal' 	=> 121, // Importe total del comprobante
-            'ImpTotConc' 	=> 0,   // Importe neto no gravado
+            'ImpTotConc'=> 0,   // Importe neto no gravado
             'ImpNeto' 	=> 100, // Importe neto gravado
             'ImpOpEx' 	=> 0,   // Importe exento de IVA
             'ImpIVA' 	=> 21,  //Importe total de IVA
@@ -399,22 +391,27 @@ class FacturaBarController extends Component
     public function verSalsaGuarn($id)
     {
         if($id != 'mantener_id') $this->producto = $id;
-        $record = Producto::join('texto_base_comandas as tbc', 'tbc.id', 'productos.texto_base_comanda_id')
-            ->where('productos.id', $this->producto)
-            ->select('productos.guarnicion', 'productos.salsa', 'productos.sectorcomanda_id', 'tbc.descripcion')
-            ->get();
-        if($record[0]->sectorcomanda_id != null){    
-            $this->guarnicion = $record[0]->guarnicion;
-            $this->salsa      = $record[0]->salsa;
-            $this->texto_base = $record[0]->descripcion;  
-            $this->emit('modal_comanda');
-        } 
+        $this->validate(['producto' => 'not_in:Elegir']);
+
+        $comanda = Producto::find($this->producto);
+        if($comanda->sectorcomanda_id){
+            $record = Producto::join('texto_base_comandas as tbc', 'tbc.id', 'productos.texto_base_comanda_id')
+                ->where('productos.id', $this->producto)
+                ->select('productos.guarnicion', 'productos.salsa', 'productos.sectorcomanda_id', 'tbc.descripcion')
+                ->get();
+            if($record){    
+                $this->guarnicion = $record[0]->guarnicion;
+                $this->salsa      = $record[0]->salsa;
+                $this->texto_base = $record[0]->descripcion;  
+                $this->emit('modal_comanda');
+            }
+        }else $this->StoreOrUpdate('');
     }
     public function enviarComanda()
     {
         $record = Comanda::find($this->comanda_id);
-        if($this->unirComandas == 'si'){
-            $record->update(['estado'  => 'en espera']); //solo cambiamos el estado y respetamos la hora de envío histórica
+        if($this->unir_comandas == 'si'){
+            $record->update(['estado' => 'en espera']); //solo cambiamos el estado y respetamos la hora de envío histórica
         }else{
             $record->update([
                 'estado'  => 'en espera',
@@ -434,47 +431,41 @@ class FacturaBarController extends Component
             foreach($estadoCom as $e){
                 $this->comanda_id = $estadoCom[0]->id;
                 $this->inicio_comanda = false;
-                if($this->unirComandas == 'no') $this->emit('comandaEnEspera');
+                if($this->unir_comandas == 'no') $this->emit('comandaEnEspera');
             }
         }
     }
     public function unirComandas($si_no)
     {
-        $this->unirComandas = $si_no;
-        if($this->unirComandas == 'si'){
+        $this->unir_comandas = $si_no;
+        if($this->unir_comandas == 'si'){
             $record = Comanda::find($this->comanda_id);
-            $record->update([
-                'estado'  => 'cargado'
-            ]);
+            $record->update(['estado' => 'cargado']);
         }
     }
-    public function StoreOrUpdate($texto_comanda, $comanda)
+    public function StoreOrUpdate($texto_comanda)
     {
-        //dd($this->mesa);
         $this->texto_comanda = $texto_comanda;
-        if($this->producto != '0'){
-            $producto = Producto::where('id', $this->producto)->get();
-            //$this->producto = $id;
-            $this->precio = $producto[0]->precio_venta_l1;
-            $this->cantidad = 1;
-            $this->sector_comanda = $producto[0]->sectorcomanda_id;
-        }else {
-            $this->validate([
-                'producto' => 'not_in:Elegir'
-            ]);            
-            $this->validate([
-                'cantidad' => 'required',
-                'producto' => 'required',
-                'precio' => 'required'
-            ]);
-        }
+
+        $producto = Producto::where('id', $this->producto)->get();
+        $this->precio = $producto[0]->precio_venta_l1;
+        $this->sector_comanda = $producto[0]->sectorcomanda_id;
+        if($this->cantidad == '') $this->cantidad = 1;
+
+        $this->validate([
+            'cantidad' => 'required',
+            'producto' => 'required',
+            'precio' => 'required'
+        ]);
         $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio); 
-        //////COMANDAS
-        if($comanda == 1 && $this->estadoComanda != 'cargado') $this->verEstadoComandas();     
-        //////
+
+        ///COMANDA///
+        if($this->sector_comanda  && $this->estadoComanda != 'cargado') $this->verEstadoComandas();     
+        /////////////
+
         DB::begintransaction();                         //iniciar transacción para grabar
         try{  
-            if($this->selected_id > 0) {                //valida si se quiere modificar o crear
+            if($this->selected_id) {                //valida si se quiere modificar o crear
                 $record = DetFactura::find($this->selected_id);  
                 $record->update([                       //actualizamos el registro
                     'producto_id' => $this->producto,
@@ -538,12 +529,7 @@ class FacturaBarController extends Component
                 $record->update(['importe' => $this->totalAgrabar]); 
 
                 //COMANDA////
-                if($comanda == 1){
-                  //  $this->verEstadoComandas();
-//                     if($this->unirComandas == 'si'){
-
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     }
+                if($this->sector_comanda){
                     if($this->inicio_comanda) {
                         $comanda = Comanda::create([
                             'factura_id'       => $this->factura_id,
@@ -575,12 +561,10 @@ class FacturaBarController extends Component
                     } 
                     $this->tab = 'comanda';                   
                 }
-
-
                 /////////////
             }
             DB::commit();
-            if($this->selected_id > 0) session()->flash('message', 'Registro Actualizado');       
+            if($this->selected_id) session()->flash('message', 'Registro Actualizado');       
             else session()->flash('message', 'Registro Agregado');  
         }catch (Exception $e){
             DB::rollback();

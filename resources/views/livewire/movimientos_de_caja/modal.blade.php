@@ -15,9 +15,9 @@
                                 @if($estado == 1)
                                 <select id="proveedor" class="form-control">
                                     <option value="Elegir">Elegir</option>
-                                    @foreach($proveedores as $p)
+                                    @foreach($egresos as $p)
                                     <option value="{{ $p->id }}">
-                                        {{$p->nombre_empresa}}
+                                        {{$p->descripcion}}
                                     </option>                                       
                                     @endforeach 
                                 </select>

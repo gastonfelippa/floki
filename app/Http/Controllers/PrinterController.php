@@ -9,64 +9,141 @@ use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 
 use App\Models\User;
-use App\Models\Empresa;
-use App\Models\Renta;
-use App\Models\Tarifa;
+use App\Models\Comercio;
+use App\Models\Factura;
+use App\Models\Detfactura;
+use App\Models\Producto;
+use App\Models\Subproducto;
 use Carbon\Carbon;
+
+use DB;
 
 class PrinterController extends Controller
 {
+
+    public $name, $price, $dollarSign;
     //método para imprimir ticket de visita
     public function TicketVisita(Request $request)
     {
+//dd($request->id);
+        $comercioId = session('idComercio');
+
+        
+
+
         $folio = str_pad($request->id, 7, "0", STR_PAD_LEFT);   //funcion que rellena con ceros a la izquierda hasta llegar a 7 cifras
-        $nombreImpresora = "HP LaserJet Pro M12w";   //impresora a utilizar. Debe estar instalada y compartida en red. Instalar con drives propios
+        $nombreImpresora = "80 Printer";   //impresora a utilizar. Debe estar instalada y compartida en red. Instalar con drives propios
                                 //o instalar como genérica (generic_text) en donde imprime como texto plano
         $connector = new WindowsPrintConnector($nombreImpresora);
         $impresora = new Printer($connector);
 
-        //obtener la info de la db
-        $empresa = Empresa::all();
-        $renta = Renta::find($request->id);
-        $tarifa = Tarifa::find($renta->tarifa_id);
-
-        //header del ticket
-        $impresora->setJustification(Printer::JUSTIFY_CENTER);
-        $impresora->setTextSize(2,2);      //tamaño nombre empresa
-        $impresora->text(strtoupper($empresa[0]->nombre) . "\n");
-        $impresora->setTextSize(1,1);      //tamaño por defecto
-        $impresora->text("** Recibo de Renta **\n\n");
-
-        //body
-        $impresora->setJustification(Printer::JUSTIFY_LEFT);
-        $impresora->text("=========================\n");
-        $impresora->text("Entrada: ". Carbon::parse($renta->created_at)->format('d/m/Y h:m:s') . "\n");
-        $impresora->text("Tarifa por hora: $". number_format($tarifa->costo,2) . "\n");
-        if(!empty($renta->descripcion)) $impresora->text("Desc: ". $renta->descripcion . "\n");
-        $impresora->text("=========================\n");
-
+        try{
+            $logo = EscposImage::load("images/floki.png", false);
+            $impresora->bitImage($logo);
+            
+            //obtener la info de la db
+            $empresa = Comercio::find($comercioId);
+            $leyenda_factura = $empresa->leyenda_factura;
+            $factura = Factura::find($request->id);
+            
+            $infoDetalle = Detfactura::select('*')->where('comercio_id', $comercioId)->get();
+            if($infoDetalle->count() > 0){ 
+                $infoDetalle = Detfactura::join('facturas as r','r.id','detfacturas.factura_id')
+                ->select('detfacturas.*', DB::RAW("'' as p_id"), 
+                DB::RAW("'' as codigo"), DB::RAW("'' as producto"), DB::RAW("'' as es_producto"))
+                ->where('detfacturas.factura_id', $factura->id)
+                ->where('detfacturas.comercio_id', $comercioId)
+                ->orderBy('detfacturas.id')->get();  
+                $total = 0;
+                //$this->contador_filas = 0;
+                foreach ($infoDetalle as $i){
+                    //$this->contador_filas ++;
+                    $i->importe=$i->cantidad * $i->precio;
+                    $total += $i->importe;
+                    if($i->producto_id){
+                        $producto = Producto::find($i->producto_id);
+                        $i->p_id        = $producto->id;
+                        $i->codigo      = $producto->codigo;
+                        $i->producto    = $producto->descripcion;
+                        $i->es_producto = 1;
+                    }else{
+                        $subproducto = Subproducto::find($i->subproducto_id);
+                        $i->p_id        = $subproducto->id;
+                        $i->codigo      = $subproducto->id;
+                        $i->producto    = $subproducto->descripcion;
+                        $i->es_producto = 0;             
+                    }
+                }
+            }
+            
+            
+ 
+            
+            
+            
+            //dd($infoDetalle);
+            //$descripcion = 'Prueba impresora';
+            
+            //header del ticket
+            $impresora->setJustification(Printer::JUSTIFY_CENTER);
+            $impresora->setTextSize(2,2);      //tamaño nombre empresa
+            $impresora->text(strtoupper($empresa->nombre) . "\n");
+            $impresora->setTextSize(1,1);      //tamaño por defecto
+            $impresora->text("** Comprobante no válido como factura **\n\n");
+            
+            //body
+            $impresora->setJustification(Printer::JUSTIFY_LEFT);
+            $impresora->feed();
+            $impresora->text("Fecha: ". Carbon::parse($factura->created_at)->format('d/m/Y h:m:s') . "\n");
+            $impresora->text("=========================\n");
+            $total = 0;
+         
+            foreach ($infoDetalle as $i) {
+                $total += $i->cantidad * $i->importe;
+                  //     /*Alinear a la izquierda para la cantidad y el nombre*/
+                    $impresora->setJustification(Printer::JUSTIFY_LEFT);
+                   // $impresora->text(str_pad("importe", 10, "", STR_PAD_LEFT));
+                   //substr ($string, 0, $largo)
+                    $impresora->text($i->cantidad . " " . substr($i->producto, 0,30) . "   " . number_format(substr($i->importe, 0, 10),2));
+                    //$impresora->text($i->cantidad . " " . str_pad($i->producto, 20, " ", STR_PAD_RIGHT) . "   " . number_format(str_pad($i->importe, 10, " ", STR_PAD_LEFT),2));
+                    //$impresora->text($i->cantidad . "   " . $i->producto );
+                //$impresora->text($i->cantidad . " " . $i->producto . " " . $i->importe);
+                        //     /*Y a la derecha para el importe*/
+                  // $impresora->setJustification(Printer::JUSTIFY_RIGHT);
+                   // $impresora->text($i->importe);
+                $impresora->feed();
+            }                           
+                    
+                    $impresora->text("=========================\n");
+                    $impresora->setTextSize(2,2); 
+                    $impresora->text("Total: $". number_format($factura->importe,2) . "\n\n");
+                    $impresora->setTextSize(1,1);
+  
         //footer
-        $impresora->setJustification(Printer::JUSTIFY_CENTER);
-        $impresora->text("Por favor conservar el ticket hasta el pago, en caso de extravío se pagará una multa de $ 50,00\n");
-
-        //especificar alto y ancho del código de barras
-        $impresora->selectPrintMode();
-        $impresora->setBarcodeHeight(80);   //alto y ancho
-        $impresora->barcode($folio, Printer::BARCODE_CODE39);   //especificamos estandar de código
-        $impresora->feed(2); //agregamos 2 saltos de línea
-
-        $impresora->text("Gracias por su preferencia\n");
-        $impresora->text("www.gnf.com\n");
-        $impresora->feed(3);
-        $impresora->cut();  //establecemos el corte de papel
-        $impresora->close();
+            $impresora->setJustification(Printer::JUSTIFY_CENTER);
+            $impresora->text("Por favor conservar el ticket para hacer algún" . "\n" . "tipo de reclamo\n");
+            
+            //especificar alto y ancho del código de barras
+            $impresora->selectPrintMode();
+            $impresora->setBarcodeHeight(80);   //alto y ancho
+            $impresora->barcode($folio, Printer::BARCODE_CODE39);   //especificamos estandar de código
+            $impresora->feed(2); //agregamos 2 saltos de línea
+            
+            $impresora->text($leyenda_factura . "\n");
+            $impresora->text("www.floki.com\n");
+            $impresora->feed(3);
+            $impresora->cut();  //establecemos el corte de papel
+            $impresora->close();
+        }catch(Exception $e){/*No hacemos nada si hay error*/}
     }
-
+    
+    
+    
     public function ticketPension(Request $request)
     {
         $folio = str_pad($request->id, 7, "0", STR_PAD_LEFT);   //funcion que rellena con ceros a la izquierda hasta llegar a 7 cifras
         $nombreImpresora = "HP LaserJet Pro M12w";   //impresora a utilizar. Debe estar instalada y compartida en red. Instalar con drives propios
-                                //o instalar como genérica (generic_text) en donde imprime como texto plano
+        //o instalar como genérica (generic_text) en donde imprime como texto plano
         $connector = new WindowsPrintConnector($nombreImpresora);
         $impresora = new Printer($connector);
 

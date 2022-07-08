@@ -39,7 +39,7 @@
 						<tbody>
 							@foreach($info as $r)
 							<tr>
-								<td>{{$r->nombre_empresa}}</td>
+								<td>{{$r->descripcion}}</td>
                                 <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
 								<td class="text-center">
                                     <ul class="table-controls">
