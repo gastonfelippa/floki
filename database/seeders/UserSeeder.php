@@ -13,6 +13,7 @@ use App\Models\CondIva;
 use App\Models\Plan;
 use App\Models\Proceso;
 use App\Models\Provincia;
+use Carbon\Carbon;
 
 class UserSeeder extends Seeder
 {
