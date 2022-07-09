@@ -37,6 +37,7 @@ Route::get('/pdfRemito/{id}', 'PdfController@PDFRemito');
 Route::get('/pdfListaDePrecios/{numero}', 'PdfController@PDFListaDePrecios');
 Route::get('/pdfCuotaSocio', 'PdfController@PDFCuotaSocio');
 
+//            ruta            vista
 Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
 Route::view('auditorias-club', 'auditorias-club')->middleware('permission:Auditorias_index');
 Route::view('empresa', 'empresa')->middleware('permission:Empresa_index');
@@ -58,6 +59,7 @@ Route::view('socios', 'socios')->middleware('permission:Clientes_index');
 Route::view('debitos', 'debitos')->middleware('permission:Clientes_index');
 Route::view('otrosdebitos', 'otrosdebitos')->middleware('permission:Clientes_index');
 
+//            ruta      vista
 Route::view('salsas', 'salsas');
 Route::view('guarniciones', 'guarniciones');
 Route::view('sectorcomanda', 'sectorcomanda');

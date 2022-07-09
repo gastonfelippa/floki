@@ -16,7 +16,7 @@ use DB;
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $tipo = 'Ambos', $sector = '0', $texto = null, $estado='Disponible';
+	public $categoria ='Elegir', $tipo = 'Ambos', $sector = 0, $texto = null, $estado='Disponible';
 	public $codigo = null, $codigo_sugerido, $descripcion, $categorias, $producto;
 	public $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
@@ -37,11 +37,12 @@ class ProductoController extends Component
 		$this->modComandas = session('modComandas');
         session(['facturaPendiente' => null]); 
 		
-		if($this->sector == '0') $this->se_imprime = 0; else $this->se_imprime = 1;
+		if($this->sector == 0) $this->se_imprime = 0; else $this->se_imprime = 1;
 		
 		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->textos = TextoBaseComanda::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+		
 		$record = Comercio::find($this->comercioId);
 		$this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
 		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
@@ -161,7 +162,7 @@ class ProductoController extends Component
 		$this->stock_minimo        = null;
 		$this->tipo                = 'Ambos';
 		$this->categoria           = 'Elegir';
-		$this->sector              = '0';
+		$this->sector              = 0;
 		$this->texto               = null;
 		$this->salsa               = false;
 		$this->estado              = 'Disponible';
@@ -192,7 +193,7 @@ class ProductoController extends Component
 		$this->estado              = $record->estado;
 		$this->texto               = $record->texto_base_comanda_id;
 		if($record->sectorcomanda_id) $this->sector = $record->sectorcomanda_id;
-		else $this->sector = '0';
+		else $this->sector = 0;
 
 		$stock = Stock::where('producto_id', $id)->first();
 		$this->stock_actual    = $stock->stock_actual;
@@ -388,25 +389,32 @@ class ProductoController extends Component
         if($guarnicion) $guarnicion = '1'; else $guarnicion = '0';
 		$this->tiene_receta = $receta;
 		$this->controlar_stock = $stock;
-//dd($this->modComandas,$this->sector);
+
 		if($this->modComandas != "1"){
 			$this->sector = null;
 			$this->texto = null;
 		}
-		if($this->sector == '0'){
+		if($this->sector == 0){
 			$this->sector = null;
 			$this->texto = null;
 		}
 	
+		if($this->sector != null){
+			$this->validate(
+				['texto' => 'required'],
+				['texto.required' => 'Debe agregar un texto base para la comanda']);
+		} 
 		$this->validate(['categoria' => 'not_in:Elegir']);
-		
-		$this->validate([
-			'descripcion' => 'required',
-			'estado'      => 'required',
-			'tipo'        => 'required',
-			'sectorcomanda_id'      => 'required',
-			'texto_base_comanda_id' => 'required'
-		]);
+		$this->validate(
+            [
+				'descripcion' => 'required',
+				'estado'      => 'required',
+				'tipo'        => 'required'],
+            [
+                'descripcion.required' => 'El Nombre del Producto no puede estar vacío',
+            ],
+        );
+
 		if($this->tiene_receta == 'no') $this->validate(['precio_venta_l1' => 'required']);
 
 		if($this->stock_actual == '') $this->stock_actual = null;

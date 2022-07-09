@@ -209,11 +209,12 @@
     function guardar()
     {
         var salsa = false, guarn = false, receta='no', stock='no';
-        if(document.getElementById('cliComanda').value == 1 && document.getElementById('salsa_si').checked) salsa = true;
-        if(document.getElementById('cliComanda').value == 1 && document.getElementById('guarn_si').checked) guarn = true;
+        //if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
+        //if(document.getElementById('cliComanda').value == '1' && document.getElementById('guarn_si').checked) guarn = true;
         if(document.getElementById('receta_si').checked) receta = 'si';
         if(document.getElementById('stock_si').checked) stock = 'si';
-        window.livewire.emit('guardar',salsa,guarn,receta,stock);
+        console.log(salsa, guarn, receta, stock);
+        window.livewire.emit('guardar', salsa, guarn, receta, stock);
     }
     function openModal()
     {     

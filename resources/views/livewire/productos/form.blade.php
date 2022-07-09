@@ -102,11 +102,9 @@
                         <label >Sector Comanda</label>
                         <div class="input-group">
                             <select wire:model="sector" class="form-control text-left">
-                                <option value="0">Ninguno</option>
+                                <option value=0>Ninguno</option>
                                 @foreach($sectores as $t)
-                                <option value="{{ $t->id }}">
-                                    {{$t->descripcion}}
-                                </option>                                       
+                                <option value="{{ $t->id }}">{{$t->descripcion}}</option>                                       
                                 @endforeach                              
                             </select>			               
                         </div>
