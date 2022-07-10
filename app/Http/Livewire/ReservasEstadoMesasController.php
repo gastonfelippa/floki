@@ -69,7 +69,7 @@ class ReservasEstadoMesasController extends Component
 
     public function cambiarSector()
     {
-        if($this->tab == "Interior") $this->tab = "Vereda";
+        if($this->tab == "Interior") $this->tab = "Exterior";
         else $this->tab = "Interior";
     }
     public function agregarReserva()
@@ -80,12 +80,12 @@ class ReservasEstadoMesasController extends Component
     {
         $info = json_decode($data);
         $buscar_mesa = Mesa::find($info);
-       // dd($buscar_mesa);
+    
         if($buscar_mesa->count() > 0){
             $mesaId = $buscar_mesa->id;
             session(['idMesa' => $mesaId]);
             
-        return redirect()->to('/facturasbar');
+        return redirect()->to('/abrir_mesa');
         }
     }
 }

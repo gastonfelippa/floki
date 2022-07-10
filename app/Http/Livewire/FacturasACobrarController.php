@@ -121,9 +121,13 @@ class FacturasACobrarController extends Component
     }
     public function verDet($id, $nomCli, $apeCli)
     {
+        $idMesa = Factura::where('id', $id)
+            ->select('mesa_id')->get();
+           // dd($idMesa[0]->mesa_id);
+        session(['idMesa' => $idMesa[0]->mesa_id]);
         session(['facturaPendiente' => $id]);
-        return redirect()->to('/facturas');
-
+        return redirect()->to('/facturasbar');
+        
         //$this->nombreCliente = $apeCli . ' ' . $nomCli;
         //$this->verDetalle($id);
     }

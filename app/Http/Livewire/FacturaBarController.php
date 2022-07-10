@@ -50,6 +50,7 @@ class FacturaBarController extends Component
         session(['facturaPendiente' => null]);  
 
         $this->mesaId = session("idMesa");
+        
         $buscar_mesa = Mesa::find($this->mesaId);
         $this->mesaDesc = $buscar_mesa->descripcion;
 

@@ -14,6 +14,6 @@
 
 @section('content')
      
-  @livewire('abrir-mesa-controller')
- 
+  @livewire('reservas-estado-mesas-controller')
+  
 @endsection

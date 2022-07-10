@@ -39,7 +39,7 @@
                         <a wire:click="cambiarSector" class="nav-link {{$tab == 'Interior' ? 'active' : ''}}" style="color:blue;font-weight:bold;font-size:20px;" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Interior</a>
                     </li>
                     <li class="nav-item">
-                        <a wire:click="cambiarSector" class="nav-link {{$tab == 'Vereda' ? 'active' : ''}}" style="color:blue;font-weight:bold;font-size:20px;" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="true"><b>Exterior</b></a>
+                        <a wire:click="cambiarSector" class="nav-link {{$tab == 'Exterior' ? 'active' : ''}}" style="color:blue;font-weight:bold;font-size:20px;" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="true"><b>Exterior</b></a>
                     </li>
                 </ul> 
                 <div class="tab-content" id="myTabContent">
@@ -64,7 +64,7 @@
                             @endforeach
                         </div>
                     </div>
-                    <div class="tab-pane fade show {{$tab == 'Vereda' ? 'active' : ''}}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <div class="tab-pane fade show {{$tab == 'Exterior' ? 'active' : ''}}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                         <div class="row mt-3">
                             @foreach($info as $r)
                                 @if($r->estado == "Disponible")

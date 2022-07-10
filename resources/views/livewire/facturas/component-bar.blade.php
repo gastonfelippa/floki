@@ -53,8 +53,10 @@
                                     Cobrar   
                                 </button>
                                 <button type="button" class="btn btn-success" enabled>
-                                    <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
-                                    Imprimir</a>
+                                <a id="link">
+                                Imprimir</a>
+                                    <!-- <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                    Imprimir</a> -->
                                 </button>
                                 <button type="button" onclick="AnularFactura({{$factura_id}})" 
                                     class="btn btn-info" enabled>
@@ -279,6 +281,7 @@
             <input type="hidden" id="ultima_factura" wire:model="ultima_factura"> 
             <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
             <input type="hidden" id="tiene_comentario" value="{{$comentario_comanda}}">  
+            <input type="" id="idFact" value="{{$factura_id}}">  
         </div> 
     </div>
     @include('livewire.facturas.modal-bar')  
@@ -599,6 +602,14 @@
         $.ajax('/keepAlive');
     }
     /////
+    document.getElementById("link").addEventListener("click", function(){
+        var id = document.getElementById("idFact").value
+        var ruta = "{{url('print/visita')}}" + "/" + id
+        var w = window.open(ruta,"_blank","width=100,height=100")
+        setTimeout(function(){
+            w.close();
+        }, 1000); /* 1 Segundo*/
+    });
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		
             swal({
