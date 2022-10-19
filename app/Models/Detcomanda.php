@@ -10,5 +10,5 @@ class Detcomanda extends Model
     use HasFactory;
 
     protected $table = 'detcomandas';
-    protected $fillable = ['comanda_id', 'producto_id', 'cantidad', 'descripcion', 'comercio_id'];
+    protected $fillable = ['comanda_id', 'producto_id', 'subproducto_id','cantidad', 'descripcion', 'comercio_id'];
 }

@@ -20,7 +20,10 @@ class CreateDetcomandasTable extends Migration
             $table->foreign('comanda_id')->references('id')->on('comandas');
 
             $table->unsignedBigInteger('producto_id');
-            $table->foreign('producto_id')->references('id')->on('productos');
+            $table->foreign('producto_id')->references('id')->on('productos')->nullable();
+
+            $table->unsignedBigInteger('subproducto_id');
+            $table->foreign('subproducto_id')->references('id')->on('subproductos')->nullable();
 
             $table->decimal('cantidad',10,2);
             $table->string('descripcion');

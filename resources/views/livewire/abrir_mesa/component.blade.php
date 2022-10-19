@@ -73,7 +73,7 @@
     function abrirMesa()
     {
         var data = JSON.stringify({'mesa_desc' : $('#mesa').val()})
-        window.livewire.emit('abrirMesa', data)
+        window.livewire.emit('abrirMesa', data, null)
     }
     function abrirMesaNueva()
     {
@@ -90,4 +90,10 @@
     $(document).ready(function() {
         document.getElementById("mesa").focus();
     });
+    window.onload = function() {
+        Livewire.on('mesa',(idMesa)=>{
+            $('#mesa').val(idMesa);
+            abrirMesa();
+		})
+    }
 </script>

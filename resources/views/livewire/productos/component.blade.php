@@ -209,11 +209,15 @@
     function guardar()
     {
         var salsa = false, guarn = false, receta='no', stock='no';
-        //if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
-        //if(document.getElementById('cliComanda').value == '1' && document.getElementById('guarn_si').checked) guarn = true;
+        console.log(salsa, guarn, receta, stock);
+        if(document.getElementById('salsa_si')){
+            if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
+        }
+        if(document.getElementById('salsa_si')){
+            if(document.getElementById('cliComanda').value == '1' && document.getElementById('guarn_si').checked) guarn = true;
+        }
         if(document.getElementById('receta_si').checked) receta = 'si';
         if(document.getElementById('stock_si').checked) stock = 'si';
-        console.log(salsa, guarn, receta, stock);
         window.livewire.emit('guardar', salsa, guarn, receta, stock);
     }
     function openModal()
@@ -304,7 +308,7 @@
 		})
         Livewire.on('texto_existe',()=>{
             var producto = document.getElementById("texto_sp");
-			toastr.error('El Subproducto ya existe!', 'Info')
+			toastr.error('El Texto ya existe!', 'Info')
 			producto.focus();
 			return false;
 		})

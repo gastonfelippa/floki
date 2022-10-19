@@ -427,9 +427,9 @@ class ProductoController extends Component
         try{
 			if($this->selected_id) {
 				$existeProducto = Producto::where('descripcion', $this->descripcion)
-				->where('id', '<>', $this->selected_id)
-				->where('comercio_id', $this->comercioId)				
-				->withTrashed()->get();
+					->where('id', '<>', $this->selected_id)
+					->where('comercio_id', $this->comercioId)				
+					->withTrashed()->get();
                 if($existeProducto->count() && $existeProducto[0]->deleted_at != null) {
 					session()->flash('info', 'El Producto que desea modificar ya existe pero fué eliminado anteriormente, para recuperarlo haga click en el botón "Recuperar registro"');
                     $this->action = 1;
@@ -490,7 +490,6 @@ class ProductoController extends Component
 					return;
 				}
 			}
-
 			if($this->selected_id) {
 				$record = Producto::find($this->selected_id);
 				$record->update([
@@ -510,7 +509,6 @@ class ProductoController extends Component
 					'sectorcomanda_id'      => $this->sector,
 					'texto_base_comanda_id' => $this->texto
 				]);
-
 				$stock = Stock::where('producto_id', $this->selected_id)->first();
 				$stock->update([
 					'stock_actual'          => $this->stock_actual,

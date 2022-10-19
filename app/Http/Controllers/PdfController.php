@@ -251,7 +251,6 @@ class PdfController extends Controller
     }
     public function PDFViandas() 
     {
-
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio'); 
 
@@ -490,5 +489,4 @@ class PdfController extends Controller
         $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
         return $pdf->stream();
     }
-
 }

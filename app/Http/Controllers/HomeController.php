@@ -145,7 +145,7 @@ class HomeController extends Controller
             {
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
                 else{
-                    if ($this->comercioTipo == 10) return view('home-club'); else return view('home');
+                    if ($this->comercioTipo == 10) return view('home-club'); else return view('home');                   
                 }
             }              
             

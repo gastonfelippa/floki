@@ -98,7 +98,7 @@
                 @endif                       
                 @if($modComandas == "1")
                 <div class="row">
-                    <div class="form-group col-12 col-md-2">
+                    <div class="form-group col-sm-12 col-md-2">
                         <label >Sector Comanda</label>
                         <div class="input-group">
                             <select wire:model="sector" class="form-control text-left">
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                     @if($se_imprime == "1")
-                    <div class="form-group col-12 col-md-3">
+                    <div class="form-group col-sm-12 col-md-3">
                         <label >Texto Base Comanda</label>
                         <div class="input-group">
                             <select wire:model="texto" class="form-control text-left">
@@ -128,7 +128,7 @@
                         </div>
                     </div>
                    
-                    <div class="form-group col-9 col-md-2">
+                    <div class="form-group col-sm-9 col-md-2">
                         <label>¿Lleva salsa?</label>
                         <div class="input-group">
                             <div class="form-check form-check-inline">
@@ -149,7 +149,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group col-9 col-md-2">
+                    <div class="form-group col-sm-9 col-md-4">
                         <label>¿Lleva guarnición?</label>
                         <div class="input-group">
                             <div class="form-check form-check-inline">

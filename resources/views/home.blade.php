@@ -41,5 +41,21 @@
         // if(tecla==13) window.location.href="{{ url('abrir-mesa') }}";
         if(tecla==13) window.location.href="{{ url('reservas-estado-mesas') }}";
     }
+    
+    /////código para prolongar la session
+        var keep_alive = false;
+    $(document).bind("click keydown keyup mousemove", function() {
+        keep_alive = true;
+    });
+    setInterval(function() {
+        if ( keep_alive ) {
+            pingServer();
+            keep_alive = false;
+        }
+    }, 12000000 );
+    function pingServer() {
+        $.ajax('/keepAlive');
+    }
+    /////
 </script>
 @endif

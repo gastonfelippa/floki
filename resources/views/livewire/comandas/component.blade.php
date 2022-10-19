@@ -156,11 +156,11 @@
             if (metaChar) {
                 metaChar = false;
             } else { 
-                if(key == 97){         //tecla a
+                if(key == 97){         //número 1
                     document.getElementById("btnEnEspera").click();
-                }else if(key == 98){   //tecla b
+                }else if(key == 98){   //número 2
                     document.getElementById("btnProcesando").click();
-                }else if(key == 99){   //tecla c
+                }else if(key == 99){   //número 3
                     document.getElementById("btnTerminado").click();
                 }else if(key == 37){ //vuelve un estado                 
                     cambiarEstado('atras');
@@ -172,7 +172,12 @@
                     seleccionarComanda('abajo');
                 }else if(key == 38){ //salir ^^^
                     window.location.href="{{ url('notify') }}";
-                } 
+                }
+                // else if(key == 100){ //número 4
+                //     cambiarSectorComanda();
+                // }else if(key == 56){ //punto
+                //     cambiarSectorComanda();
+                // }  
             }
         }
     }
@@ -182,6 +187,10 @@
         if (key == exampleKey) {
             metaChar = false;
         }
+    }
+    
+    function cambiarSectorComanda(){
+        window.livewire.emit('cambiarSectorComanda');
     }
 
     function cambiarEstado(movimiento){

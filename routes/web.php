@@ -121,3 +121,4 @@ Route::post('contactanos', 'EmailsController@store')->name('contactanos.store');
 Route::get('registrarse', 'RegisterController@index')->name('registrarse.index');
 Route::post('registrarse', 'RegisterController@store')->name('registrarse.store');
 
+

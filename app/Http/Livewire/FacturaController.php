@@ -834,7 +834,6 @@ class FacturaController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }  
         session(['facturaPendiente' => null]); 
-                     
         $this->resetInputTodos();
     }
     public function modCliRep($data)

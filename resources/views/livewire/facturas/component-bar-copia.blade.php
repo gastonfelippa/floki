@@ -41,10 +41,10 @@
                                 Cobrar   
                             </button>
                             <button type="button" class="btn btn-success" enabled>
-                            <!-- <a id="link">
-                            Imprimir</a> -->
-                                <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
-                                Imprimir</a>
+                            <a id="link">
+                            Imprimir</a>
+                                <!-- <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                Imprimir</a> -->
                             </button>
                             <button type="button" onclick="AnularFactura({{$factura_id}})" 
                                 class="btn btn-info" enabled>
@@ -206,17 +206,7 @@
                                         <td class="text-center">{{number_format($r->cantidad,0)}}</td>
                                         <td class="text-left">{{$r->descripcion}}</td>
                                         <td class="text-center">
-                                            <ul class="table-controls">
-                                                <li>
-                                                    <a href="javascript:void(0);" wire:click="edit({{$r->id}},{{$r->es_producto}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0);"          		
-                                                    onclick="Confirm('{{$r->id}}','{{$r->es_producto}}')"
-                                                    data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
-                                                </li>
-                                            </ul>
-                                            <!-- @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item']) -->
+                                            @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
                                         </td>
                                     </tr>
                                     @endforeach
@@ -236,44 +226,75 @@
 
     <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
-     
+            <div class="widget-one">
+                <form>
+                    @include('common.messages')    
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-2">
+                            <label>Cantidad</label>
+                            <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
+                                class="form-control form-control-sm text-center">
+                        </div> 
+                        <div class="form-group col-sm-12 col-md-2">
+                            <label >Código</label>
+                            <input id="barcode" wire:model.lazy="barcode"  type="text" 
+                                onclick.keydown.enter="setfocus('guardar')" class="form-control form-control-sm">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label>Producto</label>
+                            <select id="producto" wire:model="producto" class="form-control form-control-sm text-center">
+                                <option value="Elegir" >Elegir</option>
+                                @foreach($productos as $t)
+                                <option value="{{ $t->id }}">
+                                    {{$t->descripcion}}                         
+                                </option> 
+                                @endforeach                               
+                            </select>			               
+                        </div>            
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label>P/Unitario</label>
+                            <input wire:model.lazy="precio" type="text" class="form-control form-control-sm text-right" disabled>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-2 mt-2">
+                            <label></label>
+                            <button id="guardar" type="button" wire:click="verificar_stock('mantener_id')" class="btn btn-primary mt-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>                                
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            <div class="row mt-2">
-                <div class="col-sm-12 col-lg-4">
-                    <!-- <div class="widget-content-area"> -->
-                        @if($categorias->count() > 6)
-                            <div class="widget-one scrollb"> 
-                                <div class="scrollContent"> 
-                                    @foreach($categorias as $c)                    
-                                        <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else                   
-                            @foreach($categorias as $c)                    
-                                <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
-                            @endforeach                       
-                        @endif
-                    <!-- </div> -->
-                </div>
-                <div class="col-sm-12 col-lg-8">
-                    <!-- <div class="widget-content-area"> -->
+        <div class="row mt-2">
+            <div class="col-sm-12 col-lg-4">
+                <div class="widget-content-area">
+                    @if($categorias->count() > 6)
                         <div class="widget-one scrollb"> 
                             <div class="scrollContent"> 
-                                @if($articulos != null)
-                                    @if($mostrar_sp == 0)
-                                        @foreach($articulos as $a)                    
-                                            <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
-                                        @endforeach 
-                                    @else
-                                        @foreach($tiene_sp as $sp)                    
-                                            <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
-                                        @endforeach 
-                                    @endif
-                                @endif                   
+                                @foreach($categorias as $c)                    
+                                    <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
+                                @endforeach
                             </div>
                         </div>
-                    <!-- </div> -->
+                    @else                   
+                        @foreach($categorias as $c)                    
+                            <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
+                        @endforeach                       
+                    @endif
+                </div>
+            </div>
+            <div class="col-sm-12 col-lg-8">
+                <div class="widget-content-area">
+                    <div class="widget-one scrollb"> 
+                        <div class="scrollContent"> 
+                            @if($articulos != null)
+                            @foreach($articulos as $a)                    
+                                <button style="width: 30%;height: 75px;" wire:click="verificar_stock('{{$a->id}}')" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
+                            @endforeach 
+                            @endif                   
+                        </div>
+                    </div>
                 </div>
             </div>
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
@@ -287,7 +308,7 @@
     </div>
     @include('livewire.facturas.modal-bar')  
     @include('livewire.facturas.modalCtacte')  
-    @include('livewire.facturas.modalSalsas')    
+    @include('livewire.facturas.modalSalsas')   
     @else    
     @include('livewire.facturas.formaDePago')  
     @include('livewire.facturas.modalNroCompPago')  
@@ -595,19 +616,19 @@
             pingServer();
             keep_alive = false;
         }
-    }, 12000000 );
+    }, 1200000 );
     function pingServer() {
         $.ajax('/keepAlive');
     }
     /////
-    document.getElementById("link").addEventListener("click", function(){
-        var id = document.getElementById("idFact").value
-        var ruta = "{{url('print/visita')}}" + "/" + id
-        var w = window.open(ruta,"_blank","width=100,height=100")
-        setTimeout(function(){
-            w.close();
-        }, 1000); /* 1 Segundo*/
-    });
+    // document.getElementById("link").addEventListener("click", function(){
+    //     var id = document.getElementById("idFact").value
+    //     var ruta = "{{url('print/visita')}}" + "/" + id
+    //     var w = window.open(ruta,"_blank","width=100,height=100")
+    //     setTimeout(function(){
+    //         w.close();
+    //     }, 1000); /* 1 Segundo*/
+    // });
     
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		

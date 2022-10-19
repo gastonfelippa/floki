@@ -11,12 +11,14 @@
                 <div class="widget-one">
                     <input class="col-12" id="texto_comanda" disabled>
                     <input class="col-12 mt-2" onchange="agregarComentario()" id="texto_comentario" placeholder="Ingresa un breve comentario...">
-
+                    
                     <input type="hidden" id="texto_base" value="{{$texto_base}}">
                     <input type="hidden" id="tiene_salsa" value="{{$salsa}}">  
-                    <input type="hidden" id="tiene_guarnicion" value="{{$guarnicion}}">   
+                    <input type="hidden" id="tiene_guarnicion" value="{{$guarnicion}}">  
                     <input type="hidden" id="texto_salsa">  
-                    <input type="hidden" id="texto_guarnicion">  
+                    <input type="hidden" id="texto_guarnicion"> 
+                    
+
                     <hr>
                     <div id="divSalsas" class="col-sm-12 ">
                         <div class="widget-one scrollc"> 

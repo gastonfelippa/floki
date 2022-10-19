@@ -15,7 +15,7 @@ class ComandaController extends Component
     public $infoProcesando, $infoDetProcesando;
     public $infoTerminado, $infoDetTerminado;
     public $comSelEnEspera = null, $comSelProcesando = null, $comSelTerminado = null;
-    public $dato= null;
+    public $dato= null, $sectorComanda = 1, $comercioId;
     public $vista = null, $posicion = 0;
     public $contadorEE, $contadorP, $contadorT;
 
@@ -24,15 +24,19 @@ class ComandaController extends Component
         $this->contadorEE = -1;
         $this->contadorP  = -1;
         $this->contadorT  = -1;
+
+        $this->comercioId = session('idComercio');
         
         if($this->vista == null) $this->vista = '1';
         
         $this->infoEnEspera = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
             ->join('users as u', 'u.id', 'f.mozo_id')
             ->join('mesas as m', 'm.id', 'f.mesa_id')
+            ->join('sector_comandas as sc', 'sc.id', 'comandas.sectorcomanda_id')
             ->where('f.estado', 'abierta')
             ->where('comandas.estado', 'en espera')
-            ->where('sectorcomanda_id', 4)
+            ->where('comandas.sectorcomanda_id', $this->sectorComanda)
+            ->where('sc.comercio_id', $this->comercioId)
             ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
             ->orderBy('comandas.sent_at', 'asc')->get(); 
         foreach($this->infoEnEspera as $i){
@@ -52,7 +56,7 @@ class ComandaController extends Component
             ->join('mesas as m', 'm.id', 'f.mesa_id')
             ->where('f.estado', 'abierta')
             ->where('comandas.estado', 'procesando')
-            ->where('sectorcomanda_id', 4)
+            ->where('sectorcomanda_id', $this->sectorComanda)
             ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
             ->orderBy('comandas.sent_at')->get();
         foreach($this->infoProcesando as $i){
@@ -73,7 +77,7 @@ class ComandaController extends Component
             ->join('mesas as m', 'm.id', 'f.mesa_id')
             ->where('f.estado', 'abierta')
             ->where('comandas.estado', 'terminado')
-            ->where('sectorcomanda_id', 4)
+            ->where('sectorcomanda_id', $this->sectorComanda)
             ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
             ->orderBy('finished_at','desc')->get();
         foreach($this->infoTerminado as $i){
@@ -105,7 +109,8 @@ class ComandaController extends Component
 
     protected $listeners = [
         'cambiarEstado' => 'cambiarEstado',
-        'seleccionarComanda' => 'seleccionarComanda'
+        'seleccionarComanda' => 'seleccionarComanda',
+        'cambiarSectorComanda' => 'cambiarSectorComanda'
     ];
 
     public function cambiarEstado($idComanda, $vista, $movimiento)
@@ -143,7 +148,7 @@ class ComandaController extends Component
                     ->join('mesas as m', 'm.id', 'f.mesa_id')
                     ->where('f.estado', 'abierta')
                     ->where('comandas.estado', 'en espera')
-                    ->where('sectorcomanda_id', 4)
+                    ->where('sectorcomanda_id', $this->sectorComanda)
                     ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
                     ->orderBy('comandas.sent_at', 'asc')->get(); 
                 foreach($this->infoEnEspera as $i){
@@ -163,7 +168,7 @@ class ComandaController extends Component
                     ->join('mesas as m', 'm.id', 'f.mesa_id')
                     ->where('f.estado', 'abierta')
                     ->where('comandas.estado', 'procesando')
-                    ->where('sectorcomanda_id', 4)
+                    ->where('sectorcomanda_id', $this->sectorComanda)
                     ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
                     ->orderBy('comandas.sent_at')->get();
                 foreach($this->infoProcesando as $i){
@@ -184,7 +189,7 @@ class ComandaController extends Component
                     ->join('mesas as m', 'm.id', 'f.mesa_id')
                     ->where('f.estado', 'abierta')
                     ->where('comandas.estado', 'terminado')
-                    ->where('sectorcomanda_id', 4)
+                    ->where('sectorcomanda_id', $this->sectorComanda)
                     ->select('comandas.*', 'u.name', 'm.descripcion', DB::RAW("'' as demora"))
                     ->orderBy('finished_at','desc')->get();
                 foreach($this->infoTerminado as $i){
@@ -220,6 +225,11 @@ class ComandaController extends Component
         }
     }
 
+    public function cambiarSectorComanda()
+    {
+        if($this->sectorComanda == 1) $this->sectorComanda == 2;
+        else $this->sectorComanda = 1;
+    }
     public function seleccionarComanda($idComanda, $vista, $movimiento)
     {
         if($vista == '1' && $movimiento == 'arriba'){

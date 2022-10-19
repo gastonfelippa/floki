@@ -13,7 +13,7 @@
 					<table class="table table-hover table-checkable table-sm">
 						<thead>
 							<tr>
-								<th class="text-center">MESA N°</th>
+								<th class="text-center">CLIENTE</th>
 								<th class="text-center">IMPORTE</th>
 								<th class="text-center">ACCIONES</th>
 							</tr>
@@ -21,11 +21,7 @@
 						<tbody>
 							@foreach($info as $r)
 							<tr>
-                                @if($modDelivery == "1")
-								    <td class="text-center">{{$r->descripcion}}</td>
-                                @else
-								    <td class="text-left">{{$r->apeCli}} {{$r->nomCli}}</td>
-                                @endif
+								<td class="text-left">{{$r->apeCli}} {{$r->nomCli}}</td>
 								<td class="text-center">{{number_format($r->importe,2,',','.')}}</td>
 								<td class="text-center">
                                     <ul class="table-controls">
