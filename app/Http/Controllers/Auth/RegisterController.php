@@ -11,6 +11,7 @@ use App\Models\Localidad;
 use App\Models\ModelHasRole;
 use App\Models\Modulo;
 use App\Models\Plan;
+use App\Models\Sector;
 use App\Models\User;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
@@ -277,7 +278,16 @@ class RegisterController extends Controller
                 'Clientes_index',
                 'Facturas_imp','Fact_delivery_imp',
                 'CajaRepartidor_index'               
-            ]);                                    
+            ]);
+            //creo los sectores para las mesas
+            $sectorMesa = Sector::create([
+                'descripcion' => 'Interior',
+                'comercio_id' => $this->comercioId
+            ]);                                   
+            $sectorMesa = Sector::create([
+                'descripcion' => 'Exterior',
+                'comercio_id' => $this->comercioId
+            ]);                                   
                                   
             $plan = Plan::select('*')->where('id', '1')->get(); 
                                     
@@ -290,9 +300,9 @@ class RegisterController extends Controller
             if($diferencia < 15)                                 //si son menos de 15 días
             {                                  
                 $fecha_fin = Carbon::now()->addMonthsNoOverflow(1)->locale('en'); //agrego un mes a fecha_fin a partir del corriente mes
-                $mes = $fecha_fin->monthName;                         //recupero el mes
-                Carbon::setTestNow($fecha_fin);                       //habilito a Carbon para que actúe sobre fecha_fin
-                $fecha_fin = new Carbon('last day of ' . $mes);       //modifico fecha_fin con el último día del mes siguiente
+                $mes = $fecha_fin->monthName;                    //recupero el mes
+                Carbon::setTestNow($fecha_fin);                  //habilito a Carbon para que actúe sobre fecha_fin
+                $fecha_fin = new Carbon('last day of ' . $mes);  //modifico fecha_fin con el último día del mes siguiente
             }
             Carbon::setTestNow();               //IMPORTANTE: resetea la fecha actual para grabarla en create_at y update_at
             
