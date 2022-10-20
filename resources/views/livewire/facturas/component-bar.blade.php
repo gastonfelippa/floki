@@ -600,14 +600,14 @@
         $.ajax('/keepAlive');
     }
     /////
-    document.getElementById("link").addEventListener("click", function(){
-        var id = document.getElementById("idFact").value
-        var ruta = "{{url('print/visita')}}" + "/" + id
-        var w = window.open(ruta,"_blank","width=100,height=100")
-        setTimeout(function(){
-            w.close();
-        }, 1000); /* 1 Segundo*/
-    });
+    // document.getElementById("link").addEventListener("click", function(){
+    //     var id = document.getElementById("idFact").value
+    //     var ruta = "{{url('print/visita')}}" + "/" + id
+    //     var w = window.open(ruta,"_blank","width=100,height=100")
+    //     setTimeout(function(){
+    //         w.close();
+    //     }, 1000); /* 1 Segundo*/
+    // });
     
     window.onload = function() {
         if($('#forzar_arqueo').val() == 1){		

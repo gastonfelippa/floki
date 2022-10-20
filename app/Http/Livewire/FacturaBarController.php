@@ -556,6 +556,7 @@ class FacturaBarController extends Component
                 if($this->es_producto == 1) $this->texto_base = $record[0]->descripcion;
                 else $this->texto_base = $this->texto_base_subproducto;
             }
+            
             if($this->estadoComanda == 'en espera'){
                $this->verEstadoComandas(); 
             }else $this->emit('modal_comanda');
