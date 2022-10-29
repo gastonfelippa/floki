@@ -54,21 +54,6 @@
 </div>
 
 <script type="text/javascript">
-    /////código para prolongar la session
-    var keep_alive = false;
-    $(document).bind("click keydown keyup mousemove", function() {
-        keep_alive = true;
-    });
-    setInterval(function() {
-        if ( keep_alive ) {
-            pingServer();
-            keep_alive = false;
-        }
-    }, 1200000 );
-    function pingServer() {
-        $.ajax('/keepAlive');
-    }
-    /////
  
     function abrirMesa()
     {

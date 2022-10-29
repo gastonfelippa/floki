@@ -100,7 +100,11 @@ class CompraController extends Component
             }
         } 
 
-    return view('livewire.compras.component', [
+    // return view('livewire.compras.component', [
+    //     'info' => $info,
+    //     'encabezado' => $encabezado
+    // ]);
+    return view('livewire.compras.component-msg', [
         'info' => $info,
         'encabezado' => $encabezado
     ]);

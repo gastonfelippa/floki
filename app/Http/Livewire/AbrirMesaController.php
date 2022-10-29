@@ -15,6 +15,8 @@ class AbrirMesaController extends Component
         $this->comercioId = session('idComercio');
         session(['facturaPendiente' => null]); 
         session(['idMozo' => null]);
+        session(['idMesa' => null]);
+    
     
         if(session()->has('idMesa')){
             $mesa = Mesa::find(session("idMesa"));

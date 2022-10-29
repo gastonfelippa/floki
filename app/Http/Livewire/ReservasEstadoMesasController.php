@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Mesa;
 use App\Models\Reserva;
 use App\Models\Sector;
+use App\Models\User;
 use DB;
 
 class ReservasEstadoMesasController extends Component
@@ -13,15 +14,19 @@ class ReservasEstadoMesasController extends Component
     public $comercioId, $estadoMesa = "1", $info, $sectores, $reservas, $selected_id = 0, $search;
     public $action = 1, $tab="Interior", $factura_id = 7, $recuperar_registro = 0;
     public $nombre, $apellido = null, $telefono = null, $cantidad, $mesa = 'Elegir', $comentario = null;
-    public $hora = null, $mesa_anterior = '';
+    public $hora = null, $mesa_anterior = '', $mesaId;
 
     public function render()
     {
         $this->comercioId = session('idComercio');
-
+        session(['idMesa' => null]);
+       
         $this->sectores = Sector::all()->where('comercio_id', $this->comercioId);
         $this->mesas = Mesa::where('comercio_id', $this->comercioId)
             ->where('estado', 'Disponible')->get();
+
+        $mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+            ->where('uc.comercio_id', $this->comercioId)->select('users.*')->orderBy('apellido')->get();
 
         if(strlen($this->search) > 0){
             $this->reservas = Reserva::join('mesas as m', 'm.id', 'reservas.mesa_id')
@@ -43,6 +48,7 @@ class ReservasEstadoMesasController extends Component
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
+                    ->where('mesas.estado', '<>', 'Deshabilitada')
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
              case '2': //disponibles
@@ -85,22 +91,35 @@ class ReservasEstadoMesasController extends Component
                     ->where('mesas.estado', 'Reservada')
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
+            case '7': //deshabilitadas
+                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                    ->select('mesas.*', 's.descripcion as mesa')
+                    ->where('mesas.comercio_id', $this->comercioId)
+                    ->where('s.descripcion', $this->tab)
+                    ->where('mesas.estado', 'Deshabilitada')
+                    ->orderBy('mesas.descripcion', 'asc')->get();
+                break;
             default:
         }
         return view('livewire.reservas-estado-mesas.component' , [
             'info'     => $this->info,
             'sectores' => $this->sectores,
             'mesas'    => $this->mesas,
-            'reservas' => $this->reservas
+            'reservas' => $this->reservas,
+            'mozos'    => $mozos
         ]);
     }
-    protected $listeners = ['abrirMesa'   => 'abrirMesa'];
+    protected $listeners = [
+        'abrirMesa'        => 'abrirMesa',
+        'agregaMozo'       => 'agregaMozo',
+        'deshabilitarMesa' => 'deshabilitarMesa',
+        'habilitarMesa'    => 'habilitarMesa'
+    ];
 
     public function doAction($action)
     {
         $this->action = $action;
     }
-
     public function resetInput()
     {
         $this->nombre        = '';
@@ -115,7 +134,6 @@ class ReservasEstadoMesasController extends Component
         $this->comentario    = null;
         $this->mesa_anterior = '';
     }
-
     public function cambiarSector($sector)
     {
         $this->tab = $sector;
@@ -128,16 +146,54 @@ class ReservasEstadoMesasController extends Component
     {
         $this->doAction(3);
     }
+    public function agregaMozo($idMozo)
+    {
+        if($idMozo){
+            session(['idMozo' => $idMozo]);
+            session(['idMesa' => $this->mesaId]);
+            return redirect()->to('/facturasbar');
+        }
+    }
     public function abrirMesa($data)
     {
-        $info = json_decode($data);
-        $buscar_mesa = Mesa::find($info);
-    
-        if($buscar_mesa->count()){
-            $mesaId = $buscar_mesa->id;
-            session(['idMesa' => $mesaId]);
-            return redirect()->to('/abrir-mesa');
+        $info = json_decode($data);        
+
+        if($info == 'd' || $info == 'D'){
+            session(['idMesa' => $info]);
+            return redirect()->to('/facturasbar');
+        }else{
+            $buscar_mesa = Mesa::find($info);
+            if($buscar_mesa->count()){
+                $this->mesaId = $buscar_mesa->id;
+                $mesa = $buscar_mesa->descripcion;
+                session(['idMesa' => $this->mesaId]);
+                if($buscar_mesa->estado == 'Disponible' || $buscar_mesa->estado == 'Reservada'){
+                    $this->emit('agregarMozo', $mesa);
+                }elseif($buscar_mesa->estado == 'Deshabilitada'){
+                    $this->emit('habilitar_mesa', $mesa);
+                }else{
+                    session(['idMozo' => null]); 
+                return redirect()->to('/facturasbar');  
+                } 
+            }else session()->flash('message', 'La mesa ingresada no existe');
         }
+    }
+    public function deshabilitarMesa($mesaDesc)
+    {
+        $mesa = Mesa::find($this->mesaId);
+        if($mesa->count()){
+            $mesa->update(['estado' => 'Deshabilitada']);
+            $this->emit('mesa_deshabilitada', $mesaDesc);
+        }
+    }
+    public function habilitarMesa($mesaDesc)
+    {
+        $mesa = Mesa::find($this->mesaId);
+        if($mesa->count()){
+            $mesa->update(['estado' => 'Disponible']);
+            $this->emit('mesa_habilitada', $mesaDesc);
+        }
+        $this->estadoMesa    = '2';
     }
     public function edit($id)
     {

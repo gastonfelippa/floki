@@ -1,28 +1,5 @@
 <div>
-<!-- @include('common.alerts') -->
 @include('common.messages')
-    <!-- <div class="row">
-        <div class="form-group col-2">
-            <label >vista</label>
-            <input id="vista" wire:model="vista">
-        </div>
-        <div class="form-group col-2">
-            <label >En Espera</label>
-            <input id="comSelEnEspera" wire:model="comSelEnEspera">
-        </div>
-        <div class="form-group col-2">
-            <label >Procesando</label>
-            <input id="comSelProcesando" wire:model="comSelProcesando">
-        </div>
-        <div class="form-group col-2">
-            <label >Terminado</label>
-            <input id="comSelTerminado" wire:model="comSelTerminado">
-        </div>
-        <div class="form-group col-2">
-            <label >posición</label>
-            <input id="posicion" wire:model="posicion">
-        </div>
-    </div> -->
     <div class="row">
         <div id="detalle" class="col-9 table-resposive"></div>
         <div id="comanda" class="col-3 table-resposive"></div>
@@ -30,6 +7,7 @@
 
     <input type="hidden" id="vista" wire:model="vista">
     <input type="hidden" id="posicion" wire:model="posicion">
+    <input type="hidden" id="sonido" wire:model="sonido">
 
     <input type="hidden" id="comSelEnEspera" wire:model="comSelEnEspera">
     <input type="hidden" id="comSelProcesando" wire:model="comSelProcesando">
@@ -38,10 +16,19 @@
     <input type="hidden" id="btnEnEspera" value = "En Espera" onclick = "mostrarComanda(1,{{$infoEnEspera}},{{$infoDetEnEspera}})">
     <input type="hidden" id="btnProcesando" value = "Procesando" onclick = "mostrarComanda(2,{{$infoProcesando}},{{$infoDetProcesando}})">
     <input type="hidden" id="btnTerminado" value = "Terminado" onclick = "mostrarComanda(3,{{$infoTerminado}},{{$infoDetTerminado}})">
-        
 </div>
 
 <script type="text/javascript">
+
+    let sound = new Audio('./sonidos/bastara-los-cafres.mp3');
+    function sonidos(estado)
+    {
+        if(estado == 1) sound.play();
+        else{
+            sound.pause();
+            sound.currentTime = 0;
+        } 
+    }
     function mostrarComanda(vista,dataInfo, dataInfoDetalle)
     {
         $('#vista').val(vista);
@@ -162,22 +149,17 @@
                     document.getElementById("btnProcesando").click();
                 }else if(key == 99){   //número 3
                     document.getElementById("btnTerminado").click();
-                }else if(key == 37){ //vuelve un estado                 
+                }else if(key == 37){ //flecha izquierda, vuelve un estado                 
                     cambiarEstado('atras');
-                }else if(key == 39){ //pasa al estado siguiente
+                }else if(key == 39){ //flecha derecha, pasa al estado siguiente
                     cambiarEstado('adelante');
-                }else if(key == 104){ //sube a la comanda siguiente 38     
+                }else if(key == 104){ //número 8, sube a la comanda siguiente 38     
                     seleccionarComanda('arriba');
-                }else if(key == 101){ //baja a la comanda siguiente 40
+                }else if(key == 101){ //número 5, baja a la comanda siguiente 40
                     seleccionarComanda('abajo');
                 }else if(key == 38){ //salir ^^^
                     window.location.href="{{ url('notify') }}";
-                }
-                // else if(key == 100){ //número 4
-                //     cambiarSectorComanda();
-                // }else if(key == 56){ //punto
-                //     cambiarSectorComanda();
-                // }  
+                } 
             }
         }
     }
@@ -187,10 +169,6 @@
         if (key == exampleKey) {
             metaChar = false;
         }
-    }
-    
-    function cambiarSectorComanda(){
-        window.livewire.emit('cambiarSectorComanda');
     }
 
     function cambiarEstado(movimiento){
@@ -202,7 +180,7 @@
 
         window.livewire.emit('cambiarEstado', comSeleccionada, vista, movimiento);
     }
-
+    
     function seleccionarComanda(sentido){
         var vista = $('#vista').val();
         var comSeleccionada = null;
@@ -212,7 +190,13 @@
     
         window.livewire.emit('seleccionarComanda', comSeleccionada, vista, sentido);
     }
-
+   
+    setInterval(function() {
+        if ($('#vista').val() == '1' && $('#sonido').val() == '1') {
+            document.getElementById("btnEnEspera").click();
+            sonidos(1);
+        }else sonidos(0); 
+    }, 5000);
     window.onload = function(){
         if($('#vista').val() == '1') document.getElementById("btnEnEspera").click();
         else if($('#vista').val() == '2') document.getElementById("btnProcesando").click();

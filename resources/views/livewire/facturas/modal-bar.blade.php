@@ -3,7 +3,7 @@
         <div class="modal-content">
         <div class="modal-header">
             @if($modDelivery == "1")
-            <h5 class="modal-title">Modificar Cliente y/o Repartidor</h5>
+            <h5 class="modal-title">Encabezado Delivery</h5>
             @else
             <h5 class="modal-title">Modificar Cliente</h5>
             @endif

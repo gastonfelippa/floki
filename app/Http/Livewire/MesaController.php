@@ -10,7 +10,7 @@ use DB;
 
 class MesaController extends Component
 {
-    public $comercioId, $action = 1, $selected_id;
+    public $comercioId, $action = 1, $selected_id, $search = null;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
     public $descripcion, $capacidad, $sector = 'Elegir', $estado;
 
@@ -19,8 +19,14 @@ class MesaController extends Component
         $this->comercioId = session('idComercio');
 
         $sectores = Sector::where('comercio_id', $this->comercioId)->get();
-        $info = Mesa::where('comercio_id', $this->comercioId)->get();
 
+        if(strlen($this->search)) {
+            $info = Mesa::where('comercio_id', $this->comercioId)
+                ->where('descripcion', 'like', $this->search)
+                ->orWhere('comercio_id', $this->comercioId)
+                ->where('estado', 'like', '%' . $this->search .'%')->get();
+        }else $info = Mesa::where('comercio_id', $this->comercioId)->get();
+        
         return view('livewire.mesas.component', ['info' => $info, 'sectores' => $sectores]);
     }
     protected $listeners = [
@@ -36,7 +42,7 @@ class MesaController extends Component
     {
         $this->descripcion = '';
         $this->selected_id = null;    
-        $this->search      = '';
+        $this->search      = null;
         $this->sector      = 'Elegir';
         $this->capacidad   = '';
         $this->estado      = '';

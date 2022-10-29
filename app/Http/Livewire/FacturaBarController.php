@@ -47,12 +47,12 @@ class FacturaBarController extends Component
 	public function render()
     {
         // $this->facturaAfip();
-//dd('lolo');
+
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
         $this->modDelivery = session('modDelivery');
         $this->facturaPendiente = session('facturaPendiente');
-     
+
         $this->mesaId = session("idMesa");
         if($this->mesaId == 'd' || $this->mesaId == 'D'){
             $this->delivery = 1;
@@ -62,8 +62,8 @@ class FacturaBarController extends Component
             if(session()->has('idMozo')){             //si es una mesa nueva
                 //$this->mozoDesc = session("idMozo");       //si queremos que muestre el id del mozo en la factura
                 $buscar_mozo = User::find(session("idMozo")); //si queremos que muestre el nombre del mozo en la factura
-                $this->mozoDesc = $buscar_mozo->apellido . ' ' . $buscar_mozo->name;
-                $this->mozoId = $buscar_mozo->id;
+                $this->mozoDesc = $buscar_mozo[0]->apellido . ' ' . $buscar_mozo[0]->name;
+                $this->mozoId = $buscar_mozo[0]->id;
             }else{
                 $buscarMozo = Factura::where('comercio_id', $this->comercioId)
                     ->where('mesa_id', $this->mesaId)
@@ -160,7 +160,7 @@ class FacturaBarController extends Component
         if($info->count()){
             $info = Detfactura::join('facturas as f','f.id','detfacturas.factura_id')
             ->join('productos as p','p.id','detfacturas.producto_id')
-            ->select('detfacturas.*', 'p.descripcion as producto', DB::RAW("'' as importe"))
+            ->select('detfacturas.*', 'p.descripcion as producto', 'p.sectorcomanda_id', DB::RAW("'' as importe"))
             ->where('detfacturas.factura_id', $this->factura_id)
             ->orderBy('detfacturas.id', 'asc')->get(); 
         }  
@@ -899,15 +899,42 @@ class FacturaBarController extends Component
         }
         session()->flash('message', 'Encabezado Modificado...');
     }
-    public function destroy($id) //elimina item
+    public function destroy($id, $idProducto, $idSubproducto, $cantidad, $comanda) //elimina item
     {
         if ($id) {
             DB::begintransaction();
             try{ 
-                //capturo la cantidad y elimino el item del detalle
-                $detFactura = Detfactura::find($id);
-                $cantidad = $detFactura->cantidad;
-                $detFactura->delete();
+                if($comanda){
+                    //capturo la cantidad en la comanda y modifico o elimino el item del detalle comanda
+                    $detComanda = Detcomanda::where('id', $id)->first();
+                    $idComanda = $detComanda->comanda_id;
+                    $cantidad_a_descontar = $detComanda->cantidad - $cantidad;
+                    if($cantidad_a_descontar > 0) $detComanda->update(['cantidad' => $cantidad_a_descontar]);    
+                    elseif($cantidad_a_descontar == 0) $det_comanda = Detcomanda::find($id)->delete();
+                    else session()->flash('msg-error', '¡¡¡ATENCIÓN!!! No existe la cantidad a descontar...');
+                }
+
+                //modifico o elimino el item del detalle factura
+                if($idProducto){
+                    $detFactura = Detfactura::join('facturas as f', 'f.id', 'detfacturas.factura_id')
+                        ->join('productos as p', 'p.id', 'detfacturas.producto_id')
+                        ->where('f.id', $this->factura_id)
+                        ->where('p.id', $idProducto)
+                        ->select('detfacturas.*')->get();
+                }else{
+                    $detFactura = Detfactura::join('facturas as f', 'f.id', 'detfacturas.factura_id')
+                        ->join('subproductos as sp', 'sp.id', 'detfacturas.subproducto_id')
+                        ->where('f.id', $this->factura_id)
+                        ->where('p.id', $idSubproducto)
+                        ->select('detfacturas.*')->get();
+                }
+                $cantidad_a_descontar = $detFactura[0]->cantidad - $cantidad;
+                if($cantidad_a_descontar > 0){
+                    $det_factura = Detfactura::find($detFactura[0]->id);
+                    $det_factura->update(['cantidad' => $cantidad_a_descontar]);  
+                }     
+                elseif($cantidad_a_descontar == 0) $det_factura = Detfactura::find($detFactura[0]->id)->delete();
+                else session()->flash('msg-error', '¡¡¡ATENCIÓN!!! No existe la cantidad a descontar...');
 
                 //actualizo el total de la factura
                 $detalle = DetFactura::where('factura_id', $this->factura_id)
@@ -920,12 +947,28 @@ class FacturaBarController extends Component
                 $record = Factura::find($this->factura_id);  
                 $record->update(['importe' => $this->totalAgrabar]);
 
+//dd($idProducto, $idSubproducto);
+
+
+/////SOLUCIONAR EL TEMA DE LA ELIMINACIÓN DE SUBPRODUCTOS////////////
+
+
+
+
+
                 //si se controla el stock 
                 if($this->controlar_stock == 'si'){
-                    $record = Stock::where('producto_id', $producto_id)->first();    
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior + $cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);  
+                    if($idProducto){
+                        $record = Stock::where('producto_id', $idProducto)->first();    
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior + $cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);    
+                    }else{
+                        $record = Stock::where('subproducto_id', $idSubproducto)->first();    
+                        $stockAnterior = $record['stock_actual'];
+                        $stockNuevo = $stockAnterior + $cantidad;  
+                        $record->update(['stock_actual' => $stockNuevo]);
+                    }
                 }
 
                 //grabo en tabla auditoria

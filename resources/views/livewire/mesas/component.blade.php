@@ -1,6 +1,6 @@
 <div class="row layout-top-spacing justify-content-center">  
-    @include('common.alerts')
-    @include('common.messages')
+    <!-- @include('common.alerts')
+    @include('common.messages') -->
 	@if($action == 1)
     <div class="col-sm-12 col-md-6 layout-spacing">      
     	<div class="widget-content-area">

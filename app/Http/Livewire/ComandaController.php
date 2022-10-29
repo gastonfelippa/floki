@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Comanda;
 use App\Models\Detcomanda;
+use App\Models\SectorComanda;
 use Carbon\Carbon;
 use DateTime;
 use DB;
@@ -15,8 +16,8 @@ class ComandaController extends Component
     public $infoProcesando, $infoDetProcesando;
     public $infoTerminado, $infoDetTerminado;
     public $comSelEnEspera = null, $comSelProcesando = null, $comSelTerminado = null;
-    public $dato= null, $sectorComanda = 1, $comercioId;
-    public $vista = null, $posicion = 0;
+    public $dato= null, $sectorComanda = null, $comercioId;
+    public $vista = null, $posicion = 0, $sonido = null;
     public $contadorEE, $contadorP, $contadorT;
 
     public function render()
@@ -26,8 +27,14 @@ class ComandaController extends Component
         $this->contadorT  = -1;
 
         $this->comercioId = session('idComercio');
-        
-        if($this->vista == null) $this->vista = '1';
+
+        if(!$this->sectorComanda){
+            $sectorComanda = SectorComanda::where('descripcion', 'like', 'Cocina')
+                ->where('comercio_id', $this->comercioId)->select('id')->first();
+                $this->sectorComanda = $sectorComanda->id;
+        }
+
+        if(!$this->vista) $this->vista = '1';
         
         $this->infoEnEspera = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
             ->join('users as u', 'u.id', 'f.mozo_id')
@@ -92,14 +99,16 @@ class ComandaController extends Component
         $this->infoDetTerminado = Detcomanda::join('comandas as c', 'c.id', 'detcomandas.comanda_id')
             ->where('c.estado', 'terminado')->orderBy('descripcion')->get();
 
-
         if($this->infoEnEspera->count()){
+            $this->sonido = 1;
             $this->comSelEnEspera = $this->infoEnEspera[0]->id;
-        }
+        }else $this->sonido = null;
         if($this->infoProcesando->count()){ 
+            //$this->sonido = null;
             $this->comSelProcesando = $this->infoProcesando[0]->id;
         }
         if($this->infoTerminado->count()){
+            //$this->sonido = null;
             $this->comSelTerminado = $this->infoTerminado[0]->id;
         }
      //   $this->emit('selComanda',$this->comSelEnEspera,$this->comSelProcesando,$this->comSelTerminado);
@@ -109,8 +118,7 @@ class ComandaController extends Component
 
     protected $listeners = [
         'cambiarEstado' => 'cambiarEstado',
-        'seleccionarComanda' => 'seleccionarComanda',
-        'cambiarSectorComanda' => 'cambiarSectorComanda'
+        'seleccionarComanda' => 'seleccionarComanda'
     ];
 
     public function cambiarEstado($idComanda, $vista, $movimiento)
@@ -225,11 +233,6 @@ class ComandaController extends Component
         }
     }
 
-    public function cambiarSectorComanda()
-    {
-        if($this->sectorComanda == 1) $this->sectorComanda == 2;
-        else $this->sectorComanda = 1;
-    }
     public function seleccionarComanda($idComanda, $vista, $movimiento)
     {
         if($vista == '1' && $movimiento == 'arriba'){
@@ -243,8 +246,12 @@ class ComandaController extends Component
             if($i <= $this->contadorEE){
                 $this->posicion = $i;
                 $this->comSelEnEspera = $this->infoEnEspera[$i]->id;
+            }else{
+                $this->posicion = $i - 1;
+                $this->comSelEnEspera = $this->infoEnEspera[$i - 1]->id;
             }               
         }
+
         if($vista == '2' && $movimiento == 'arriba'){
             $i=$this->posicion - 1;
             if($i >= 0) {
@@ -256,8 +263,12 @@ class ComandaController extends Component
             if($i <= $this->contadorP){
                 $this->posicion = $i;
                 $this->comSelProcesando = $this->infoProcesando[$i]->id;
-            }               
+            }else{
+                $this->posicion = $i - 1;
+                $this->comSelProcesando = $this->infoProcesando[$i - 1]->id;
+            }              
         }
+
         if($vista == '3' && $movimiento == 'arriba'){
             $i=$this->posicion - 1;
             if($i >= 0) {
@@ -269,7 +280,10 @@ class ComandaController extends Component
             if($i <= $this->contadorT){
                 $this->posicion = $i;
                 $this->comSelTerminado = $this->infoTerminado[$i]->id;
-            }               
+            }else{
+                $this->posicion = $i - 1;
+                $this->comSelTerminado = $this->infoTerminado[$i - 1]->id;
+            }                
         }
         $this->vista = $vista;
         $this->emit('selComanda',$this->comSelEnEspera,$this->comSelProcesando,$this->comSelTerminado);
