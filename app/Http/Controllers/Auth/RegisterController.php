@@ -173,9 +173,9 @@ class RegisterController extends Controller
             }else{
                 $modulos = Modulo::create([
                     'modViandas'        => '0',
-                    'modComandas'       => '0',
-                    'modDelivery'       => '0',
-                    'modConsignaciones' => '1',
+                    'modComandas'       => '1',
+                    'modDelivery'       => '1',
+                    'modConsignaciones' => '0',
                     'comercio_id'       => $this->comercioId
                 ]);
             }
