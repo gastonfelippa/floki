@@ -19,11 +19,11 @@ class CreateDetcomandasTable extends Migration
             $table->unsignedBigInteger('comanda_id');
             $table->foreign('comanda_id')->references('id')->on('comandas');
 
-            $table->unsignedBigInteger('producto_id');
-            $table->foreign('producto_id')->references('id')->on('productos')->nullable();
+            $table->unsignedBigInteger('producto_id')->nullable();
+            $table->foreign('producto_id')->references('id')->on('productos');
 
-            $table->unsignedBigInteger('subproducto_id');
-            $table->foreign('subproducto_id')->references('id')->on('subproductos')->nullable();
+            $table->unsignedBigInteger('subproducto_id')->nullable();
+            $table->foreign('subproducto_id')->references('id')->on('subproductos');
 
             $table->decimal('cantidad',10,2);
             $table->string('descripcion');
