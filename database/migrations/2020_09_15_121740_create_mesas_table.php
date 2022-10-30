@@ -19,7 +19,7 @@ class CreateMesasTable extends Migration
             $table->string('descripcion');
             $table->integer('capacidad');
 
-            $table->enum('estado', ['Disponible','Ocupada','Reservada','C/factura','Cancelada'])->default('Disponible');
+            $table->enum('estado', ['Disponible','Ocupada','Reservada','C/factura','Cancelada', 'Deshabilitada'])->default('Disponible');
 
             $table->unsignedBigInteger('sector_id');
             $table->foreign('sector_id')->references('id')->on('sectores');
