@@ -8,7 +8,7 @@
                 <div class="row mt-3">
                     <div class="form-group col-md-5 col-sm-12">
                         <label >Nombre del Producto</label>
-                        <input id="nombre" onblur="validarProducto()" wire:model.lazy="descripcion" type="text" class="form-control text-capitalize" autofocus autocomplete="off">
+                        <input id="nombre" onblur="validarProducto()" wire:model.lazy="descripcion" type="text" class="form-control text-capitalize" maxlength="30" autofocus autocomplete="off">
                     </div>
                     <div class="form-group col-12 col-md-3">
                         <label >Categoría</label>

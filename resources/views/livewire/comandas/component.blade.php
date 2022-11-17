@@ -19,16 +19,47 @@
 </div>
 
 <script type="text/javascript">
+    var metaChar = false;
+    var exampleKey = 16;
 
-    let sound = new Audio('./sonidos/bastara-los-cafres.mp3');
-    function sonidos(estado)
-    {
-        if(estado == 1) sound.play();
-        else{
-            sound.pause();
-            sound.currentTime = 0;
-        } 
+    function keyEvent(event) {
+        var key = event.keyCode || event.which;
+        var keychar = String.fromCharCode(key);
+        if (key == exampleKey) {
+            metaChar = true;
+        }
+        if (key != exampleKey) {
+            if (metaChar) {
+                metaChar = false;
+            } else { 
+                if(key == 97){         //número 1
+                    document.getElementById("btnEnEspera").click();
+                }else if(key == 98){   //número 2
+                    document.getElementById("btnProcesando").click();
+                }else if(key == 99){   //número 3
+                    document.getElementById("btnTerminado").click();
+                }else if(key == 37){ //flecha izquierda, vuelve un estado                 
+                    cambiarEstado('atras');
+                }else if(key == 39){ //flecha derecha, pasa al estado siguiente
+                    cambiarEstado('adelante');
+                }else if(key == 38){ //flecha arriba, sube a la comanda siguiente     
+                    seleccionarComanda('arriba');
+                }else if(key == 40){ //flecha abajo, baja a la comanda siguiente
+                    seleccionarComanda('abajo');
+                }else if(key == 27){ //escape ->salir
+                    window.location.href="{{ url('notify') }}";
+                } 
+            }
+        }
     }
+
+    function metaKeyUp (event) {
+        var key = event.keyCode || event.which;
+        if (key == exampleKey) {
+            metaChar = false;
+        }
+    }
+
     function mostrarComanda(vista,dataInfo, dataInfoDetalle)
     {
         $('#vista').val(vista);
@@ -130,47 +161,6 @@
         }      
     }
 
-    var metaChar = false;
-    var exampleKey = 16;
-
-    function keyEvent(event) {
-        var key = event.keyCode || event.which;
-        var keychar = String.fromCharCode(key);
-        if (key == exampleKey) {
-            metaChar = true;
-        }
-        if (key != exampleKey) {
-            if (metaChar) {
-                metaChar = false;
-            } else { 
-                if(key == 97){         //número 1
-                    document.getElementById("btnEnEspera").click();
-                }else if(key == 98){   //número 2
-                    document.getElementById("btnProcesando").click();
-                }else if(key == 99){   //número 3
-                    document.getElementById("btnTerminado").click();
-                }else if(key == 37){ //flecha izquierda, vuelve un estado                 
-                    cambiarEstado('atras');
-                }else if(key == 39){ //flecha derecha, pasa al estado siguiente
-                    cambiarEstado('adelante');
-                }else if(key == 104){ //número 8, sube a la comanda siguiente 38     
-                    seleccionarComanda('arriba');
-                }else if(key == 101){ //número 5, baja a la comanda siguiente 40
-                    seleccionarComanda('abajo');
-                }else if(key == 38){ //salir ^^^
-                    window.location.href="{{ url('notify') }}";
-                } 
-            }
-        }
-    }
-
-    function metaKeyUp (event) {
-        var key = event.keyCode || event.which;
-        if (key == exampleKey) {
-            metaChar = false;
-        }
-    }
-
     function cambiarEstado(movimiento){
         var vista = $('#vista').val();
         var comSeleccionada = null;
@@ -190,13 +180,27 @@
     
         window.livewire.emit('seleccionarComanda', comSeleccionada, vista, sentido);
     }
-   
+
+    let sound = new Audio('./sonidos/bastara-los-cafres.mp3');
+    function sonidos(estado)
+    {
+        if(estado == 1) sound.play();
+        else{
+            sound.pause();
+            sound.currentTime = 0;
+        } 
+    }
     setInterval(function() {
+        var sonido = $('#sonido').val()
         if ($('#vista').val() == '1' && $('#sonido').val() == '1') {
             document.getElementById("btnEnEspera").click();
             sonidos(1);
-        }else sonidos(0); 
+        }else{
+            sonidos(0);
+            if($('#vista').val() == '1') window.location="{{ url('comandas') }}"
+        }
     }, 5000);
+   
     window.onload = function(){
         if($('#vista').val() == '1') document.getElementById("btnEnEspera").click();
         else if($('#vista').val() == '2') document.getElementById("btnProcesando").click();

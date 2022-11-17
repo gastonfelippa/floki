@@ -138,6 +138,11 @@
                                     </li>
                                 @endcan
                             @endif
+                            @can('Categorias_index')
+                                <li>
+                                    <a href="{{ url('rubros') }}"> RUBROS  </a>
+                                </li>
+                            @endcan
                             <!-- @can('Gastos_index')
                                 <li>
                                     <a href="{{ url('gastos') }}"> CATEGORIAS/EGRESOS  </a>
@@ -244,7 +249,7 @@
                             @endcan 
                             @can('Auditorias_index')  
                                 <li>
-                                    <a href="{{ url('auditorias') }}">AUDITORIAS</a>
+                                    <a href="{{ url('auditorias') }}">AUDITORIA</a>
                                 </li>
                             @endcan
                             <li>

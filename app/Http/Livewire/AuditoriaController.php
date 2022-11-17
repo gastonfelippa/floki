@@ -114,7 +114,12 @@ class AuditoriaController extends Component
                     $info2 = Auditoria::join('mesas as c', 'c.id', 'auditorias.item_deleted_id')
                         ->where('auditorias.id', $i->id)->select('c.descripcion')->get();
                     $i->item = 'Mesa ' . $info2[0]->descripcion;
-                    break; 
+                    break;
+                case 'Rubros':                           
+                    $info2 = Auditoria::join('rubros as r', 'r.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)->select('r.descripcion')->get();
+                    $i->item = $info2[0]->descripcion;
+                    break;
                 default:
             } 
         }

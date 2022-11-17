@@ -17,6 +17,7 @@ use App\Models\Guarnicion;
 use App\Models\Localidad;
 use App\Models\Mesa;
 use App\Models\Producto;
+use App\Models\Rubro;
 use App\Models\Salsa;
 use App\Models\Stock;
 use App\Models\Subproducto;
@@ -29,11 +30,11 @@ class FacturaBarController extends Component
 	//properties
     public $cantidad = '', $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos, $facturaPendiente;
     public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $subproducto="Elegir", $mesa="Elegir", $mozo="Elegir", $salon =null;
-    public $clientes, $empleados, $productos, $subproductos, $mesas, $mozos;
+    public $clientes, $empleados, $productos, $subproductos, $mesas, $mozos, $rubros;
     public $selected_id = 0, $numFactura, $action = 1;
     public $facturas, $fecha, $total, $importe, $totalAgrabar, $delivery = 0;  
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
-    public $comercioId, $arqueoGralId, $factura_id = null, $categorias, $articulos =null, $saldoCtaCte, $saldoACobrar;
+    public $comercioId, $arqueoGralId, $factura_id = null, $categorias = null, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
@@ -43,6 +44,7 @@ class FacturaBarController extends Component
     public $tabFactura = 'factura', $unir_comandas = 'no', $estadoComanda, $tab = 'factura', $infoComandaEnEspera;
     public $modDelivery, $mesaId, $mozoId, $mesaDesc, $mozoDesc;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no';
+    public $camarero = null, $categoria_id, $rubro_id, $search;
 	
 	public function render()
     {
@@ -196,12 +198,31 @@ class FacturaBarController extends Component
             }
         }    
 
-        $this->productos = Producto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        if(strlen($this->search) > 0) {
+            $this->articulos = Producto::where('comercio_id', $this->comercioId)
+                ->where('descripcion', 'like', '%' . $this->search .'%')
+                ->select('id', 'descripcion')
+                ->orderBy('descripcion')->get();
+        }else{
+            $this->articulos = Producto::where('comercio_id', $this->comercioId)
+                ->where('categoria_id', $this->categoria_id)
+                ->select('id', 'descripcion')
+                ->orderBy('descripcion')->get();
+        }
         $this->clientes = Cliente::where('comercio_id', $this->comercioId)->orderBy('apellido')->get();
-        $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->salsas = Salsa::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->guarniciones = Guarnicion::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->mesas = Mesa::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        
+        //if($this->rubro_id){
+        //     $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        // }else{
+            $this->categorias = Categoria::where('comercio_id', $this->comercioId)
+                ->where('rubro_id', $this->rubro_id)
+                ->select('id', 'descripcion')->orderBy('descripcion', 'asc')->get();
+        //}
+
+        $this->rubros = Rubro::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
+        $this->salsas = Salsa::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
+        $this->guarniciones = Guarnicion::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
+        $this->mesas = Mesa::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
 
         if ($this->subproducto == 'Elegir'){
             $this->subproductos = Subproducto::where('producto_id', $this->producto)
@@ -265,7 +286,7 @@ class FacturaBarController extends Component
             ->select('detcomandas.*')
             ->orderBy('detcomandas.descripcion')->get(); 
      ///////////////    
-    
+
 		return view('livewire.facturas.component-bar', [
             'info'        => $info,
             'encabezado'  => $encabezado,
@@ -304,9 +325,9 @@ class FacturaBarController extends Component
         $this->tab                = 'factura';
         $this->unir_comandas      = 'no';
         $this->controlar_stock    = 'no';
-        $this->mostrar_sp = 0;
-        $this->articulos = null;
-        $this->es_producto = 1;
+        $this->mostrar_sp         = 0;
+        $this->articulos          = null;
+        $this->es_producto        = 1;
     } 
     public function ocultar_sp()
     {
@@ -409,10 +430,15 @@ class FacturaBarController extends Component
         echo $res['CAE']; //CAE asignado el comprobante
         echo $res['CAEFchVto']; //Fecha de vencimiento del CAE (yyyy-mm-dd)
     }    
+	public function buscarCategoria($id)
+	{
+		$this->rubro_id = $id;
+        $this->categoria_id = '';
+        $this->search = '';
+	}    
 	public function buscarArticulo($id)
 	{
-		$this->articulos = Producto::where('comercio_id', $this->comercioId)
-                                ->where('categoria_id', $id)->orderBy('descripcion', 'asc')->get();
+        $this->categoria_id = $id;
         $this->mostrar_sp = 0;
 	}    
     public function buscarProducto($id)
@@ -804,7 +830,7 @@ class FacturaBarController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         } 
         session(['facturaPendiente' => null]);   
-        return redirect()->to('/abrir-mesa');
+        return redirect()->to('/reservas-estado-mesas');
     }
     public function factura_ctacte($cliId)
     {
@@ -836,7 +862,7 @@ class FacturaBarController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }
         session(['facturaPendiente' => null]);
-        return redirect()->to('/abrir-mesa');
+        return redirect()->to('/reservas-estado-mesas');
     }        
     public function dejar_pendiente()
     {
@@ -1008,13 +1034,17 @@ class FacturaBarController extends Component
                     'comentario'      => $comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
+
+                $mesa = Mesa::find($this->mesaId);
+                $mesa->update(['estado' => 'Disponible']);
+
                 session()->flash('msg-ok', 'Factura anulada con éxito!!');
                 DB::commit();               
             }catch (Exception $e){
                 DB::rollback();
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La factura no se anuló...');
             }
-            return redirect()->to('/abrir-mesa');
+            return redirect()->to('/reservas-estado-mesas');
         }
     }
     public function elegirFormaDePago()

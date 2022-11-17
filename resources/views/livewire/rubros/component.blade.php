@@ -1,12 +1,12 @@
 <div class="row layout-top-spacing justify-content-center">  
 	@include('common.alerts')
 	@if($action == 1)  
-    <div class="col-sm-12 col-md-8 layout-spacing">      
+    <div class="col-sm-12 col-md-6 layout-spacing">      
     	<div class="widget-content-area">
     		<div class="widget-one">
     			<div class="row">
     				<div class="col-xl-12 text-center">
-    					<h3><b>Categorías de Productos</b></h3>
+    					<h3><b>Rubros</b></h3>
     				</div> 
     			</div> 
 				@if($recuperar_registro == 1)
@@ -18,14 +18,6 @@
 							<thead>
 								<tr>
 									<th class="text-left">DESCRIPCIÓN</th>
-									@if($modComandas == "1")
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA SALÓN</th>
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA DELIVERY</th>
-									@else
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 1</th>
-									<th class="text-center">MARGEN DE GANANCIA <br>LISTA 2</th>
-									@endif
-									<th class="text-center">RUBRO</th>
 									<th class="text-center">ACCIONES</th>
 								</tr>
 							</thead>
@@ -33,9 +25,6 @@
 								@foreach($info as $r)
 								<tr>
 									<td>{{$r->descripcion}}</td>
-									<td class="text-center">{{$r->margen_1}} %</td>
-									<td class="text-center">{{$r->margen_2}} %</td>
-									<td class="text-center">{{$r->rubro_descripcion}}</td>
 									<td class="text-center">
 										@include('common.actions', ['edit' => 'Categorias_edit', 'destroy' => 'Categorias_destroy'])
 									</td>
@@ -50,7 +39,7 @@
     </div>
 	@else
 	@can('Categorias_create')
-	@include('livewire.categorias.form')		
+	@include('livewire.rubros.form')		
 	@endif
 	@endcan
 </div>
@@ -107,7 +96,7 @@
                 position: 'center',
                 icon: 'info',
                 title: 'Tu registro no se puede eliminar!',
-                text: 'Existen Productos relacionados a esa Categoría...',
+                text: 'Existen Categorías relacionadas a ese Rubro...',
                 showConfirmButton: false,
                 timer: 3500
             })

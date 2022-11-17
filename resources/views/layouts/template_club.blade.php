@@ -186,7 +186,7 @@
                             @endcan 
                             @can('Auditorias_index')  
                                 <li>
-                                    <a href="{{ url('auditorias-club') }}">AUDITORIAS</a>
+                                    <a href="{{ url('auditorias-club') }}">AUDITORIA</a>
                                 </li>
                             @endcan
                             <li>

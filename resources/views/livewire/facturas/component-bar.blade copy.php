@@ -10,9 +10,12 @@
                 @else
                 <div class="row ml-1 justify-content-center">
                     <h5 class="bg-danger p-1" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h5>
+                    @if($camarero)
                     <h5 class="bg-danger ml-1 p-1" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h5>
+                    @endif
                     <h5 class="bg-danger ml-1 p-1" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h5> 
                 </div>  
+                @if($camarero)
                 <div class="row">
                     <div class="col-md-3">
                         <div style="font-size:13px;"><b>Fact. N° </b> {{str_pad($numFactura, 6, '0', STR_PAD_LEFT)}} </div>
@@ -41,10 +44,10 @@
                                 Cobrar   
                             </button>
                             <button type="button" class="btn btn-success" enabled>
-                            <a id="link">
-                            Imprimir</a>
-                                <!-- <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
-                                Imprimir</a> -->
+                            <!-- <a id="link">
+                            Imprimir</a> -->
+                                <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                Imprimir</a>
                             </button>
                             <button type="button" onclick="AnularFactura({{$factura_id}})" 
                                 class="btn btn-info" enabled>
@@ -54,6 +57,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 @endif
                 <!-- si es delivery y es inicio de factura -->
                 @if($delivery == 1)          
@@ -162,7 +166,16 @@
                                         <td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
                                         <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
                                         <td class="text-center">
-                                            @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
+                                            @if(!$r->sectorcomanda_id)
+                                                <ul class="table-controls">
+                                                    <li>
+                                                        <a href="javascript:void(0);"          		
+                                                        onclick="Confirm('{{$r->id}}','{{$r->producto_id}}','{{$r->subproducto_id}}','{{$r->cantidad}}', null)"
+                                                        data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
+                                                    </li>
+                                                </ul>
+                                                <!-- @include('common.actions-destroy', ['destroy' => 'Facturas_destroy_item']) -->
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach
@@ -206,7 +219,13 @@
                                         <td class="text-center">{{number_format($r->cantidad,0)}}</td>
                                         <td class="text-left">{{$r->descripcion}}</td>
                                         <td class="text-center">
-                                            @include('common.actions', ['edit' => 'Facturas_edit_item', 'destroy' => 'Facturas_destroy_item'])
+                                            <ul class="table-controls">
+                                                <li>
+                                                    <a href="javascript:void(0);"          		
+                                                    onclick="Confirm('{{$r->id}}','{{$r->producto_id}}','{{$r->subproducto_id}}','{{$r->cantidad}}', 1)"
+                                                    data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
+                                                </li>
+                                            </ul>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -226,75 +245,48 @@
 
     <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
-            <div class="widget-one">
-                <form>
-                    @include('common.messages')    
-                    <div class="row">
-                        <div class="form-group col-sm-12 col-md-2">
-                            <label>Cantidad</label>
-                            <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
-                                class="form-control form-control-sm text-center">
-                        </div> 
-                        <div class="form-group col-sm-12 col-md-2">
-                            <label >Código</label>
-                            <input id="barcode" wire:model.lazy="barcode"  type="text" 
-                                onclick.keydown.enter="setfocus('guardar')" class="form-control form-control-sm">
-                        </div>
-                        <div class="form-group col-sm-12 col-md-3">
-                            <label>Producto</label>
-                            <select id="producto" wire:model="producto" class="form-control form-control-sm text-center">
-                                <option value="Elegir" >Elegir</option>
-                                @foreach($productos as $t)
-                                <option value="{{ $t->id }}">
-                                    {{$t->descripcion}}                         
-                                </option> 
-                                @endforeach                               
-                            </select>			               
-                        </div>            
-                        <div class="form-group col-sm-12 col-md-3">
-                            <label>P/Unitario</label>
-                            <input wire:model.lazy="precio" type="text" class="form-control form-control-sm text-right" disabled>
-                        </div>
-                        <div class="form-group col-sm-12 col-md-2 mt-2">
-                            <label></label>
-                            <button id="guardar" type="button" wire:click="verificar_stock('mantener_id')" class="btn btn-primary mt-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>                                
-                            </button>
-                        </div>
-                    </div>
-                </form>
+            <div class="row btnRubro justify-content-center">
+                <button type="button" class="btn btn-primary">COMIDAS</button>
+                <button type="button" class="btn btn-primary ml-1">BEBIDAS</button>
             </div>
-        </div>
 
-        <div class="row mt-2">
-            <div class="col-sm-12 col-lg-4">
-                <div class="widget-content-area">
-                    @if($categorias->count() > 6)
+            <div class="row mt-2">
+                
+                <div class="col-sm-12 col-lg-4">
+                    <!-- <div class="widget-content-area"> -->
+                        @if($categorias->count() > 6)
+                            <div class="widget-one scrollb"> 
+                                <div class="scrollContent"> 
+                                    @foreach($categorias as $c)                    
+                                        <button id="btnCat"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn mb-1">{{$c->descripcion}}</button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else                   
+                            @foreach($categorias as $c)                    
+                                <button id="btnCat" style="width: 30%;height: 75px;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
+                            @endforeach                       
+                        @endif
+                    <!-- </div> -->
+                </div>
+                <div class="col-sm-12 col-lg-8">
+                    <!-- <div class="widget-content-area"> -->
                         <div class="widget-one scrollb"> 
                             <div class="scrollContent"> 
-                                @foreach($categorias as $c)                    
-                                    <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
-                                @endforeach
+                                @if($articulos != null)
+                                    @if($mostrar_sp == 0)
+                                        @foreach($articulos as $a)                    
+                                            <button wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
+                                        @endforeach 
+                                    @else
+                                        @foreach($tiene_sp as $sp)                    
+                                            <button wire:click="StoreOrUpdateButton({{$sp->id}})" type="button" class="btn btn-success mb-1">{{$sp->descripcion}}</button>
+                                        @endforeach 
+                                    @endif
+                                @endif                   
                             </div>
                         </div>
-                    @else                   
-                        @foreach($categorias as $c)                    
-                            <button style="width: 100%;"  wire:click.prevent="buscarArticulo({{$c->id}})" type="button" class="btn btn-warning mb-1">{{$c->descripcion}}</button>
-                        @endforeach                       
-                    @endif
-                </div>
-            </div>
-            <div class="col-sm-12 col-lg-8">
-                <div class="widget-content-area">
-                    <div class="widget-one scrollb"> 
-                        <div class="scrollContent"> 
-                            @if($articulos != null)
-                            @foreach($articulos as $a)                    
-                                <button style="width: 30%;height: 75px;" wire:click="verificar_stock('{{$a->id}}')" type="button" class="btn btn-primary mb-1">{{$a->descripcion}}</button>
-                            @endforeach 
-                            @endif                   
-                        </div>
-                    </div>
+                    <!-- </div> -->
                 </div>
             </div>
             <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
@@ -308,7 +300,7 @@
     </div>
     @include('livewire.facturas.modal-bar')  
     @include('livewire.facturas.modalCtacte')  
-    @include('livewire.facturas.modalSalsas')   
+    @include('livewire.facturas.modalSalsas')    
     @else    
     @include('livewire.facturas.formaDePago')  
     @include('livewire.facturas.modalNroCompPago')  
@@ -329,8 +321,9 @@
     }
     .scrollb {
         width: 100%;
-        height:240px;
-        overflow:hidden;
+        /* height:240px; */
+        overflow-y:auto;
+        overflow-x:hidden;
     }
     .scrollContent{
         width: 108%;
@@ -340,7 +333,7 @@
     }
     .scrollc {
         width: 100%;
-        height:200px;
+        /* height:200px; */
         overflow:hidden;
     }
     .scrollContentC{
@@ -349,12 +342,43 @@
         overflow-y:auto;
         overflow-x:hidden;
     }
+    @media screen and (max-width: 640px) {
+        .btnRubro {
+            width: 100%;
+            margin: auto;
+        }
+        #btnCat {
+            width: 31%;
+            height: 50px;
+            background: blue;
+            font-size: 12px;
+            color: white;
+        }
+    }
+
+    @media screen and (min-width: 640px) and (max-width: 1280px) {
+        #btnCat {
+            background: red;
+        }
+    }
+
+    @media screen and (min-width: 1280px) {
+        .btnRubro {
+            width: 100%;
+            /* background: green; */
+            margin: auto;
+        }
+        #btnCat {
+            width: 100%;
+            background: green;
+        }
+    }
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
 <script type="text/javascript">
- 	function Confirm(id)
+ 	function Confirm(id, idProducto, idSubproducto, cantidad, comanda)
     {
         let me = this
         swal({
@@ -369,7 +393,7 @@
             closeOnConfirm: false
             },
             function() {
-                window.livewire.emit('deleteRow', id)    
+                window.livewire.emit('deleteRow', id, idProducto, idSubproducto, cantidad, comanda)    
                 toastr.success('info', 'Registro eliminado con éxito')
                 swal.close()   
             })
@@ -616,7 +640,7 @@
             pingServer();
             keep_alive = false;
         }
-    }, 1200000 );
+    }, 120000);
     function pingServer() {
         $.ajax('/keepAlive');
     }

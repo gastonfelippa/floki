@@ -7,35 +7,42 @@ use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Comercio;
 use App\Models\Producto;
+use App\Models\Rubro;
 use DB;
 
 class CategoriaController extends Component
 {
-	public $descripcion, $margen_1, $margen_2, $descripcion_soft_deleted, $id_soft_deleted;
+	public $descripcion, $margen_1, $margen_2, $rubros, $rubro ='Elegir';
     public $selected_id, $search, $action = 1, $recuperar_registro = 0, $calcular_precio_de_venta;  
-    public $comercioId, $comercioTipo, $modComandas, $modDelivery;
+    public $descripcion_soft_deleted, $id_soft_deleted;
+    public $comercioId, $comercioTipo, $modComandas;
 
     public function render()
     {
-         //busca el comercio que está en sesión
-         $this->comercioId = session('idComercio');
-         
-         $this->comercioTipo = session('tipoComercio');
-         $this->modComandas = session('modComandas');
-         $this->modDelivery = session('modDelivery');
-         session(['facturaPendiente' => null]);  
+        //busca el comercio que está en sesión
+        $this->comercioId = session('idComercio');
+        $this->comercioTipo = session('tipoComercio');
+        $this->modComandas = session('modComandas');
 
-         $record = Comercio::find($this->comercioId);
-         $this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
+        $record = Comercio::find($this->comercioId);
+        $this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
+
+        $this->rubros = Rubro::select('*')->where('comercio_id', $this->comercioId)->get();
 
         if(strlen($this->search) > 0)
         {
-            $info = Categoria::where('descripcion', 'like', '%' .  $this->search . '%')
-                        ->where('comercio_id', $this->comercioId) 
-                        ->orderby('descripcion','desc')->get();
+            $info = Categoria::join('rubros as r', 'r.id', 'categorias.rubro_id')
+                        ->where('categorias.descripcion', 'like', '%' .  $this->search . '%')
+                        ->where('categorias.comercio_id', $this->comercioId)
+                        ->orWhere('r.descripcion', 'like', '%' .  $this->search . '%')
+                        ->where('categorias.comercio_id', $this->comercioId)
+                        ->select('categorias.*', 'r.descripcion as rubro_descripcion') 
+                        ->orderby('categorias.descripcion','desc')->get();
         }else {
-            $info = Categoria::orderBy('descripcion', 'asc')
-                        ->where('comercio_id', $this->comercioId)->get();
+            $info = Categoria::join('rubros as r', 'r.id', 'categorias.rubro_id')
+                ->where('categorias.comercio_id', $this->comercioId)
+                ->select('categorias.*', 'r.descripcion as rubro_descripcion')
+                ->orderBy('categorias.descripcion', 'asc')->get();
         }
         return view('livewire.categorias.component', [
             'info' => $info
@@ -52,10 +59,11 @@ class CategoriaController extends Component
     private function resetInput()
     {
         $this->descripcion = '';
-        $this->margen_1 = '';
-        $this->margen_2 = '';
+        $this->margen_1    = '';
+        $this->margen_2    = '';
+        $this->rubro       = 'Elegir';
         $this->selected_id = null;    
-        $this->search = '';
+        $this->search      = '';
     }
     public function edit($id)
     {
@@ -63,8 +71,9 @@ class CategoriaController extends Component
         $record = Categoria::findOrFail($id);
         $this->selected_id = $id;
         $this->descripcion = $record->descripcion;
-        $this->margen_1 = $record->margen_1;
-        $this->margen_2 = $record->margen_2;
+        $this->margen_1    = $record->margen_1;
+        $this->margen_2    = $record->margen_2;
+        $this->rubro       = $record->rubro_id;
     }
     public function volver()
     {
@@ -96,6 +105,7 @@ class CategoriaController extends Component
     }
     public function StoreOrUpdate()
     { 
+        $this->validate(['rubro' => 'not_in:Elegir']);
         if ($this->calcular_precio_de_venta == 0){   //calcula el precio de venta sumando 
             $this->validate([                        //el margen de ganancia al costo del producto
                 'descripcion' => 'required',
@@ -151,6 +161,7 @@ class CategoriaController extends Component
                     'descripcion' => strtoupper($this->descripcion),            
                     'margen_1'    => $this->margen_1,
                     'margen_2'    => $this->margen_2,
+                    'rubro_id'    => $this->rubro,
                     'comercio_id' => $this->comercioId            
                 ]);
             }else {   
@@ -158,7 +169,8 @@ class CategoriaController extends Component
                 $record->update([
                     'descripcion' => strtoupper($this->descripcion),
                     'margen_1'    => $this->margen_1,
-                    'margen_2'    => $this->margen_2
+                    'margen_2'    => $this->margen_2,
+                    'rubro_id'    => $this->rubro
                 ]);
                 $this->action = 1;              
             }

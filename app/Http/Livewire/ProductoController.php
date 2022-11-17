@@ -25,7 +25,7 @@ class ProductoController extends Component
 	public $action = 1, $search, $habilitar_model = false;
 	public $sectores, $se_imprime = 0, $textos;
 	public $salsa = false, $guarnicion = false, $tiene_receta = 'no', $controlar_stock = 'si';
-	public $descripcion_sp, $search_sp, $tiene_sp = null;
+	public $texto_subproducto, $search_sp, $tiene_sp = null;
 	public $comercioId, $comercioTipo, $modComandas, $modDelivery; 
 	
 	public function render()
@@ -173,6 +173,7 @@ class ProductoController extends Component
 		$this->tiene_sp            = null;
 		$this->tiene_receta        = 'no';
 		$this->controlar_stock     = 'si';
+		$this->texto_subproducto   = '';
 	}	
 	public function edit($id)
 	{
@@ -304,14 +305,16 @@ class ProductoController extends Component
 	}
 	public function grabar_subproducto($id_subproducto, $texto, $stock_actual_sp, $stock_ideal_sp, $stock_minimo_sp)
 	{
-		$texto_sp = ucwords($texto);
+		$this->texto_subproducto = ucwords($texto);
+		$this->validate([
+            'texto_subproducto' => 'required'
+        ]);
+
 		if($stock_actual_sp) $this->stock_actual = $stock_actual_sp; else $this->stock_actual = null;
 		if($stock_ideal_sp) $this->stock_ideal = $stock_ideal_sp; else $this->stock_ideal = null;
 		if($stock_minimo_sp) $this->stock_minimo = $stock_minimo_sp; else $this->stock_minimo = null;
 		
-        $this->validate([
-            'texto' => 'required'
-        ]);
+     
         DB::begintransaction();
         try{
 			if($id_subproducto){   //si está modificando
@@ -350,19 +353,19 @@ class ProductoController extends Component
 			if($id_subproducto){ //modifica
 				$existe = Subproducto::find($id_subproducto);
 				$existe->update([
-					'descripcion'  => ucwords($texto_sp)
+					'descripcion'  => $this->texto_subproducto
 				]);
 				$stock = Stock::where('subproducto_id', $id_subproducto)->first();
 				$stock->update([
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
+					'stock_actual' => $this->stock_actual,
+					'stock_ideal'  => $this->stock_ideal,
+					'stock_minimo' => $this->stock_minimo,
+					'comercio_id'  => $this->comercioId
 				]);
 			}else{       //crea
 				$subproducto = Subproducto::create([
 					'producto_id'  => $this->selected_id,
-					'descripcion'  => ucwords($texto_sp),
+					'descripcion'  => $this->texto_subproducto,
 					'comercio_id'  => $this->comercioId            
 				]);	
 				$stock = Stock::create([

@@ -104,23 +104,19 @@ class ComandaController extends Component
             $this->comSelEnEspera = $this->infoEnEspera[0]->id;
         }else $this->sonido = null;
         if($this->infoProcesando->count()){ 
-            //$this->sonido = null;
             $this->comSelProcesando = $this->infoProcesando[0]->id;
         }
         if($this->infoTerminado->count()){
-            //$this->sonido = null;
             $this->comSelTerminado = $this->infoTerminado[0]->id;
         }
-     //   $this->emit('selComanda',$this->comSelEnEspera,$this->comSelProcesando,$this->comSelTerminado);
-    //dd($this->comSelEnEspera,$this->comSelProcesando,$this->comSelTerminado);
+        
         return view('livewire.comandas.component');
     }
 
     protected $listeners = [
-        'cambiarEstado' => 'cambiarEstado',
-        'seleccionarComanda' => 'seleccionarComanda'
+        'cambiarEstado'          => 'cambiarEstado',
+        'seleccionarComanda'     => 'seleccionarComanda'
     ];
-
     public function cambiarEstado($idComanda, $vista, $movimiento)
     {
         $mover  = 0; 
@@ -232,7 +228,6 @@ class ComandaController extends Component
             } 
         }
     }
-
     public function seleccionarComanda($idComanda, $vista, $movimiento)
     {
         if($vista == '1' && $movimiento == 'arriba'){
