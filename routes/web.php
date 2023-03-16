@@ -36,6 +36,7 @@ Route::get('/pdfResumenDeCuenta/{id}', 'PdfController@PDFResumenDeCuenta');
 Route::get('/pdfRemito/{id}', 'PdfController@PDFRemito');
 Route::get('/pdfListaDePrecios/{numero}', 'PdfController@PDFListaDePrecios');
 Route::get('/pdfCuotaSocio', 'PdfController@PDFCuotaSocio');
+Route::get('/pdfpedidos/{pedidoId}', 'PdfController@PDFpedidos');
 
 //            ruta            vista
 Route::view('auditorias', 'auditorias')->middleware('permission:Auditorias_index');
@@ -77,6 +78,9 @@ Route::view('balance-club', 'balance-club');
 Route::view('abrir-mesa', 'abrir-mesa');
 Route::view('reservas-estado-mesas', 'reservas-estado-mesas');
 Route::view('rubros', 'rubros');
+Route::view('pedidos', 'pedidos');
+Route::view('bancos', 'bancos');
+Route::view('cheques', 'cheques');
 
 Route::view('facturas', 'facturas')->middleware('permission:Facturas_index');
 Route::view('facturasbar', 'facturasbar')->middleware('permission:Facturas_index');
@@ -121,5 +125,9 @@ Route::post('contactanos', 'EmailsController@store')->name('contactanos.store');
 
 Route::get('registrarse', 'RegisterController@index')->name('registrarse.index');
 Route::post('registrarse', 'RegisterController@store')->name('registrarse.store');
+
+//rutas para importar/exportar Excel
+Route::post('importar.excel', 'ImportarExcel@importarExcel')->name('importar.excel');
+Route::post('importar.productos.excel', 'ImportarExcel@importarProductos')->name('importar.productos.excel');
 
 

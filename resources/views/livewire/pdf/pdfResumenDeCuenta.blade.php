@@ -35,7 +35,8 @@
 			<tbody style="font-size:12px">
 				@foreach($info as $r)
 				<tr>
-				    <td class="text-left" style="width: 80px;">{{\Carbon\Carbon::parse(strtotime($r->fecha))->format('d-m-Y')}}</td>
+				    <!-- <td class="text-left" style="width: 80px;">{{\Carbon\Carbon::parse(strtotime($r->fecha))->format('d-m-Y')}}</td> -->
+				    <td class="text-left" style="width: 80px;">{{\Carbon\Carbon::parse($r->fecha)->format('d-m-Y')}}</td>
 					@if($r->importe_factura == 1)
 						<td class="text-center" style="width: 100px;">FAC-{{str_pad($r->numero, 6, '0', STR_PAD_LEFT)}}</td>
 					@elseif( $r->importe_factura == 2)

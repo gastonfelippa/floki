@@ -15,52 +15,76 @@
                     <div class="col-md-3">
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
                             @if($inicio_factura)
-                                @if($lista == '1')
-                                    <button id="btn1" type="button" class="btn btn-danger"
-                                        wire:click="usarLista('1')">L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('2')">L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('3')">LC</button>
-                                    @endif
-                                @elseif($lista == '2')
-                                    <button id="btn1" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('1')">L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-danger"
-                                        wire:click="usarLista('2')">L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('3')">LC</button>
+                                @if($comercioTipo != 11)
+                                    @if($lista == '1')
+                                        <button id="btn1" type="button" class="btn btn-danger"
+                                            wire:click="usarLista('1')">L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('2')">L2</button>
+                                    @else
+                                        <button id="btn1" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('1')">L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-danger"
+                                            wire:click="usarLista('2')">L2</button>
                                     @endif
                                 @else
-                                    <button id="btn1" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('1')">L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-outline-danger"
-                                        wire:click="usarLista('2')">L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-danger"
-                                        wire:click="usarLista('3')">LC</button>
+                                    @if($lista == '1')
+                                        <button id="btn1" type="button" class="btn btn-danger"
+                                            wire:click="usarLista('1')">L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('2')">L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('3')">LC</button>
+                                        @endif
+                                    @elseif($lista == '2')
+                                        <button id="btn1" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('1')">L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-danger"
+                                            wire:click="usarLista('2')">L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('3')">LC</button>
+                                        @endif
+                                    @else
+                                        <button id="btn1" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('1')">L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger"
+                                            wire:click="usarLista('2')">L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-danger"
+                                            wire:click="usarLista('3')">LC</button>
+                                        @endif
                                     @endif
                                 @endif
                             @else
-                                @if($lista == '1')
-                                    <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
-                                    @endif
-                                @elseif($lista == '2')
-                                    <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                @if($comercioTipo == 10)
+                                    @if($lista == '1')
+                                        <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                    @else
+                                        <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
                                     @endif
                                 @else
-                                    <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
-                                    <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
-                                    @if($modConsignaciones == "1")
-                                    <button id="btn3" type="button" class="btn btn-danger" disabled>LC</button>
+                                    @if($lista == '1')
+                                        <button id="btn1" type="button" class="btn btn-danger" disabled>L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                        @endif
+                                    @elseif($lista == '2')
+                                        <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-danger" disabled>L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-outline-danger" disabled>LC</button>
+                                        @endif
+                                    @else
+                                        <button id="btn1" type="button" class="btn btn-outline-danger" disabled>L1</button>                    
+                                        <button id="btn2" type="button" class="btn btn-outline-danger" disabled>L2</button>
+                                        @if($modConsignaciones == "1")
+                                        <button id="btn3" type="button" class="btn btn-danger" disabled>LC</button>
+                                        @endif
                                     @endif
                                 @endif
                             @endif
@@ -118,7 +142,8 @@
                                         Dejar Pendiente
                                     </button>
                                 @endif 
-                                <button type="button" onclick="Cobrar({{$delivery}},{{$clienteId}})" 
+                                <!-- <button type="button" onclick="Cobrar({{$delivery}},{{$clienteId}})"  -->
+                                <button type="button" wire:click="doAction(2)" 
                                     class="btn btn-primary" enabled>
                                     Cobrar   
                                 </button>
@@ -262,14 +287,14 @@
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-2">
                             <label>Cantidad</label>
-                            <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
+                            <input id="cantidad" wire:model.lazy="cantidad" type="text" 
                                 class="form-control form-control-sm text-center">
                         </div> 
                         @if($selected_id == null)
                             <div class="form-group col-sm-12 col-md-2">
                                 <label >Código</label>
-                                <input id="barcode" wire:model.lazy="barcode"  type="text" 
-                                    onblur="buscarPorCodigo()" class="form-control form-control-sm">
+                                <input id="barcode" wire:model.lazy="barcode" type="text" 
+                                    class="form-control form-control-sm">
                             </div>
                         @endif
                         @if($selected_id == null)
@@ -383,14 +408,17 @@
             <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
             <input type="hidden" id="modDelivery" wire:model="modDelivery">  
             <input type="hidden" id="lista" wire:model="lista">  
+            <input type="hidden" id="importeTotal" value="{{$total}}">  
+            <input type="hidden" id="comercioTipo" wire:model="comercioTipo">  
         </div>
         @endif 
     </div>
     @include('livewire.facturas.modal')  
-    @include('livewire.facturas.modalCtacte')    
     @else    
-    @include('livewire.facturas.formaDePago')  
+    @include('livewire.facturas.formaDePago')    
     @include('livewire.facturas.modalNroCompPago')  
+    @include('livewire.facturas.modalCheques')  
+    @include('livewire.facturas.modalBancos')  
 	@endif        
 </div>
 
@@ -404,6 +432,12 @@
         position: relative;
         max-height: 230px;
         margin-top: .5rem;
+        overflow: auto;
+    }
+    .scrollPagos{
+        position: relative;
+        max-height: 230px;
+        padding: 0 10px;
         overflow: auto;
     }
     .scrollb {
@@ -428,6 +462,12 @@
         overflow-y:auto;
         overflow-x:hidden;
     }
+    thead tr th {     /* fija la cabecera de la tabla */
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
@@ -448,53 +488,45 @@
             closeOnConfirm: false
             },
             function() {
-                window.livewire.emit('deleteRow', id, es_producto)    
-                toastr.success('info', 'Registro eliminado con éxito')
+                window.livewire.emit('deleteRow', id, es_producto)   
                 swal.close()   
-            })
-    }
-    function Cobrar(delivery, idCli)
-    {
-        Swal.fire({
-            title: 'Elige una opción...',
-            showDenyButton: true,
-            showCancelButton: true,
-            cancelButtonText: `Cancelar`,
-            confirmButtonText: `Contado`,
-            denyButtonText: `Cuenta Corriente`,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.livewire.emit('elegirFormaDePago');
-            } else if (result.isDenied) {
-                if(delivery == 0) {
-                    modalCtacte()
-                }else {
-                    var data = JSON.stringify({
-                        'cliente_id' : idCli
-                    });
-                    window.livewire.emit('factura_ctacte', data)
-                }
-            }
-        })
-    }
-    function buscarPorCodigo()
-    {
-        window.livewire.emit('buscarPorCodigo')
-    }
-    function factura_contado()
+            });
+    }   
+    function cobrar_factura()
     { 
-        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
-            Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: 'Faltan datos, se cobrará como efectivo!!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-            $('[id="formaDePago"]').val(1)
-        }else{
-            window.livewire.emit('factura_contado')
-        }    
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        $('[id="importe"]').val(Number.parseFloat($('[id="importe"]').val()).toFixed(2));
+        var saldo           = $('[id="saldo"]').val();
+        var formaDePago     = $('[id="formaDePago"]').val();
+        var nroCompPago     = $('[id="num"]').val();
+        var importe         = $('[id="importe"]').val();
+        var terminarFactura = 1;
+
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        }
+   
+        if(importe != saldo) terminarFactura = 0; 
+
+        Swal.fire({
+            icon: 'question',
+            title: 'Confirmar',
+            text: '¿Deseas registrar el pago de esta factura?',
+            showDenyButton: true,
+            confirmButtonColor: '#3085d6',
+            denyButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            denyButtonText: 'Cancelar',
+            closeOnConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {                    
+                    window.livewire.emit('cobrar_factura',formaDePago,nroCompPago,importe,terminarFactura);
+                } else if (result.isDenied) {
+                    Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                    resetear();
+                }
+            });            
     }
     function AnularFactura(id)
     {
@@ -535,23 +567,6 @@
     {
         window.livewire.emit('dejar_pendiente')
     }
-    function modalCtacte()
-    {
-        $('#cliente2').val('Elegir')
-        $('#modalCtacte').modal('show')
-	}
-	function saveCtacte()
-    {     
-        if($('#cliente2 option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Cliente')
-            return;
-        }
-        var data = JSON.stringify({
-            'cliente_id'   : $('#cliente2 option:selected').val()
-        });
-        $('#modalCtacte').modal('hide')
-        window.livewire.emit('factura_ctacte', data)
-    } 
     function openModal(id)
     {
         $('#facturaId').val(id)
@@ -598,32 +613,146 @@
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
     }
+    function openModalBancos()
+    {
+        $('#modalCheques').modal('hide')
+        $('#banco').val('')
+        $('#sucursal').val('')
+        $('#modalBancos').modal('show')
+	}
+    function guardarBanco()
+    {      
+        if($('#descripcion').val() == '') {
+            toastr.error('Ingresa un nombre válido para el Banco')
+            return;
+        }
+        if($('#sucursal').val() == '') {
+            toastr.error('Ingresa un nombre válido para la Sucursal')
+            return;
+        }
+        var data = JSON.stringify({
+            'banco'    : $('#descripcion').val(),
+            'sucursal' : $('#sucursal').val()
+        });
+       
+        $('#modalBancos').modal('hide');
+        window.livewire.emit('agregarBanco', data);
+
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldo').val()).toFixed(2));
+    }
     function ocultar_sp()
     {
         window.livewire.emit('ocultar_sp')
     } 
     function mostrarInput()
-    {		
+    {
 		$('[id="nroCompPago"]').val('');
 		$('[id="num"]').val('');
+     
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+				|| $('[id="formaDePago"]').val() == '4') {        
+            $('[id="importeComp"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));        
 			$('#modalNroComprobanteDePago').modal('show');
+        }else if($('[id="formaDePago"]').val() == '5'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                $('#modalCheques').modal('show');
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
+        }else if($('[id="formaDePago"]').val() == '6'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Confirmar',
+                    text: '¿Deseas enviar esta factura a Cuenta Corriente?',
+                    showDenyButton: true,
+                    confirmButtonColor: '#3085d6',
+                    denyButtonColor: '#d33',
+                    confirmButtonText: 'Aceptar',
+                    denyButtonText: 'Cancelar',
+                    closeOnConfirm: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {                    
+                            window.livewire.emit('factura_ctacte');
+                        } else if (result.isDenied) {
+                            Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                            resetear();
+                        }
+                    });
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
 		}else{
 			guardarDatosPago();
 		}
 	}
 	function guardarDatosPago()
     {
-		$('[id="num"]').val($('[id="nroCompPago"]').val())
-        if($('[id="num"]').val() != ''){
-            var formaDePago = $('[id="formaDePago"]').val();
-		    var nroCompPago = $('[id="nroCompPago"]').val();
-        }else{
-            $('[id="formaDePago"]').val(1)           
-        }		
-		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+        $('[id="num"]').val($('[id="nroCompPago"]').val());
+		$('[id="importe"]').val(Number.parseFloat($('[id="importeComp"]').val()).toFixed(2));        
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        var formaDePago = $('[id="formaDePago"]').val();
+        var nroCompPago = $('[id="nroCompPago"]').val();
+        var importe     = $('[id="importe"]').val();
+        var saldo       = $('[id="saldo"]').val();
+        
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        } 
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago,importe);
 	}
+	function guardarDatosCheque()
+    {
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        $('[id="importeCheque"]').val(Number.parseFloat($('[id="importeCheque"]').val()).toFixed(2));
+        var saldo           = $('[id="saldo"]').val();
+        var importe         = $('[id="importeCheque"]').val();
+        var terminarFactura = 1;
+
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        } 
+        
+        if(importe != saldo) terminarFactura = 0;
+
+        var data = JSON.stringify({
+                'banco'         : $('#banco').val(),
+                'numero'        : $('#numCheque').val(),
+                'fechaDeEmision': $('#fechaDeEmision').val(),
+                'fechaDePago'   : $('#fechaDePago').val(),
+                'importe'       : $('#importeCheque').val(),
+                'cuitTitular'   : $('#cuitTitular').val(),
+                'terminarFactura' : terminarFactura,
+            });		
+		window.livewire.emit('enviarDatosCheque', data);
+        resetear();
+	}
+    function resetear()
+    {
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldo').val()).toFixed(2));
+        return;
+    }
+   
     /////código para prolongar la session
     var keep_alive = false;
     $(document).bind("click keydown keyup mousemove", function() {
@@ -634,7 +763,7 @@
             pingServer();
             keep_alive = false;
         }
-    }, 1200000 );
+    }, 300000 );   //5 minutos
     function pingServer() {
         $.ajax('/keepAlive');
     }
@@ -675,7 +804,7 @@
                 title: 'Factura Cobrada!!',
                 showConfirmButton: false,
                 timer: 1500
-            })
+            });
             if($('#ultima_factura').val() == 1){
                 window.location.href="{{ url('notify') }}";
             }
@@ -733,8 +862,7 @@
                 showConfirmButton: false,
                 timer: 1500
             });
-            setTimeout(function(){openModal(null)},1500);
-            
+            if($('#comercioTipo').val() == 11) setTimeout(function(){openModal(null)},1500);
         })
         Livewire.on('stock_no_disponible',(ubicacion_stock , stock)=>{
             var texto = 'Solo restan ';
@@ -763,14 +891,46 @@
                 timer: 1500
             })
         })
-        Livewire.on('esConsFinal',()=>{
+        // Livewire.on('esConsFinal',()=>{
+        //     Swal.fire({
+        //         position: 'center',
+        //         icon: 'info',
+        //         title: 'Debes elegir un Cliente!!',
+        //         showConfirmButton: false,
+        //         timer: 1500
+        //     })
+        // })
+        Livewire.on('bancoCreado',()=>{
             Swal.fire({
                 position: 'center',
-                icon: 'info',
-                title: 'Debes elegir un Cliente!!',
+                icon: 'success',
+                title: 'El Banco fue creado!!',
                 showConfirmButton: false,
                 timer: 1500
-            })
+            });
+        })
+        Livewire.on('chequeCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Cheque se registró correctamente!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        Livewire.on('cobroRegistrado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El cobro a cuenta fue registrado!!',
+                showConfirmButton: false,
+                timer: 2000
+            });            
+            resetear();
+        })
+        Livewire.on('importeMayorQueSaldo',()=>{
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            return;
         })
     } 
 </script>

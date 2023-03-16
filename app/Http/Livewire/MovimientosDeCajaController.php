@@ -35,19 +35,14 @@ class MovimientosDeCajaController extends Component
         $ingresos = OtroIngreso::where('comercio_id', $this->comercioId)->get();
      
         switch ($this->estado) {    //'estado' indica si se ven egresos u otros ingresos de entrada al form
-            case 1:                             //egresos
+            case 1:                 //egresos
                 $info = MovimientoDeCaja::join('gastos as p', 'p.id', 'movimiento_de_cajas.egreso_id')
                     ->where('movimiento_de_cajas.egreso_id', '<>', null)
                     ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
                     ->orderBy('movimiento_de_cajas.created_at')
-                    ->select('movimiento_de_cajas.*', 'p.descripcion')->get();   
-                // $info = MovimientoDeCaja::join('proveedores as p', 'p.id', 'movimiento_de_cajas.egreso_id')
-                //     ->where('movimiento_de_cajas.egreso_id', '<>', null)
-                //     ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
-                //     ->orderBy('movimiento_de_cajas.created_at')
-                //     ->select('movimiento_de_cajas.*', 'p.nombre_empresa')->get();   
+                    ->select('movimiento_de_cajas.*', 'p.descripcion')->get();    
                 break;
-            case 2:                               //otros ingresos
+            case 2:                 //otros ingresos
                 $info = MovimientoDeCaja::join('otro_ingresos as g', 'g.id', 'movimiento_de_cajas.ingreso_id')
                     ->where('movimiento_de_cajas.ingreso_id', '<>', null)
                     ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
@@ -80,7 +75,7 @@ class MovimientosDeCajaController extends Component
     public function createFromModal($info)
     {
         $data = json_decode($info);
-//dd($data);
+
         DB::begintransaction();
         try{  
             if($data->edit_ing_egr == 1){               //editar egreso

@@ -23,7 +23,7 @@ class ClienteController extends Component
     public $c_lunes_m, $c_lunes_n, $c_martes_m, $c_martes_n, $c_miercoles_m, $c_miercoles_n, $c_jueves_m, $c_jueves_n;
     public $c_viernes_m, $c_viernes_n, $c_sabado_m, $c_sabado_n, $c_domingo_m, $c_domingo_n;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
-    public $comercioId, $modViandas, $modConsignaciones;
+    public $comercioId, $comercioTipo, $modViandas, $modConsignaciones;
     public $mes, $año;
 
     public function render()
@@ -32,8 +32,9 @@ class ClienteController extends Component
         $this->comercioId = session('idComercio');
         $this->modViandas = session('modViandas');
         $this->modConsignaciones = session('modConsignaciones');
-
-        //vemos si tenemos una caja habilitada con nuestro user_id
+        $this->comercioTipo = session('tipoComercio');
+        
+          //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
             ->where('caja_usuarios.estado', '1')->select('caja_usuarios.*')->get();
         $this->caja_abierta = $caja_abierta->count();
@@ -49,18 +50,23 @@ class ClienteController extends Component
         if(strlen($this->search) > 0){
             $info = Cliente::join('localidades as loc', 'loc.id', 'clientes.localidad_id')
                 ->where('nombre', 'like', '%' .  $this->search . '%')
+                ->where('nombre', 'not like', 'FINAL')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orWhere('apellido', 'like', '%' .  $this->search . '%')
+                ->where('nombre', 'not like', 'FINAL')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orWhere('calle', 'like', '%' .  $this->search . '%')
+                ->where('nombre', 'not like', 'FINAL')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->orWhere('loc.descripcion', 'like', '%' .  $this->search . '%')
+                ->where('nombre', 'not like', 'FINAL')
                 ->where('clientes.comercio_id', $this->comercioId)
                 ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as esConsFinal"))
                 ->orderBy('apellido', 'asc')->get();
         }else {
             $info = Cliente::join('localidades as loc', 'loc.id', 'clientes.localidad_id')
                 ->where('clientes.comercio_id', $this->comercioId)
+                ->where('nombre', 'not like', 'FINAL')
                 ->orderBy('apellido', 'asc')
                 ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as tieneViandasCargadas",
                     DB::RAW("'' as esConsFinal")))->get();
@@ -84,7 +90,7 @@ class ClienteController extends Component
         'deleteRow'       =>'destroy',
         'createFromModal' => 'createFromModal',
         'guardar'         => 'StoreOrUpdate',
-        'cambiarFecha'        =>'cambiarFecha'     
+        'cambiarFecha'    =>'cambiarFecha'     
     ]; 
     public function cambiarFecha($data)  //esta función inhabilita la vista 'Ver Lista Facturas' 
     {                                    //cuando estamos fuera del Arqueo Gral activo
@@ -305,8 +311,8 @@ class ClienteController extends Component
             }        
             if($this->selected_id <= 0) {
                 Cliente::create([
-                    'nombre'        => strtoupper($this->nombre),            
-                    'apellido'      => strtoupper($this->apellido),     
+                    'nombre'        => mb_strtoupper($this->nombre),            
+                    'apellido'      => mb_strtoupper($this->apellido),     
                     'calle'         => ucwords($this->calle),            
                     'numero'        => $this->numero,            
                     'localidad_id'  => $this->localidad,            
@@ -319,8 +325,8 @@ class ClienteController extends Component
             }else {   
                 $record = Cliente::find($this->selected_id);
                 $record->update([
-                    'nombre'        => strtoupper($this->nombre),            
-                    'apellido'      => strtoupper($this->apellido),     
+                    'nombre'        => mb_strtoupper($this->nombre),            
+                    'apellido'      => mb_strtoupper($this->apellido),     
                     'calle'         => ucwords($this->calle),            
                     'numero'        => $this->numero,            
                     'localidad_id'  => $this->localidad,            

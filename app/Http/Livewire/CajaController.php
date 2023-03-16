@@ -5,9 +5,11 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\ArqueoGral;
 use App\Models\Auditoria;
+use App\Models\Banco;
 use App\Models\Caja;
 use App\Models\CajaInicial;
 use App\Models\CajaUsuario;
+use App\Models\Cheque;
 use App\Models\ModelHasRole;
 use App\Models\User;
 use DB;
@@ -16,9 +18,10 @@ class CajaController extends Component
 {	
     public $descripcion, $action = 1, $caja = 'Elegir', $usuario = 'Elegir';            
     public $selected_id, $caja_usuario, $estado = '0', $importe;
-    public $edit = 0; 
+    public $edit = 0, $tipo = 1, $search, $searchBy = '1', $bancos; 
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted, $comentario = '';
     public $comercioId, $arqueoGralId, $estadoArqueoGral, $usuario_habilitado = 1;
+    public $cantidad, $infoIdCheque, $infoImporteCheque, $totalChequesSeleccionados;
 
     public function render()
     {
@@ -26,10 +29,10 @@ class CajaController extends Component
         $this->comercioId = session('idComercio');
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
-        session(['facturaPendiente' => null]);  
-    
-        if($this->estadoArqueoGral == 'ya existe')  //si ya hay un arqueo cerrado con la misma fecha
-        return view('livewire.admin.mensajes.ya_existe_arqueo');
+        session(['facturaPendiente' => null]);
+
+         //si ya hay un arqueo cerrado con la misma fecha
+        if($this->estadoArqueoGral == 'ya existe') return view('livewire.admin.mensajes.ya_existe_arqueo');
 
         if($this->arqueoGralId > 0) {    //si hay un arqueo abierto o pendiente
             //primero verifico si el usuario logueado es el Administrador del Sistema, en tal caso
@@ -39,14 +42,13 @@ class CajaController extends Component
                 ->where('r.alias', 'Administrador')
                 ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
             if($usuadrioAdmin[0]->id <> auth()->user()->id){
-                //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir
+                //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral,
                 //si no lo es, muestro un mensaje y no lo dejo continuar
                 //si no hay arqueo abierto, lo habilito para habilitar Cajas
                 $usuarioArqueo = CajaUsuario::join('arqueo_grals as ag', 'ag.id', 'caja_usuarios.arqueo_gral_id')
                     ->where('caja_usuarios.user_id', auth()->user()->id)
                     ->where('caja_usuarios.arqueo_gral_id', $this->arqueoGralId)
                     ->where('ag.estado', '1')->get();
-            // dd($usuarioArqueo);
                 if(!$usuarioArqueo->count()) $this->usuario_habilitado = 0;
             }else{
                 if($this->estadoArqueoGral == 'pendiente') return view('arqueogral');
@@ -57,10 +59,11 @@ class CajaController extends Component
         // si es 'activo', todo sigue normal
         // y si es 'no existe', se creará un nuevo arqueo al habilitar la primera caja del día
         // SALVO que se trate del mismo día que cubre el último arqueo gral.
-        //en este caso no se podrá iniciar nada hasta que culmine el horario de cobertura de dicho arqueo gral.
-       
+        // en este caso no se podrá iniciar nada hasta que culmine el horario de cobertura de 
+        // dicho arqueo gral., que por defecto es a las 08:00 am.       
 
         $cajas = Caja::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+        $this->bancos = Banco::all()->where('comercio_id', $this->comercioId);
 
         //selecciona solo los usuarios que su rol le permite poseer una Caja
         $usuarios = ModelHasRole::join('users as u', 'u.id', 'model_has_roles.model_id')
@@ -94,43 +97,138 @@ class CajaController extends Component
             ->where('uc.comercio_id', $this->comercioId)
             ->where('cu.estado', '1')
             ->where('caja_inicials.caja_user_id', $this->selected_id)
-            ->select('caja_inicials.id', 'caja_inicials.created_at as fecha', 'caja_inicials.importe as importe')
-            ->get();
+            ->select('caja_inicials.*', DB::RAW("'' as tipoIngreso"))->get();
+        if ($infoImportesCaja->count()) {
+            foreach ($infoImportesCaja as $i) { 
+                $i->tipoIngreso = 'Efectivo';               
+                if ($i->tipo == '2') {
+                    $infoNumCheque = Cheque::find($i->cheque_id);
+                    if ($infoNumCheque) {
+                        $i->tipoIngreso = 'Cheque N° ' . $infoNumCheque->numero;
+                    }
+                }
+            }
+        }
+
+        if($this->search){
+            if($this->searchBy == '1'){
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                ->where('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.descripcion', 'like', '%'. $this->search . '%')
+                ->orWhere('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.sucursal', 'like', '%'. $this->search . '%')
+                ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                        'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                ->orderBy('cheques.fecha_de_pago')->get();
+            }elseif ($this->searchBy == '2') {
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                ->where('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.descripcion', 'like', '%'. $this->search . '%')
+                ->orWhere('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.sucursal', 'like', '%'. $this->search . '%')
+                ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                        'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                ->orderBy('cheques.fecha_de_pago', 'desc')->get();
+            }else {
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                ->where('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.descripcion', 'like', '%'. $this->search . '%')
+                ->orWhere('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->where('b.sucursal', 'like', '%'. $this->search . '%')
+                ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                        'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                ->orderBy('cheques.importe')->get();
+            }
+            
+        }else{
+            if($this->searchBy == '1'){
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                    ->where('cheques.comercio_id', $this->comercioId)
+                    ->where('cheques.estado', 'en_cartera')
+                    ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                            'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                    ->orderBy('cheques.fecha_de_pago')->get();
+            }elseif($this->searchBy == '2'){
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                ->where('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                        'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                ->orderBy('cheques.fecha_de_pago', 'desc')->get();
+            }else{
+                $infoCheques = Cheque::join('bancos as b','b.id', 'cheques.banco_id')
+                ->where('cheques.comercio_id', $this->comercioId)
+                ->where('cheques.estado', 'en_cartera')
+                ->select('b.descripcion', 'b.sucursal', 'cheques.id', 'cheques.numero', 
+                        'cheques.fecha_de_pago', 'cheques.importe', DB::RAW("'' as banco"))
+                ->orderBy('cheques.importe')->get();
+            } 
+        }
+        
+        if($infoCheques->count()){
+            foreach ($infoCheques as $i) {
+                $i->banco = $i->descripcion . '/' . $i->sucursal;
+            }
+        }
 
         return view('livewire.cajausuario.component', [
-            'info'             =>$info,
-            'cajas'            =>$cajas,
-            'usuarios'         =>$usuarios,
-            'infoImportesCaja' =>$infoImportesCaja
+            'info'             => $info,
+            'cajas'            => $cajas,
+            'usuarios'         => $usuarios,
+            'infoImportesCaja' => $infoImportesCaja,
+            'infoCheques'      => $infoCheques
         ]);
     }
+    protected $listeners = [
+        'createFromModal'    => 'createFromModal',       
+        'editFromModal'      => 'editFromModal',
+        'doAction'           => 'doAction',
+        'agregarBanco'       => 'agregarBanco',
+        'chequeSeleccionado' => 'chequeSeleccionado',
+        'deleteRow'          => 'destroy'
+    ];
     public function doAction($action)
     {
         if($action == 1){
             $this->resetInput();
+        }elseif ($action == 4) {
+            $this->infoIdCheque = null;
+            $this->importe = '';
         }
-        $this->action = $action;
+        if($action != 4) $this->action = $action;
     }
     private function resetInput()
     {
         $this->descripcion = '';
         $this->selected_id = null; 
-        $this->caja = 'Elegir';
-        $this->usuario = 'Elegir';
-        $this->estado = '0';
-        $this->importe = '';
-        $this->edit = 0;
-        $this->action = 1;
+        $this->caja        = 'Elegir';
+        $this->usuario     = 'Elegir';
+        $this->estado      = '0';
+        $this->importe     = '';
+        $this->edit        = 0;
+        $this->action      = 1;
+        $this->tipo        = 1;
+        $this->search      = null;
+        $this->searchBy    = '1';
+        $this->infoIdCheque              = null; 
+        $this->infoImporteCheque         = null;
+        $this->totalChequesSeleccionados = null;
     }
     public function edit($id, $edit)
     {
-        $this->edit = $edit;                 //indica si se crea, edita o se agraga caja
+        $this->edit = $edit;    //$edit indica '0' si se crea, '1' si edita o '2' si se agraga importe
 
         $record = CajaUsuario::join('caja_inicials as ci', 'ci.caja_user_id', 'caja_usuarios.id')
             ->where('caja_usuarios.id', $id)->select('caja_usuarios.*', 'ci.importe')->first();         
         $this->selected_id = $id;
-        $this->caja = $record->caja_id;
-        $this->usuario = $record->caja_usuario_id;
+        $this->caja        = $record->caja_id;
+        $this->usuario     = $record->caja_usuario_id;
         if($this->edit != 2) $this->importe = $record->importe;
         $this->estado = $record->estado;
         
@@ -138,6 +236,7 @@ class CajaController extends Component
     }
     public function StoreOrUpdate()
     { 
+      
         $this->validate([
             'caja'    => 'not_in:Elegir',
             'usuario' => 'not_in:Elegir',
@@ -191,7 +290,7 @@ class CajaController extends Component
                 }
             }
 
-            if($this->edit == 0) {                  //nueva Caja                
+            if($this->edit == 0) {                  //nueva Caja     
                 if($this->arqueoGralId == -1){      //nuevo Arqueo Gral.
                     $idArqueoGral = ArqueoGral::create([
                         'estado'      => '1',
@@ -208,11 +307,36 @@ class CajaController extends Component
                     'user_id'         => auth()->user()->id,
                     'arqueo_gral_id'  => $this->arqueoGralId
                 ]);
-                $cajainicial = CajaInicial::create([
-                    'caja_user_id' => $cajausuario->id,
-                    'importe'      => $this->importe,
-                    'user_id'      => auth()->user()->id
-                ]);               
+                if($this->infoIdCheque){
+                    $contadorId = 0;
+                    foreach ($this->infoIdCheque as $i) {
+                        $contadorImporte = 0;
+                        foreach ($this->infoImporteCheque as $j) {
+                            if($contadorImporte == $contadorId) $importe = $j;
+                            $contadorImporte++;
+                        }
+                        $cajainicial = CajaInicial::create([
+                            'caja_user_id' => $cajausuario->id,
+                            'tipo'         => $this->tipo,
+                            'cheque_id'    => $i,
+                            'importe'      => $importe,
+                            'user_id'      => auth()->user()->id
+                        ]);
+
+                        $cheque = Cheque::find($i);
+                        $cheque->update(['estado' => 'en_caja']);
+
+                        $contadorId++;
+                    }
+                }else{
+                    $cajainicial = CajaInicial::create([
+                        'caja_user_id' => $cajausuario->id,
+                        'tipo'         => $this->tipo,
+                        'importe'      => $this->importe,
+                        'user_id'      => auth()->user()->id
+                    ]); 
+                }
+                              
             }elseif($this->edit == 1) {                //editar Caja
                 $cajausuario = CajaUsuario::find($this->selected_id);  //edita encabezado
                 $cajausuario->update([
@@ -222,11 +346,35 @@ class CajaController extends Component
                     'user_id'         => auth()->user()->id
                 ]);                
             }else {                                  //agregar Importe a Caja
-                $cajainicial = CajaInicial::create([
-                    'caja_user_id' => $this->selected_id,
-                    'importe'      => $this->importe,
-                    'user_id'      => auth()->user()->id
-                ]);       
+                if($this->infoIdCheque){
+                    $contadorId = 0;
+                    foreach ($this->infoIdCheque as $i) {
+                        $contadorImporte = 0;
+                        foreach ($this->infoImporteCheque as $j) {
+                            if($contadorImporte == $contadorId) $importe = $j;
+                            $contadorImporte++;
+                        }
+                        $cajainicial = CajaInicial::create([
+                            'caja_user_id' => $this->selected_id,
+                            'tipo'         => $this->tipo,
+                            'cheque_id'    => $i,
+                            'importe'      => $importe,
+                            'user_id'      => auth()->user()->id
+                        ]);
+
+                        $cheque = Cheque::find($i);
+                        $cheque->update(['estado' => 'en_caja']);
+
+                        $contadorId++;
+                    }
+                }else{
+                    $cajainicial = CajaInicial::create([
+                        'caja_user_id' => $this->selected_id,
+                        'tipo'         => $this->tipo,
+                        'importe'      => $this->importe,
+                        'user_id'      => auth()->user()->id
+                    ]);
+                }      
             }
             if($this->edit == 0) session()->flash('msg-ok', 'Caja Habilitada');            
             elseif ($this->edit == 1) session()->flash('msg-ok', 'Caja Actualizada');            
@@ -240,11 +388,7 @@ class CajaController extends Component
         }
         $this->resetInput();
         return;
-    }
-    protected $listeners = [
-        'createFromModal' => 'createFromModal',       
-        'editFromModal'   => 'editFromModal'       
-    ];  
+    }  
     public function createFromModal($info)
     {
         $data = json_decode($info);
@@ -284,6 +428,82 @@ class CajaController extends Component
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se editó...');
+        }
+    }
+    public function agregarBanco($data)
+    {
+        $info = json_decode($data);
+        DB::begintransaction();                 
+        try{
+            $add_item = Banco::create([         
+                'descripcion' => mb_strtoupper($info->banco),
+                'sucursal'    => ucwords($info->sucursal),
+                'comercio_id' => $this->comercioId
+            ]);
+            $this->bancos = $add_item->id;
+            DB::commit();
+            $this->emit('bancoCreado');  
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }     
+        $this->f_de_pago = '1'; 
+        return;  
+    }
+    public function chequeSeleccionado($dataId, $dataImporte, $total, $cantidad)
+    {
+        $this->infoIdCheque = json_decode($dataId);
+        $this->infoImporteCheque = json_decode($dataImporte);
+        $this->totalChequesSeleccionados = $total;
+        $this->importe = $total;
+        $this->cantidad = $cantidad;
+
+        $this->doAction(2);
+    }
+    public function destroy($chequeId, $id, $comentario)
+    {                   
+        // verificar si el cheque todavía está disponible en caja o si ya se entregó
+        if ($chequeId) {        // como medio de pago, en cuyo caso no se podrá eliminar el registro
+            $record = Cheque::find($chequeId);
+            if($record->estado != 'entregado'){
+                DB::begintransaction();
+                try{
+                    $caja_inicial = CajaInicial::find($id)->delete();
+                    $audit = Auditoria::create([
+                        'item_deleted_id' => $id,
+                        'tabla' => 'Caja Inicial',
+                        'user_delete_id' => auth()->user()->id,
+                        'comentario' => $comentario,
+                        'comercio_id' => $this->comercioId
+                    ]);
+                    $cheque = Cheque::find($chequeId);
+                    $cheque->update(['estado' => 'en_cartera']);
+                    DB::commit();  
+                    $this->emit('registroEliminado');             
+                }catch (Exception $e){
+                    DB::rollback();
+                    session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+                }    
+            }else $this->emit('eliminarRegistro');
+            return;
+        }else{
+            DB::begintransaction();
+            try{
+                $caja_inicial = CajaInicial::find($id)->delete();
+                $audit = Auditoria::create([
+                    'item_deleted_id' => $id,
+                    'tabla' => 'Caja Inicial',
+                    'user_delete_id' => auth()->user()->id,
+                    'comentario' => $comentario,
+                    'comercio_id' => $this->comercioId
+                ]);
+                DB::commit();  
+                $this->emit('registroEliminado');             
+            }catch (Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            } 
+            return;
         }
     }
 }

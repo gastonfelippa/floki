@@ -1,4 +1,4 @@
-@extends('layouts.template')
+@extends('layouts.template_con_sessions')
 
 
 @section('content')
@@ -9,7 +9,7 @@
                 <div class="container-fluid">
                     <div class="row justify-content-center">
                         <h4 class="mt-2 text-center col-sm-12 col-md-10 color"><b>ATENCIÓN!!!</b><br>NO SE PUEDE INICIAR UN NUEVO ARQUEO PORQUE YA EXISTE UNO CON LA MISMA FECHA Y ESTÁ CERRADO...</h4>
-                        <h5 class="mt-2 text-center col-sm-12 col-md-10 color">Deberás esperar hasta mañana después del horario de inicio de apertura del local.</h5>
+                        <h5 class="mt-2 text-center col-sm-12 col-md-10 color">Deberás esperar hasta el próximo horario de inicio de apertura del local.</h5>
                     </div>
                     <div class="row justify-content-center">
                         <button type="button" class="btn btn-primary" onclick="continuar()">

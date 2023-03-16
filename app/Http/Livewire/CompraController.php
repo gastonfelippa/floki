@@ -4,10 +4,16 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Auditoria;
+use App\Models\Categoria;
+use App\Models\Comercio;
 use App\Models\Compra;
 use App\Models\Detcompra;
+use App\Models\DetReceta;
+use App\Models\Historico;
 use App\Models\Producto;
+use App\Models\ProductoProveedor;
 use App\Models\Proveedor;
+use App\Models\Receta;
 use App\Models\Stock;
 use App\Models\Subproducto;
 use Carbon\Carbon;
@@ -24,12 +30,33 @@ class CompraController extends Component
     public $comercioId, $comercioTipo, $factura_id;
     public $numeroFactura, $letra, $sucursal, $numFact, $fecha;
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
-    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
-	
+    public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $cambiar_precios;
+    public $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
+	public $calcular_precio_de_venta, $redondear_precio_de_venta, $costo_actual;
+    public $costo_historico, $venta_sug_l1_historico, $venta_sug_l2_historico, $venta_l1_historico, $venta_l2_historico;
+
+
 	public function render()
-	{        
+	{       
         $this->comercioId = session('idComercio');
         $this->comercioTipo = session('tipoComercio');
+
+        if($this->producto <> 'Elegir'){
+            $producto = Producto::find($this->producto);
+            $this->costo_actual = $producto->precio_costo;
+        }
+
+        $record = Comercio::find($this->comercioId);
+		$this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
+		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
+		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
+        if(!$this->cambiar_precios){
+            if($record->opcion_de_guardado == '0') $this->cambiar_precios = 'no';
+            elseif($record->opcion_de_guardado == '1') $this->cambiar_precios = 'solo_costos';
+            else $this->cambiar_precios = 'cambiar_todo';
+        }
+	
+
                 
         $this->productos = Producto::select()
             ->where('comercio_id', $this->comercioId)
@@ -100,29 +127,23 @@ class CompraController extends Component
             }
         } 
 
-    // return view('livewire.compras.component', [
-    //     'info' => $info,
-    //     'encabezado' => $encabezado
-    // ]);
-    return view('livewire.compras.component-msg', [
-        'info' => $info,
-        'encabezado' => $encabezado
-    ]);
-
-	
-    }
-    
+        return view('livewire.compras.component', [
+            'info' => $info,
+            'encabezado' => $encabezado
+        ]);
+    }    
     protected $listeners = [
         'buscarProducto'           => 'buscarProducto',
         'buscarPorCodigo'          => 'buscarPorCodigo',
         'buscarDomicilio'          => 'buscarDomicilio',
         'CrearModificarEncabezado' => 'CrearModificarEncabezado',
+        'opcionCambiarPrecios'     => 'opcionCambiarPrecios',
         'elegirFormaDePago'        => 'elegirFormaDePago',
         'factura_contado'          => 'factura_contado',
         'anularFactura'            => 'anularFactura',
         'deleteRow'                => 'destroy'         
     ];
-    public function buscarPorCodigo() //codigo de remitos
+    public function buscarPorCodigo() 
     {
         if($this->barcode != null){
             $this->mostrar_sp = 0;
@@ -133,13 +154,11 @@ class CompraController extends Component
             else session()->flash('msg-error', 'El Código no existe...');
         }
     }
-
     public function doAction($action)
     {
         $this->action = $action;
         if($this->action == 1) $this->resetInput();
     }
-
     public function resetInput()
     {
         $this->action      = 1;
@@ -150,45 +169,46 @@ class CompraController extends Component
         $this->subproducto = 'Elegir';
         $this->selected_id = null;
         $this->search      = '';
-        $this->letra       = '';
-        $this->sucursal    = '';
-        $this->numFact     = '';
+        $this->letra       = null;
+        $this->sucursal    = null;
+        $this->numFact     = null;
         $this->fecha       = '';
         $this->mostrar_sp  = 0;
         $this->es_producto = 1;
+        $this->costo_actual = null;
     }
-
     public function resetInputTodos()
     {
-        $this->action = 3;
-        $this->cantidad = 1;
-        $this->barcode ='';
-        $this->precio = '';        
-        $this->proveedor = 'Elegir';
-        $this->dirProveedor = null;
-        $this->producto = 'Elegir';
-        $this->subproducto = 'Elegir';
-        $this->selected_id = null;
-        $this->search ='';
+        $this->action            = 3;
+        $this->cantidad          = 1;
+        $this->barcode           ='';
+        $this->precio            = '';        
+        $this->proveedor         = 'Elegir';
+        $this->dirProveedor      = null;
+        $this->producto          = 'Elegir';
+        $this->subproducto       = 'Elegir';
+        $this->selected_id       = null;
+        $this->search            = '';
         $this->habilitar_botones = false;
-        $this->letra       = '';
-        $this->sucursal    = '';
-        $this->numFact      = '';
-        $this->fecha      = '';
-        $this->mostrar_sp  = 0;
-        $this->es_producto = 1;
+        $this->letra             = null;
+        $this->sucursal          = null;
+        $this->numFact           = null;
+        $this->fecha             = '';
+        $this->mostrar_sp        = 0;
+        $this->es_producto       = 1;
     }
-
     public function CrearModificarEncabezado($data)
     {       
         $info = json_decode($data);
-        $this->numeroFactura = $info->sucursal . '-' . $info->numero;
+        $this->letra = $info->letra;
+        if($info->sucursal == '') $this->sucursal = null;
+        else $this->sucursal = $info->sucursal;
+        if($info->numero == '') $this->numFact = null;
+        else $this->numFact = $info->numero;
+
+        $this->numeroFactura = $this->sucursal . '-' . $this->numFact;
         $dataPro = Proveedor::find($info->proveedor_id);
-        $this->nombreProveedor = $dataPro->nombre_empresa;
-        
-        $this->letra     = $info->letra;
-        $this->sucursal  = $info->sucursal;
-        $this->numFact   = $info->numero;
+        $this->nombreProveedor = $dataPro->nombre_empresa;           
         $this->fecha     = Carbon::now();
         if($info->fecha != '') $this->fecha = $info->fecha;
         
@@ -216,7 +236,6 @@ class CompraController extends Component
         $this->precio   = $record->precio;
         $this->cantidad = $record->cantidad;
     }
- 
     public function StoreOrUpdateButton($articuloId)
     {
         if($articuloId == 0 && $this->es_producto == 1){
@@ -237,9 +256,8 @@ class CompraController extends Component
             }else $this->StoreOrUpdate($this->producto);
         }else $this->StoreOrUpdate($this->subproducto);
     }
-
     public function StoreOrUpdate($id)
-    {       
+    {
         $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio);
  
         DB::begintransaction();                         //iniciar transacción para grabar
@@ -251,16 +269,9 @@ class CompraController extends Component
                     'cantidad' => $this->cantidad,
                     'precio'   => $this->precio
                 ]);
-                //modifico stock
-                if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
-                else $record = Stock::where('subproducto_id', $id)->first(); 
-                $stockActual = $record['stock_actual'] - $cantidad_detalle;
-                $stockNuevo = $stockActual + $this->cantidad;  
-                $record->update(['stock_actual' => $stockNuevo]); 
-            }else {
+            }else {                          //crea
                 if($this->inicio_factura) {
-                    if($this->proveedor == 'Elegir') $this->proveedor = null;
-                
+                    if($this->proveedor == 'Elegir') $this->proveedor = null;                
                     $factura = Compra::create([
                         'letra'        => $this->letra,
                         'sucursal'     => $this->sucursal,
@@ -275,10 +286,12 @@ class CompraController extends Component
                     $this->inicio_factura = false;
                     $this->factura_id = $factura->id;
                 }
+                
                 $record = Compra::find($this->factura_id);  //actualizamos el encabezado
                 $record->update(['importe' => $this->totalAgrabar]);
-                // crea detalle
-                if($this->es_producto == 1){         //si es un producto
+
+                //CREA DETALLE               
+                if($this->es_producto == 1){  
                     $existe = Detcompra::select('id')       //buscamos si ya está cargado
                         ->where('factura_id', $this->factura_id)
                         ->where('comercio_id', $this->comercioId)
@@ -289,49 +302,238 @@ class CompraController extends Component
                         ->where('comercio_id', $this->comercioId)
                         ->where('subproducto_id', $id)->get();
                 }
-                if ($existe->count()){                    //actualizamos solo la cantidad
-                    $edit_cantidad = DetCompra::find($existe[0]->id); 
-                    $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
-                    $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
+
+                if ($existe->count()){  //si el item cargado ya existe en el detalle, anulamos
+                                        //la carga y lo obligamos a que modifique el detalle mismo            
+                    $this->emit('item_existente');
+                    $this->resetinput();
+                    return;
                 }else{
+                    //si es un producto, guardo su precio de costo antes de cargar el nuevo precio,
+                    //por si acaso luego decido eliminar este item, en tal caso deberé calcular todos los
+                    //precios con el valor anterior
                     if($this->es_producto == 1){
+                        $historico = Producto::find($id);
+                        $this->costo_historico        = $historico->precio_costo;
+                        $this->venta_sug_l1_historico = $historico->precio_venta_sug_l1;
+                        $this->venta_sug_l2_historico = $historico->precio_venta_sug_l2;
+                        $this->venta_l1_historico     = $historico->precio_venta_l1;
+                        $this->venta_l2_historico     = $historico->precio_venta_l2;
+                        $buscar_historico = Historico::where('producto_id', $id)
+                            ->where('comercio_id', $this->comercioId)->get();
+                        if($buscar_historico->count()){
+                            $buscar_historico[0]->update([
+                                'precio_costo'        => $this->costo_historico,
+                                'precio_venta_sug_l1' => $this->venta_sug_l1_historico,
+                                'precio_venta_sug_l2' => $this->venta_sug_l2_historico,
+                                'precio_venta_l1'     => $this->venta_l1_historico,
+                                'precio_venta_l2'     => $this->venta_l2_historico
+                            ]);
+                        }else{
+                            $add_precio_historico = Historico::create([
+                            'producto_id'         => $id,
+                            'precio_costo'        => $this->costo_historico,
+                            'precio_venta_sug_l1' => $this->venta_sug_l1_historico,
+                            'precio_venta_sug_l2' => $this->venta_sug_l2_historico,
+                            'precio_venta_l1'     => $this->venta_l1_historico,
+                            'precio_venta_l2'     => $this->venta_l2_historico,
+                            'comercio_id'         => $this->comercioId
+                            ]); 
+                        }
+                          
                         $add_item = DetCompra::create([         //creamos un nuevo detalle
-                            'factura_id'  => $this->factura_id,
-                            'producto_id' => $id,
-                            'cantidad'    => $this->cantidad,
-                            'precio'      => $this->precio,
-                            'comercio_id' => $this->comercioId
-                        ]);    
+                            'factura_id'      => $this->factura_id,
+                            'producto_id'     => $id,
+                            'cantidad'        => $this->cantidad,
+                            'precio'          => $this->precio,
+                            'precio_temporal' => $this->precio,
+                            'comercio_id'     => $this->comercioId
+                        ]); 
                     }else{ 
                         $add_item = DetCompra::create([         //creamos un nuevo detalle
-                            'factura_id'  => $this->factura_id,
+                            'factura_id'     => $this->factura_id,
                             'subproducto_id' => $id,
-                            'cantidad'    => $this->cantidad,
-                            'precio'      => $this->precio,
-                            'comercio_id' => $this->comercioId
+                            'cantidad'       => $this->cantidad,
+                            'precio'         => $this->precio,
+                            'comercio_id'    => $this->comercioId
                         ]);      
                     }    
                 }
-                //actualizamos stock
-                if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first(); 
-                else $record = Stock::where('subproducto_id', $id)->first();  
+            }
+
+            //ACTUALIZAR STOCK DEL PRODUCTO COMPRADO O MODIFICADO
+            if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
+            else $record = Stock::where('subproducto_id', $id)->first(); 
+            if($this->selected_id > 0) {                //modifica un item de compra
+                $stockActual = $record['stock_actual'] - $cantidad_detalle;
+                $stockNuevo = $stockActual + $this->cantidad;  
+                $record->update(['stock_actual' => $stockNuevo]); 
+            }else{                                      //crea un item de compra
                 $stockAnterior = $record['stock_actual'];
                 $stockNuevo = $stockAnterior + $this->cantidad;  
-                $record->update(['stock_actual' => $stockNuevo]); 
+                $record->update(['stock_actual' => $stockNuevo]);
             }
+            //GRABAR AL PROVEEDOR DE ESTE PRODUCTO
+            $record = ProductoProveedor::where('producto_id', $id)
+                ->where('proveedor_id', $this->proveedor)->first();
+            if(!$record){
+                ProductoProveedor::create([
+                    'producto_id'  => $id,
+                    'proveedor_id' => $this->proveedor,
+                    'comercio_id'  => $this->comercioId
+                ]);
+            }
+            
+            //ACTUALIZO EL PRECIO DE COMPRA Y/O VENTA DEL PRODUCTO COMPRADO... O NO
+            if($this->cambiar_precios <> 'no'){ 
+                $record = Producto::find($id);
+                if($this->cambiar_precios == 'solo_costos'){        //modifica precios sugeridos  
+                    $record->update([
+                        'precio_costo' 	        => $this->precio,		
+                        'precio_venta_sug_l1'   => $this->precio_venta_sug_l1,
+                        'precio_venta_sug_l2'   => $this->precio_venta_sug_l2
+                    ]);
+                }elseif($this->cambiar_precios == 'cambiar_todo'){  //modifica todo
+                    $record->update([
+                        'precio_costo' 	        => $this->precio,			
+                        'precio_venta_l1'       => $this->precio_venta_l1,
+                        'precio_venta_l2'       => $this->precio_venta_l2,	
+                        'precio_venta_sug_l1'   => $this->precio_venta_sug_l1,
+                        'precio_venta_sug_l2'   => $this->precio_venta_sug_l2
+                    ]);
+                }                                                   //sino, no modifica nada
+
+                //ACTUALIZO LOS ARTICULOS CON RECETA QUE CONTENGAN ESTE PRODUCTO COMO MATERIA PRIMA.
+                //PARA ELLO DEBO CALCULAR EL TOTAL DE LA RECETA TENIENDO ESPECIAL ATENCIÓN AL VALOR DE LA
+                //MATERIA PRIMA QUE ESTAMOS CARGANDO PARA UTILIZARLO EN DICHO CÁLCULO
+                    $record = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+                    ->where('det_recetas.producto_id', $id)
+                    ->where('det_recetas.comercio_id', $this->comercioId)
+                    ->select('det_recetas.receta_id')->get();
+                if($record){    //recetas con el producto como materia prima
+                    foreach ($record as $i) {
+                        $total_costo_receta = 0;  
+                        $total = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+                            ->where('det_recetas.receta_id', $i->receta_id)
+                            ->where('det_recetas.comercio_id', $this->comercioId)
+                            ->select('det_recetas.*', 'p.precio_costo')->get();
+                        if($total){                  //calculo el costo total de la receta para modificar 
+                            foreach ($total as $j) { //luego el costo del producto de venta
+                                if($j->producto_id == $id) $total_costo_receta += $j->cantidad * $this->precio;
+                                else $total_costo_receta += $j->cantidad * $j->precio_costo; 
+                            }
+                        }
+                        //RECUPERO DATOS DEL PRODUCTO DE LA RECETA 
+                        $data_producto_receta = Receta::join('productos as p', 'p.id', 'recetas.producto_id')
+                            ->join('categorias as c', 'c.id', 'p.categoria_id')
+                            ->where('recetas.id', $i->receta_id)                      
+                            ->where('recetas.comercio_id', $this->comercioId)
+                            ->select('p.id', 'c.margen_1', 'c.margen_2')->get();
+
+                        $this->precio = $total_costo_receta;   
+                        if ($this->calcular_precio_de_venta == 0){
+                            //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                            $this->precio_venta_sug_l1 = ($this->precio * $data_producto_receta[0]->margen_1) / 100 + $this->precio;
+                            $this->precio_venta_sug_l2 = ($this->precio * $data_producto_receta[0]->margen_2) / 100 + $this->precio;
+                            $this->precio_venta_l1 = ($this->precio * $data_producto_receta[0]->margen_1) / 100 + $this->precio;
+                            $this->precio_venta_l2 = ($this->precio * $data_producto_receta[0]->margen_2) / 100 + $this->precio;
+                        
+                        }else{
+                            //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                            $this->precio_venta_sug_l1 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_1);
+                            $this->precio_venta_sug_l2 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_2);
+                            $this->precio_venta_l1 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_1);
+                            $this->precio_venta_l2 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_2);
+                        }
+                        if ($this->redondear_precio_de_venta == 1){
+                            $this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+                            $this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+                            $this->precio_venta_l1 = round($this->precio_venta_l1);
+                            $this->precio_venta_l2 = round($this->precio_venta_l2);
+                        }
+                        //modifico los datos del producto de la receta
+                        $record = Producto::find($data_producto_receta[0]->id);
+                        if($this->cambiar_precios == 'solo_costos'){   //modifica precios sugeridos  
+                            $record->update([
+                                'precio_costo' 	      => $this->precio,		
+                                'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                                'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+                            ]);
+                        }else{       				//modifica todo
+                            $record->update([
+                                'precio_costo' 	      => $this->precio,			
+                                'precio_venta_l1'     => $this->precio_venta_l1,
+                                'precio_venta_l2'     => $this->precio_venta_l2,	
+                                'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                                'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+                            ]);
+                        }                         
+                    }
+                }
+            }           
             DB::commit();
             if($this->selected_id > 0){		
                 session()->flash('message', 'Registro Actualizado');       
             }else{ 
                 session()->flash('message', 'Registro Creado'); 
             }           
-        }catch (Exception $e){
-                DB::rollback(); 
-                session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }catch (\Exception $e){
+            DB::rollback(); 
+            session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }     
         $this->resetInput(); 
     }
-
+    public function opcionCambiarPrecios($cambiar_precios)
+    {
+        $this->cambiar_precios = $cambiar_precios;
+    }
+    public function calcularPrecioVenta()
+	{
+        if($this->cambiar_precios <> 'no'){        
+            $producto = Producto::find($this->producto);
+            $categoria = $producto->categoria_id;
+            $porcentaje = Categoria::where('id', $categoria)
+                ->where('comercio_id', $this->comercioId)
+                ->select('margen_1', 'margen_2')->get();
+            if($this->cambiar_precios <> 'solo_costos'){  //modifica todo
+                if ($this->calcular_precio_de_venta == 0){
+                    //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                    $this->precio_venta_sug_l1 = ($this->precio * $porcentaje[0]->margen_1) / 100 + $this->precio;
+                    $this->precio_venta_sug_l2 = ($this->precio * $porcentaje[0]->margen_2) / 100 + $this->precio;
+                    $this->precio_venta_l1 = ($this->precio * $porcentaje[0]->margen_1) / 100 + $this->precio;
+                    $this->precio_venta_l2 = ($this->precio * $porcentaje[0]->margen_2) / 100 + $this->precio;
+                
+                }else{
+                    //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                    $this->precio_venta_sug_l1 = $this->precio * 100 / (100 - $porcentaje[0]->margen_1);
+                    $this->precio_venta_sug_l2 = $this->precio * 100 / (100 - $porcentaje[0]->margen_2);
+                    $this->precio_venta_l1 = $this->precio * 100 / (100 - $porcentaje[0]->margen_1);
+                    $this->precio_venta_l2 = $this->precio * 100 / (100 - $porcentaje[0]->margen_2);
+                }
+                if ($this->redondear_precio_de_venta == 1){
+                    $this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+                    $this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+                    $this->precio_venta_l1 = round($this->precio_venta_l1);
+                    $this->precio_venta_l2 = round($this->precio_venta_l2);
+                }
+            }else{           //modifica solo los precios de venta sugeridos
+                if ($this->calcular_precio_de_venta == 0){
+                    //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                    $this->precio_venta_sug_l1 = ($this->precio * $porcentaje[0]->margen_1) / 100 + $this->precio;
+                    $this->precio_venta_sug_l2 = ($this->precio * $porcentaje[0]->margen_2) / 100 + $this->precio;
+                }else{
+                    //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                    $this->precio_venta_sug_l1 = $this->precio * 100 / (100 - $porcentaje[0]->margen_1);
+                    $this->precio_venta_sug_l2 = $this->precio * 100 / (100 - $porcentaje[0]->margen_2);
+                }
+                if ($this->redondear_precio_de_venta == 1){
+                    $this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+                    $this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+                }
+            }
+        }
+        $this->StoreOrUpdateButton(0);
+	}	
     public function anularFactura($id, $comentario)
     {
         if ($id) {
@@ -368,7 +570,6 @@ class CompraController extends Component
             return;
         }
     }
-
     public function elegirFormaDePago()
     {
         if($this->proveedor != ''){
@@ -377,8 +578,7 @@ class CompraController extends Component
         }
         $this->f_de_pago = '1';        
         $this->doAction(2);
-    }
-    
+    }    
     public function pagar_factura()
     {
         if($this->total != 0){
@@ -414,8 +614,7 @@ class CompraController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }              
         $this->resetInputTodos();
-    }
-        
+    }        
     public function cuenta_corriente()
     {
         if($this->total == 0){
@@ -430,14 +629,125 @@ class CompraController extends Component
             $this->resetInputTodos();
         }
     }
-
-    public function destroy($id) //eliminar / delete / remove
+    public function destroy($id, $esProducto) //eliminar / delete / remove
     {
         if($id) {
-            $record = Detcompra::where('id', $id);
-            $record->delete();
-            $this->resetInput();
-            $this->emit('msg-ok','Registro eliminado con éxito');
+            DB::begintransaction();                        
+            try{     
+                $record = Detcompra::find($id);
+                $productoId = $record->producto_id;
+                $cantidad = $record->cantidad;
+                $precio = $record->precio;
+                $importe_a_descontar = $cantidad * $precio;
+                $record->delete(); 
+                $this->totalAgrabar = $this->total - $importe_a_descontar;
+
+                $record = Compra::find($this->factura_id);  //actualizamos el encabezado
+                $record->update(['importe' => $this->totalAgrabar]); 
+        
+                //BUSCO LOS PRECIOS ANTES DE LA CARGA DEL ITEM
+                $historico = Historico::where('producto_id', $productoId)
+                    ->where('comercio_id', $this->comercioId)->get();
+                $this->costo_historico        = $historico[0]->precio_costo;
+                $this->venta_sug_l1_historico = $historico[0]->precio_venta_sug_l1;
+                $this->venta_sug_l2_historico = $historico[0]->precio_venta_sug_l2;
+                $this->venta_l1_historico     = $historico[0]->precio_venta_l1;
+                $this->venta_l2_historico     = $historico[0]->precio_venta_l2;
+
+                //ACTUALIZO EL PRECIO DE COMPRA Y/O VENTA DEL PRODUCTO COMPRADO... O NO
+                if($this->cambiar_precios <> 'no'){ 
+                    $record = Producto::find($productoId);
+                    if($this->cambiar_precios == 'solo_costos'){        //modifica precios sugeridos  
+                        $record->update([
+                            'precio_costo' 	        => $this->costo_historico,		
+                            'precio_venta_sug_l1'   => $this->venta_sug_l1_historico,
+                            'precio_venta_sug_l2'   => $this->venta_sug_l2_historico
+                        ]);
+                    }elseif($this->cambiar_precios == 'cambiar_todo'){  //modifica todo
+                        $record->update([
+                            'precio_costo' 	        => $this->costo_historico,			
+                            'precio_venta_l1'       => $this->venta_l1_historico,
+                            'precio_venta_l2'       => $this->venta_l2_historico,	
+                            'precio_venta_sug_l1'   => $this->venta_sug_l1_historico,
+                            'precio_venta_sug_l2'   => $this->venta_sug_l2_historico
+                        ]);
+                    }                                                   //sino, no modifica nada
+
+                    //ACTUALIZO LOS ARTICULOS CON RECETA QUE CONTENGAN ESTE PRODUCTO COMO MATERIA PRIMA.
+                    //PARA ELLO DEBO CALCULAR EL TOTAL DE LA RECETA TENIENDO ESPECIAL ATENCIÓN AL VALOR DE LA
+                    //MATERIA PRIMA QUE ESTAMOS CARGANDO PARA UTILIZARLO EN DICHO CÁLCULO
+                    $record = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+                        ->where('det_recetas.producto_id', $productoId)
+                        ->where('det_recetas.comercio_id', $this->comercioId)
+                        ->select('det_recetas.receta_id')->get();
+                    if($record){    //recetas con el producto como materia prima
+                        foreach ($record as $i) {
+                            $total_costo_receta = 0;  
+                            $total = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+                                ->where('det_recetas.receta_id', $i->receta_id)
+                                ->where('det_recetas.comercio_id', $this->comercioId)
+                                ->select('det_recetas.*', 'p.precio_costo')->get();
+                            if($total){                  //calculo el costo total de la receta para modificar 
+                                foreach ($total as $j) { //luego el costo del producto de venta
+                                    if($j->producto_id == $id) $total_costo_receta += $j->cantidad * $this->costo_historico;
+                                    else $total_costo_receta += $j->cantidad * $j->precio_costo; 
+                                }
+                            }
+                            //RECUPERO DATOS DEL PRODUCTO DE LA RECETA PARA ACTUALIZARLOS 
+                            $data_producto_receta = Receta::join('productos as p', 'p.id', 'recetas.producto_id')
+                                ->join('categorias as c', 'c.id', 'p.categoria_id')
+                                ->where('recetas.id', $i->receta_id)                      
+                                ->where('recetas.comercio_id', $this->comercioId)
+                                ->select('p.id', 'c.margen_1', 'c.margen_2')->get();
+
+                            $this->costo_historico = $total_costo_receta;   
+                            if ($this->calcular_precio_de_venta == 0){
+                                //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                                $this->venta_sug_l1_historico = ($this->costo_historico * $data_producto_receta[0]->margen_1) / 100 + $this->costo_historico;
+                                $this->venta_sug_l2_historico = ($this->costo_historico * $data_producto_receta[0]->margen_2) / 100 + $this->costo_historico;
+                                $this->venta_l1_historico     = ($this->costo_historico * $data_producto_receta[0]->margen_1) / 100 + $this->costo_historico;
+                                $this->venta_l2_historico     = ($this->costo_historico * $data_producto_receta[0]->margen_2) / 100 + $this->costo_historico;
+                            
+                            }else{
+                                //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                                $this->venta_sug_l1_historico = $this->costo_historico * 100 / (100 - $data_producto_receta[0]->margen_1);
+                                $this->venta_sug_l2_historico = $this->costo_historico * 100 / (100 - $data_producto_receta[0]->margen_2);
+                                $this->venta_l1_historico     = $this->costo_historico * 100 / (100 - $data_producto_receta[0]->margen_1);
+                                $this->venta_l2_historico     = $this->costo_historico * 100 / (100 - $data_producto_receta[0]->margen_2);
+                            }
+                            if ($this->redondear_precio_de_venta == 1){
+                                $this->venta_sug_l1_historico = round($this->venta_sug_l1_historico);
+                                $this->venta_sug_l2_historico = round($this->venta_sug_l2_historico);
+                                $this->venta_l1_historico     = round($this->venta_l1_historico);
+                                $this->venta_l2_historico     = round($this->venta_l2_historico);
+                            }
+                            //MODIFICO LOS DATOS DEL PRODUCTO DE LA RECETA
+                            $record = Producto::find($data_producto_receta[0]->id);
+                            if($this->cambiar_precios == 'solo_costos'){   //modifica precios sugeridos  
+                                $record->update([
+                                    'precio_costo' 	      => $this->costo_historico,		
+                                    'precio_venta_sug_l1' => $this->venta_sug_l1_historico,
+                                    'precio_venta_sug_l2' => $this->venta_sug_l2_historico
+                                ]);
+                            }else{       				//modifica todo
+                                $record->update([
+                                    'precio_costo' 	      => $this->costo_historico,			
+                                    'precio_venta_l1'     => $this->venta_l1_historico,
+                                    'precio_venta_l2'     => $this->venta_l2_historico,	
+                                    'precio_venta_sug_l1' => $this->venta_sug_l1_historico,
+                                    'precio_venta_sug_l2' => $this->venta_sug_l2_historico
+                                ]);
+                            }                         
+                        }
+                    }
+                }
+                DB::commit();
+                session()->flash('message', 'Registro Eliminado'); 
+            }catch (\Exception $e){
+                DB::rollback(); 
+                session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }     
+            $this->resetInput(); 
         }
     }
 }

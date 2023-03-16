@@ -12,7 +12,7 @@ class Producto extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'productos';
     protected $fillable = ['codigo','descripcion', 'precio_costo', 'precio_venta_l1', 'precio_venta_l2', 
-                           'precio_venta_sug_l1', 'precio_venta_sug_l2', 'estado', 'tipo', 'tiene_receta',
-                           'controlar_stock', 'categoria_id', 'comercio_id', 'salsa', 'guarnicion',
-                           'sectorcomanda_id', 'texto_base_comanda_id'];
+                            'precio_venta_sug_l1', 'precio_venta_sug_l2', 'estado', 'tipo',
+                            'tiene_receta', 'controlar_stock', 'categoria_id', 'proveedor_id', 'comercio_id',
+                            'salsa', 'guarnicion', 'sectorcomanda_id', 'texto_base_comanda_id'];
 }

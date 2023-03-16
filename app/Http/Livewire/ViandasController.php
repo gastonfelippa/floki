@@ -89,7 +89,7 @@ class ViandasController extends Component
             DB::RAW("'' as importe"))->orderBy('h_'. $this->dia .'_m')->get(); 
         $this->cantidad_a_preparar = 0;
         foreach ($info as $i){
-            $i->importe = $i->cantidad * $i->precio_venta;
+            $i->importe = $i->cantidad * $i->precio_venta_l1;
             $this->cantidad_a_preparar = $this->cantidad_a_preparar + $i->cantidad;
         }
         //treae info para la vista Facturas
@@ -101,9 +101,10 @@ class ViandasController extends Component
             ->select('viandas.c_'. $this->dia .'_m as cantidad','viandas.h_'. $this->dia .'_m as hora', 'viandas.comentarios',
             'c.id as cliente_id', 'c.apellido', 'c.nombre', 'p.id', 'p.descripcion', 'p.precio_venta_l1', 
             DB::RAW("'' as importe"), DB::RAW("'' as habilitar_facturas"), DB::RAW("'' as estado"))->orderBy('c.apellido')->get(); 
-        $this->cantidad_grabadas = 0;
+      
+            $this->cantidad_grabadas = 0;
             foreach ($info2 as $i){
-            $i->importe = $i->cantidad * $i->precio_venta;      //calculo el importe de cada factura
+            $i->importe = $i->cantidad * $i->precio_venta_l1;      //calculo el importe de cada factura
             //verifico si no se hizo esta factura en el Arqueo Gral actual para no repetir la acción
             $record = ViandasContado::where('cliente_id', $i->cliente_id) 
                 ->where('arqueo_gral_id', $this->arqueoGralId)->get();   
@@ -158,7 +159,7 @@ class ViandasController extends Component
                 ->select('viandas.c_'. $this->dia .'_m as cantidad', 'c.id as cliente_id', 'p.id as producto_id',
                          'p.precio_venta_l1', DB::RAW("'' as importe"))->get(); 
             foreach ($info as $i){
-                $i->importe=$i->cantidad * $i->precio_venta;
+                $i->importe=$i->cantidad * $i->precio_venta_l1;
             } 
             //busco el nro_arqueo del repartidor
             $nroArqueo = CajaUsuario::where('caja_usuarios.caja_usuario_id', $this->repartidor)
@@ -192,7 +193,7 @@ class ViandasController extends Component
                         'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
                         'cantidad'    => $i->cantidad,
-                        'precio'      => $i->precio_venta,
+                        'precio'      => $i->precio_venta_l1,
                         'comercio_id' => $this->comercioId
                     ]);	
                     Ctacte::create([
@@ -222,8 +223,8 @@ class ViandasController extends Component
     }   
     public function cambiarFecha($data)  //esta función inhabilita la vista 'Ver Lista Facturas' 
     {                                    //cuando estamos fuera del Arqueo Gral activo
-        $fecha_consulta = Carbon::parse($data);
-        if($data != '') $this->fecha = date('w',strtotime($data));
+        $dia_consulta = Carbon::parse($data)->format('Y-m-d');
+        $this->fecha = date('w',strtotime($data));
 
         //averiguamos la hora de apertura del comercio
         $horaApertura = Comercio::select('hora_apertura')
@@ -233,25 +234,28 @@ class ViandasController extends Component
         //obtenemos la fecha de creación del Arqueo Gral actual
         $idArqueoGral = ArqueoGral::where('estado', '1')
             ->where('comercio_id', $this->comercioId)->get();
-        $date = Carbon::parse($idArqueoGral[0]->created_at);
-        $dia_arqueo = Carbon::parse($date)->format('Y-m-d');
-        
-        //obtenemos la fecha de consulta elegida para compararla con la del Arqueo anterior
-        $dia_consulta = Carbon::parse($fecha_consulta)->format('Y-m-d');
-        if($dia_consulta > $dia_arqueo) {
-            $now = $dia_consulta . ' 23:59:59';       //si es mayor, tomamos el final del día
-        }else{
-            $now = $dia_consulta . ' 00:00:00';       //si es menor, tomamos el inicio del día
-        }        
-        $diff = $date->diffInDays($now);              //obtenemos la diferencia en días
-        $hora_actual = Carbon::now()->format('H:i');
-        //si estamos en el mismo día 'o' es el día siguiente 
-        //y 'no' es más tarde que la hora de apertura del comercio
-        //permitimos grabar viandas
-        if($diff == 0 || $diff == 1 && $hora_actual <= $hora_apertura){
-            $this->mostrar_facturas = true; 
-        }else{    //sino, no permitimos grabar viandas
-            $this->mostrar_facturas = false;
+        if($idArqueoGral->count()){
+            $date = Carbon::parse($idArqueoGral[0]->created_at);
+            $dia_arqueo = Carbon::parse($date)->format('Y-m-d');          
+
+            //obtenemos la fecha de consulta elegida para compararla con la del Arqueo anterior
+            //$dia_consulta = Carbon::parse($fecha_consulta)->format('Y-m-d');
+
+            if($dia_consulta > $dia_arqueo) {
+                $now = $dia_consulta . ' 23:59:59';       //si es mayor, tomamos el final del día
+            }else{
+                $now = $dia_consulta . ' 00:00:00';       //si es menor, tomamos el inicio del día
+            }        
+            $diff = $date->diffInDays($now);              //obtenemos la diferencia en días
+            $hora_actual = Carbon::now()->format('H:i');
+            //si estamos en el mismo día 'o' es el día siguiente 
+            //y 'no' es más tarde que la hora de apertura del comercio
+            //permitimos grabar viandas
+            if($diff == 0 || $diff == 1 && $hora_actual <= $hora_apertura){
+                $this->mostrar_facturas = true; 
+            }else{    //sino, no permitimos grabar viandas
+                $this->mostrar_facturas = false;
+            }
         }
         $this->emit('mostrar_viandas');
 
@@ -265,19 +269,20 @@ class ViandasController extends Component
             ->where('caja_usuarios.estado', '1')->get();
         $this->nro_arqueo = $nroArqueo[0]->id; 
 
-        DB::begintransaction();                 //iniciar transacción para grabar
+        DB::begintransaction();                 
         try{
-            $preVta = Producto::select('precio_venta')->where('id', $data->producto_id)->get();
+            $preVta = Producto::select('precio_venta_l1')->where('id', $data->producto_id)->get();
             $importe = 0;
-            $importe = $data->cantidad * $preVta[0]->precio_venta;            
+            $importe = $data->cantidad * $preVta[0]->precio_venta_l1;            
            
             $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
             if(!$primerFactura->count()){
                 $numFactura = 1;
             }else{
-                $ultimaFactura = Factura::select('facturas.numero')
+                $ultimaFactura = Factura::select('numero')
                                     ->where('comercio_id', $this->comercioId)
-                                    ->orderBy('facturas.numero', 'desc')->get();                             
+                                    ->withTrashed()
+                                    ->orderBy('numero', 'desc')->get();                             
                 $numFactura = $ultimaFactura[0]->numero + 1;
             }   
 
@@ -287,7 +292,7 @@ class ViandasController extends Component
                 'repartidor_id'  => $this->repartidor,
                 'user_id'        => auth()->user()->id,
                 'importe'        => $importe,
-                'estado'         => 'ctacte',
+                'estado'         => 'pendiente',
                 'estado_pago'    => '0',
                 'estado_entrega' => $this->estado_entrega,
                 'comercio_id'    => $this->comercioId,
@@ -297,27 +302,26 @@ class ViandasController extends Component
                 'factura_id'  => $factura->id,
                 'producto_id' => $data->producto_id,
                 'cantidad'    => $data->cantidad,
-                'precio'      => $preVta[0]->precio_venta,
+                'precio'      => $preVta[0]->precio_venta_l1,
                 'comercio_id' => $this->comercioId
             ]);	
-            Ctacte::create([
-                'cliente_id' => $data->cliente_id,
-                'factura_id' => $factura->id
-            ]);
+            // Ctacte::create([
+            //     'cliente_id' => $data->cliente_id,
+            //     'factura_id' => $factura->id
+            // ]);
             ViandasContado::create([             //guardamos la factura cobrada 
                 'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
                 'cliente_id'     => $data->cliente_id,
                 'arqueo_gral_id' => $this->arqueoGralId,
-                'estado'         => 'Cta cte'
+                'estado'         => 'Pendiente'
             ]); 
             DB::commit();
-            $this->emit('facturaCtaCte'); 
+            $this->emit('facturaPendiente'); 
         }catch (Exception $e){
             DB::rollback();      
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');           
         }         
     } 
-    // public function factura_contado($cliId)
     public function factura_contado()
     {
         $this->estado = 'contado';    
@@ -358,7 +362,7 @@ class ViandasController extends Component
                          'p.precio_venta_l1', DB::RAW("'' as importe"))->get();
             foreach($info as $i){
                 if ($i->cliente_id == $this->cliente_id) {
-                    $i->importe=$i->cantidad * $i->precio_venta;
+                    $i->importe=$i->cantidad * $i->precio_venta_l1;
                     $primerFactura = Factura::select('*')->where('comercio_id', $this->comercioId)->get();                       
                     if(!$primerFactura->count()){
                          $numFactura = 1;
@@ -388,7 +392,7 @@ class ViandasController extends Component
                         'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
                         'cantidad'    => $i->cantidad,
-                        'precio'      => $i->precio_venta,
+                        'precio'      => $i->precio_venta_l1,
                         'comercio_id' => $this->comercioId
                     ]);	
                     ViandasContado::create([             //guardamos la factura cobrada 
@@ -427,7 +431,7 @@ class ViandasController extends Component
 
             foreach($info as $i){
                 if ($i->cliente_id == $cliId) {
-                    $i->importe=$i->cantidad * $i->precio_venta;
+                    $i->importe=$i->cantidad * $i->precio_venta_l1;
                     $primerFactura = Factura::where('comercio_id', $this->comercioId)->get();                       
                     if(!$primerFactura->count()){
                          $numFactura = 1;
@@ -453,7 +457,7 @@ class ViandasController extends Component
                         'factura_id'  => $factura->id,
                         'producto_id' => $i->producto_id,
                         'cantidad'    => $i->cantidad,
-                        'precio'      => $i->precio_venta,
+                        'precio'      => $i->precio_venta_l1,
                         'comercio_id' => $this->comercioId
                     ]);	
                     Ctacte::create([

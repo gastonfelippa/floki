@@ -1,10 +1,4 @@
-@extends('layouts.template',[
-  'modComandas'       => session('modComandas'),
-  'modConsignaciones' => session('modConsignaciones'),
-  'modViandas'        => session('modViandas'),
-  'modDelivery'       => session('modDelivery'),
-  'modClubes'         => session('modClubes')
-])
+@extends('layouts.template_con_sessions')
 
 @section('logo')     
   @livewire('logo-controller')
@@ -24,9 +18,17 @@
                 @endif             
             </div>
             <!-- <div class="visible-print text-center">
-                {!! QrCode::size(100)->generate("www.floki.ar") !!}
+                {!! QrCode::size(100)->generate("www.floki.ar/productos") !!}
                 <p>Escanéame para hacer tu pedido.</p>
             </div> -->
+            <!-- <form action="{{ route('importar.productos.excel') }}" method="post" enctype="multipart/form-data">
+                @csrf 
+                @if(Session::has('message'))
+                <p>{{ Session::get('message') }}</p>
+                @endif
+                <input type="file" name="file">
+                <button>Importar Productos</button>
+            </form> -->
         </div>
     </div>
 </div>
@@ -52,7 +54,7 @@
             pingServer();
             keep_alive = false;
         }
-    }, 12000000 );
+    }, 120000 );
     function pingServer() {
         $.ajax('/keepAlive');
     }

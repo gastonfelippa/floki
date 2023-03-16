@@ -112,7 +112,7 @@ class PermisosController extends Component
             $userRol = ModelHasRole::join('roles as r', 'r.id', 'model_has_roles.role_id')
                 ->where('model_has_roles.model_id', $this->userSelected)
                 ->where('r.alias', 'Administrador')->select('r.id')->get();
-            if($userRol->count() > 0) $this->habilitar_botones = false;
+            if($userRol->count()) $this->habilitar_botones = false;
             else $this->habilitar_botones = true;
                     
             foreach($roles as $r){
@@ -131,8 +131,8 @@ class PermisosController extends Component
                 if($r->alias == 'Administrador') $this->adminId = $r->id;
                 if($r->alias == 'No Usuario') $this->noUsuarioId = $r->id;
             }
-            // if($this->roleSelected == $this->adminId || $this->roleSelected == $this->noUsuarioId) $this->habilitar_botones = false;
-            // else $this->habilitar_botones = true;  
+            if($this->roleSelected == $this->adminId || $this->roleSelected == $this->noUsuarioId) $this->habilitar_botones = false;
+            else $this->habilitar_botones = true;  
 
             //////
             foreach($pProductos as $p){

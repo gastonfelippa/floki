@@ -91,6 +91,12 @@
             }
 		})
     }
+	function guardar()
+    {
+        var mostrar = 'no';
+        if(document.getElementById('mostrar').checked) mostrar = 'si';
+        window.livewire.emit('StoreOrUpdate', mostrar);
+    }
     window.onkeydown = PulsarTecla;
 	function PulsarTecla(e)
     {

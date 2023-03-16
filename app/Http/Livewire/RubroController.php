@@ -122,13 +122,13 @@ class RubroController extends Component
             }
             if($this->selected_id <= 0) {
                 $category =  Rubro::create([
-                    'descripcion' => strtoupper($this->descripcion), 
+                    'descripcion' => mb_strtoupper($this->descripcion), 
                     'comercio_id' => $this->comercioId            
                 ]);
             }else {   
                 $record = Rubro::find($this->selected_id);
                 $record->update([
-                    'descripcion' => strtoupper($this->descripcion)
+                    'descripcion' => mb_strtoupper($this->descripcion)
                 ]);
                 $this->action = 1;              
             }

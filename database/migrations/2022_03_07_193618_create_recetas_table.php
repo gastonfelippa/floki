@@ -16,16 +16,12 @@ class CreateRecetasTable extends Migration
         Schema::create('recetas', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('producto_receta_id');
-
-            $table->decimal('cantidad',10,3);
-            $table->enum('unidad_de_medida', ['Un','Kg','Lt', 'Mt']);
-
             $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');
-                        
-            $table->unsignedBigInteger('subproducto_id')->nullable();
-            $table->foreign('subproducto_id')->references('id')->on('subproductos');
+
+            $table->longText('procedimiento')->nullable();
+            $table->string('comentario')->nullable();
+            //$table->string('autor');
             
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');

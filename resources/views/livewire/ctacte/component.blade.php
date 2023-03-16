@@ -34,7 +34,7 @@
 							<button type="button" class="btn btn-success" enabled>
 								<a href="{{url('pdfResumenDeCuenta',array($clienteId))}}" target="_blank">Imprimir Resumen de Cuenta</a>
 							</button>
-							<button type="button" onclick="Cobrar()" class="btn btn-warning" enabled>Cobrar</button>
+							<button type="button" onclick="prepararCobro()" class="btn btn-warning" enabled>Cobrar</button>
 							@endif
 						@else
 							<button type="button" wire:click="verHistorial(0)" class="btn btn-dark" enabled>Ver Saldo</button>
@@ -54,11 +54,11 @@
 				</div>
 				@elseif($clienteId != '')
 				<div class="row mt-2">
-					<div class="col-sm-12 col-md-4">
+					<div class="col-sm-12 col-md-4 mb-1">
 						<h5 id="cli" style="display: inline;"><b>Cliente: </b><span >{{$nomApeCli}}</span></h5>
 					</div>
 					@if($verHistorial == 0)
-					<div class="col-sm-12 col-md-5 mt-1">
+					<div class="col-sm-12 col-md-6 mt-1">
 						<div class="row">
 							<div class="col-8">
 								<h6><b>Facturas Cuenta Cte.....$ </b></h6>
@@ -182,10 +182,12 @@
     	</div> 
     </div>
 	@else
-	@can('Ctacte_index')
-	@include('livewire.ctacte.form')		
-	@include('livewire.ctacte.modal')		
-	@endcan
+		@can('Ctacte_index')
+			@include('livewire.ctacte.formaDePago')			
+			@include('livewire.ctacte.modalCheques')		
+			@include('livewire.ctacte.modalNroCompPago')	
+			@include('livewire.ctacte.modalBancos')	
+		@endcan
 	@endif
 </div>
 
@@ -202,7 +204,7 @@
 <script src="{{ asset('plugins/jquery-ui/jquery-ui.min.js') }}"></script>
 
 <script type="text/javascript">
-	function Cobrar() //ctdo/ctacte
+	function prepararCobro() //ctdo/ctacte
     {   
 		if($('#caja_abierta').val() == 0){
 			Swal.fire('Oops!','No tenés una Caja Habilitada...')
@@ -219,14 +221,16 @@
 				cancelButtonText: `Cancelar`,
 				denyButtonText: `Entrega a Cuenta`,
 			}).then((result) => {
-				if (result.isConfirmed) {
+				if (result.isConfirmed) {   //si el cobro es por el total o el saldo
 					var cantidad = 0;
-					//recupero los Id de las facturas que se cobran
+
+					//creo un array con los Id de las facturas que se cobran y luego lo paso a Json 
 					var arrId = $('[name="checks"]:checked').map(function(){
 						return this.id;
-					}).get();               
+					}).get();  
 					var data = JSON.stringify(arrId);
-					//recupero los Importes de las facturas que se cobran
+
+					//creo un array con los Importes de las facturas que se cobran
 					var arrImporte = $('[name="checks"]:checked').map(function(){
 						return this.value;
 					}).get();
@@ -235,8 +239,8 @@
 						total = parseInt(total) + parseInt(i);
 						cantidad ++; 
 					}
-					window.livewire.emit('cobrar',data,total.toFixed(2),0,cantidad);
-				} else if (result.isDenied) {
+					window.livewire.emit('preparar_cobro',data,total.toFixed(2),0,cantidad);
+				} else if (result.isDenied) {    //si es una entrega
 						var cantidad =0;
 						var arrImporte = $('[name="checks"]:checked').map(function(){
 							return this.value;
@@ -257,11 +261,51 @@
 						}).get();
 						var total = JSON.stringify(arrImporte);
 						//envío el id, el total y la señal de entrega
-						window.livewire.emit('cobrar',data,total,1,cantidad);
+						window.livewire.emit('preparar_cobro',data,total,1,cantidad);
 					}
 				}
 			})
 		}
+    }
+	function cobrar_factura()
+    { 
+		
+		$('#num').val('');
+
+        $('[id="saldoFactura"]').val(Number.parseFloat($('[id="saldoFactura"]').val()).toFixed(2));
+        $('[id="importe"]').val(Number.parseFloat($('[id="importe"]').val()).toFixed(2));
+        var saldo           = $('[id="saldoFactura"]').val();
+        var formaDePago     = $('[id="formaDePago"]').val();
+        var nroCompPago     = $('[id="num"]').val();
+        var importe         = $('[id="importe"]').val();
+        var terminarFactura = 1;
+
+        // if(importe > saldo){
+        //     Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+        //     resetear();
+        // }
+   
+        // if(importe != saldo) terminarFactura = 0; 
+
+        Swal.fire({
+            icon: 'question',
+            title: 'Confirmar',
+            text: '¿Deseas registrar el pago de esta factura?',
+            showDenyButton: true,
+            confirmButtonColor: '#3085d6',
+            denyButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            denyButtonText: 'Cancelar',
+            closeOnConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) { 
+					//console.log(formaDePago,nroCompPago,importe,terminarFactura);                   
+                    window.livewire.emit('StoreOrUpdate',formaDePago,nroCompPago,importe,terminarFactura);
+                } else if (result.isDenied) {
+                    Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                    resetear();
+                }
+            });            
     }
 	function manejarChecks()
 	{
@@ -275,7 +319,7 @@
 		$(document).ready(function() {
 			$('[name="checks"]').change(function() {  
 			//recupero los Importes de las facturas que se cobran
-			var arrImporte = $('[name="checks"]:checked').map(function(){
+				var arrImporte = $('[name="checks"]:checked').map(function(){
 					return this.value;
 				}).get();
 				var total =0;
@@ -291,7 +335,7 @@
 				&& $(elemento).css("opacity") > 0) {
 			esVisible = false;
 		}
-		console.log(esVisible);
+		//console.log(esVisible);
 		return esVisible;
 	}
 	//selecciona una fila de la tabla
@@ -307,53 +351,184 @@
 			}
 		}
 	}
-	function mostrarInput(){
+	function mostrarInput()
+    {
 		$('[id="nroCompPago"]').val('');
 		$('[id="num"]').val('');
+     
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+				|| $('[id="formaDePago"]').val() == '4') {        
+            $('[id="importeComp"]').val(Number.parseFloat($('[id="saldoFactura"]').val()).toFixed(2));        
 			$('#modalNroComprobanteDePago').modal('show');
+        }else if($('[id="formaDePago"]').val() == '5'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                $('#modalCheques').modal('show');
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
+        }else if($('[id="formaDePago"]').val() == '6'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Confirmar',
+                    text: '¿Deseas enviar esta factura a Cuenta Corriente?',
+                    showDenyButton: true,
+                    confirmButtonColor: '#3085d6',
+                    denyButtonColor: '#d33',
+                    confirmButtonText: 'Aceptar',
+                    denyButtonText: 'Cancelar',
+                    closeOnConfirm: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {                    
+                            window.livewire.emit('factura_ctacte');
+                        } else if (result.isDenied) {
+                            Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                            resetear();
+                        }
+                    });
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
 		}else{
 			guardarDatosPago();
-		}	
-	}
-	function guardarDatosPago(){
-        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() <= 0){ 
-            Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: 'Faltan datos, se cobrará como efectivo!!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-            $('[id="formaDePago"]').val(1)
-        }else{
-			$('[id="num"]').val($('[id="nroCompPago"]').val())
-			if($('[id="num"]').val() != ''){
-				var formaDePago = $('[id="formaDePago"]').val();
-				var nroCompPago = $('[id="nroCompPago"]').val();
-			}else{
-				$('[id="formaDePago"]').val(1)           
-			}		
-			window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 		}
 	}
-	function datos_pago()
-    { 
-        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() <= 0){ 
-            Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: 'Faltan datos, se cobrará como efectivo!!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-            $('[id="formaDePago"]').val(1)
-        }else{
-            window.livewire.emit('StoreOrUpdate')
-        }    
+	function guardarDatosCheque()
+    {
+        $('[id="importe"]').val(Number.parseFloat($('[id="importe"]').val()).toFixed(2));
+        $('[id="importeCheque"]').val(Number.parseFloat($('[id="importeCheque"]').val()).toFixed(2));
+        var saldo           = $('[id="importe"]').val();       //saldo
+        var importe         = $('[id="importeCheque"]').val();
+        var terminarFactura = 1;
+
+        if(parseInt(importe) > parseInt(saldo)){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+			return;
+        } 
+        
+        if(importe != saldo) terminarFactura = 0;
+
+        var data = JSON.stringify({
+			'banco'           : $('#banco').val(),
+			'numero'          : $('#numCheque').val(),
+			'fechaDeEmision'  : $('#fechaDeEmision').val(),
+			'fechaDePago'     : $('#fechaDePago').val(),
+			'importe'         : $('#importeCheque').val(),
+			'cuitTitular'     : $('#cuitTitular').val(),
+			'terminarFactura' : terminarFactura,
+		});		
+		window.livewire.emit('enviarDatosCheque', data);
+	}
+	function guardarDatosPago()
+    {
+        $('[id="num"]').val($('[id="nroCompPago"]').val());
+		$('[id="importe"]').val(Number.parseFloat($('[id="importeComp"]').val()).toFixed(2));        
+        $('[id="saldoFactura"]').val(Number.parseFloat($('[id="saldoFactura"]').val()).toFixed(2));
+        var formaDePago = $('[id="formaDePago"]').val();
+        var nroCompPago = $('[id="nroCompPago"]').val();
+        var importe     = $('[id="importe"]').val();
+        var saldo       = $('[id="saldoFactura"]').val();
+        
+        if(parseInt(importe) > parseInt(saldo)){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        } 
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago,importe);
+	}
+	function openModalBancos()
+    {
+        $('#modalCheques').modal('hide')
+        $('#banco').val('')
+        $('#sucursal').val('')
+        $('#modalBancos').modal('show')
+	}
+	function guardarBanco()
+    {      
+        if($('#descripcion').val() == '') {
+            toastr.error('Ingresa un nombre válido para el Banco')
+            return;
+        }
+        if($('#sucursal').val() == '') {
+            toastr.error('Ingresa un nombre válido para la Sucursal')
+            return;
+        }
+        var data = JSON.stringify({
+            'banco'    : $('#descripcion').val(),
+            'sucursal' : $('#sucursal').val()
+        });
+       
+        $('#modalBancos').modal('hide');
+        window.livewire.emit('agregarBanco', data);
+
+		resetear();
+    }
+	function resetear()
+    {
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldoFactura').val()).toFixed(2));
+        return;
     }
     window.onload = function() {
-        document.getElementById("search").focus()
+        document.getElementById("search").focus();
+		Livewire.on('facturaConEntrega',()=>{
+			Swal.fire('Ops!','En la selección de facturas existe alguna que tiene entregas a cuenta,' +
+				' para continuar primero debes cancelar dicha factura y luego podrás hacer lo mismo' +
+				' con el resto.','info')
+		})
+		Livewire.on('bancoCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Banco fue creado!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        Livewire.on('chequeCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Cheque se registró correctamente!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+		Livewire.on('facturaCobrada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Factura Cobrada!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            if($('#ultima_factura').val() == 1){
+                window.location.href="{{ url('notify') }}";
+            }
+		})
+        Livewire.on('cobroRegistrado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El cobro a cuenta fue registrado!!',
+                showConfirmButton: false,
+                timer: 2000
+            });            
+            resetear();
+        })
     }
 </script>

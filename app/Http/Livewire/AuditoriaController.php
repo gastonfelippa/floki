@@ -43,13 +43,26 @@ class AuditoriaController extends Component
                     break; 
                 case 'Caja Inicial':                               
                     $info2 = Auditoria::join('caja_inicials as ci', 'ci.id', 'auditorias.item_deleted_id')
-                        ->where('auditorias.id', $i->id)->select('ci.importe')->get();
-                    $i->item ='$ ' . $info2[0]->importe;
+                        ->join('caja_usuarios as cu', 'cu.id', 'ci.caja_user_id')
+                        ->join('users as u', 'u.id', 'cu.caja_usuario_id')
+                        ->where('auditorias.id', $i->id)
+                        ->select('ci.tipo', 'ci.cheque_id', 'ci.importe', 'u.name')->get();
+                    if($info2[0]->tipo == 1){
+                        $i->item = 'Caja de ' . $info2[0]->name . ': Efectivo' . ' $ ' . $info2[0]->importe;
+                    }else{
+                        $info2 = Auditoria::join('caja_inicials as ci', 'ci.id', 'auditorias.item_deleted_id')
+                        ->join('caja_usuarios as cu', 'cu.id', 'ci.caja_user_id')
+                            ->join('users as u', 'u.id', 'cu.caja_usuario_id')
+                            ->join('cheques as ch', 'ch.id', 'ci.cheque_id')
+                            ->where('auditorias.id', $i->id)
+                            ->select('ci.tipo', 'ci.cheque_id', 'ci.importe', 'u.name', 'ch.numero')->get();
+                        $i->item = 'Caja de ' . $info2[0]->name . ': Cheque N° ' .  $info2[0]->numero . ' $ ' . $info2[0]->importe;
+                    }
                     break; 
                 case 'Facturas':                               
                     $info2 = Auditoria::join('facturas as f', 'f.id', 'auditorias.item_deleted_id')
                         ->where('auditorias.id', $i->id)->select('f.numero')->get();
-                    $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);
+                    $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);                   
                     break;  
                 case 'Compras':                               
                     $info2 = Auditoria::join('compras as c', 'c.id', 'auditorias.item_deleted_id')
@@ -78,7 +91,7 @@ class AuditoriaController extends Component
                     break; 
                 case 'Detalle de Facturas': 
                     $es_producto = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
-                        ->where('auditorias.id',$i->id)->select('df.producto_id')->get();
+                    ->where('auditorias.id',$i->id)->select('df.producto_id')->get();
                     if($es_producto[0]->producto_id){
                         $info2 = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
                             ->join('productos as p', 'p.id', 'df.producto_id')
@@ -93,6 +106,7 @@ class AuditoriaController extends Component
                             ->select('df.cantidad', 'p.descripcion', 'f.numero')->get();
                     }  
                     $i->item = number_format($info2[0]->cantidad,2,',','.') . ' ' . $info2[0]->descripcion . ' - ' . 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);
+                    
                     break; 
                 case 'Detalle de Facturas Pendientes':                               
                     $info2 = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
@@ -119,6 +133,25 @@ class AuditoriaController extends Component
                     $info2 = Auditoria::join('rubros as r', 'r.id', 'auditorias.item_deleted_id')
                         ->where('auditorias.id', $i->id)->select('r.descripcion')->get();
                     $i->item = $info2[0]->descripcion;
+                    break;
+                case 'Pedidos':                           
+                    $info2 = Auditoria::join('pedidos as p', 'p.id', 'auditorias.item_deleted_id')
+                        ->join('proveedores as pr', 'pr.id', 'p.proveedor_id')
+                        ->where('auditorias.id', $i->id)->select('pr.nombre_empresa')->get();
+                    $i->item = $info2[0]->nombre_empresa;
+                    break;
+                case 'Bancos':                           
+                    $info2 = Auditoria::join('bancos as b', 'b.id', 'auditorias.item_deleted_id')
+                        ->where('auditorias.id', $i->id)->select('b.descripcion', 'b.sucursal')->get();
+                    $i->item = $info2[0]->descripcion . ' - ' . $info2[0]->sucursal;
+                    break;
+                case 'Cheques':                           
+                    $info2 = Auditoria::join('cheques as ch', 'ch.id', 'auditorias.item_deleted_id')
+                        ->join('bancos as b', 'b.id', 'ch.banco_id')
+                        ->where('auditorias.id', $i->id)->select('b.descripcion', 'b.sucursal', 'ch.numero',
+                        'ch.importe')->get();
+                    $i->item = $info2[0]->descripcion . ' - ' . $info2[0]->sucursal . ' N° ' . 
+                                $info2[0]->numero . ' $ ' . $info2[0]->importe;
                     break;
                 default:
             } 

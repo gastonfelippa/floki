@@ -11,6 +11,6 @@ class Receta extends Model
     
     protected $dates = ['deleted_at'];
     protected $table = 'recetas';
-    protected $fillable = ['producto_receta_id', 'cantidad', 'unidad_de_medida', 'producto_id', 
-                           'subproducto_id', 'comercio_id'];
+    
+    protected $fillable = ['producto_id', 'procedimiento', 'comentario', 'comercio_id'];
 }

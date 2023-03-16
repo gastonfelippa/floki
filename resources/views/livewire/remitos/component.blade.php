@@ -11,7 +11,7 @@
                         @if($inicio_remito) 
                             <button type="button" onclick="openModal({{$remito_id}})" 
                                 class="btn btn-dark" enabled>
-                                Consignatarios   
+                                {{$cli_consig}}   
                             </button>           
                         @else       
                             <button type="button" onclick="terminar_remito()"
@@ -406,6 +406,7 @@
     }
     /////
     window.onload = function() {
+        //document.getElementById("barcode").focus();
         if($('#forzar_arqueo').val() == 1){		
             swal({
                 title: 'Caja inhabilitada!',
@@ -474,14 +475,17 @@
                 timer: 1500
             })
         })
-        Livewire.on('cargar_consignatario',()=>{
+        Livewire.on('cargar_consignatario',(cli_consig)=>{
             Swal.fire({
                 position: 'center',
                 icon: 'info',
-                title: 'Primero debes cargar un Consignatario!!',
+                title: 'Primero debes cargar un ' + cli_consig + '!!',
                 showConfirmButton: false,
-                timer: 1500
+                timer: 2000
             })
+        })
+        Livewire.on('itemGrabado',()=>{
+            document.getElementById("barcode").focus();
         })
     } 
 </script>

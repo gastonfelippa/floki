@@ -15,9 +15,9 @@
         </div>
         <div class="btn-group col-12 col-md-4">
             <button type="submit" onclick="cambiarDiv(3)" class="btn btn-info mt-1">Ver Comentarios</button>
-            <button id="btn_imp_comentarios" type="submit" class="btn btn-success mt-1" disabled>
+            <!-- <button id="btn_imp_comentarios" type="submit" class="btn btn-success mt-1" disabled>
                 <a href="{{url('pdfViandas')}}" target="_blank">Imprimir</a>
-            </button>
+            </button> -->
         </div>
         <div class="btn-group col-12 col-md-4 ">
         @if($mostrar_facturas)
@@ -38,10 +38,8 @@
             <h6 style="color:white;">Cantidad de Viandas canceladas: <span id="cV_canceladas"></span></h6>
         </div>
             <h6><b>Fecha de Consulta</b></h6>
-            <!-- <label for="fecha">Fecha de Consulta</label>           -->
             <input id="fecha" onchange="cambiarDiv(2)" type="text" class="form-control flatpickr flatpickr-input sm-control" placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}" autocomplete="off">             
             <h6 class="mt-1"><b>Repartidor/Caja Salón</b></h6> 
-            <!-- <label for="repartidor">Repartidor/Caja Salón</label>             -->
             <select id="repartidor" wire:model="repartidor" class="form-control text-center">
                 <option value="Elegir">Elegir</option>
                 @foreach($repartidores as $r)
@@ -76,7 +74,7 @@
                                     <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>
                                     <td class="text-center">{{$r->cantidad}}</td>
                                     <td class="text-center">{{$r->descripcion}}</td>
-                                    <td class="text-right">{{$r->precio_venta}}</td>
+                                    <td class="text-right">{{$r->precio_venta_l1}}</td>
                                     <td class="text-right">{{number_format($r->importe,2)}}</td>
                                     <td class="text-center">
                                         <ul class="table-controls">
@@ -89,7 +87,7 @@
                                     <td class="text-left" style="background-color:#F9E79F;">{{$r->apellido}}, {{$r->nombre}}</td>
                                     <td class="text-center" style="background-color:#F9E79F;">{{$r->cantidad}}</td>
                                     <td class="text-center" style="background-color:#F9E79F;">{{$r->descripcion}}</td>
-                                    <td class="text-right" style="background-color:#F9E79F;">{{$r->precio_venta}}</td>
+                                    <td class="text-right" style="background-color:#F9E79F;">{{$r->precio_venta_l1}}</td>
                                     <td class="text-right" style="background-color:#F9E79F;">{{number_format($r->importe,2)}}</td>
                                     <td class="text-center" style="background-color:#D4AC0D;font-weight: bold;">{{$r->estado}}</td>
                                 @endif
@@ -218,7 +216,8 @@
             }
         })
     }
-    function mostrarInput(){		
+    function mostrarInput()
+    {		
 		$('[id="nroCompPago"]').val('');
 		$('[id="num"]').val('');
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
@@ -228,7 +227,8 @@
 			guardarDatosPago();
 		}
 	}
-	function guardarDatosPago(){
+	function guardarDatosPago()
+    {
 		$('[id="num"]').val($('[id="nroCompPago"]').val())
         if($('[id="num"]').val() != ''){
             var formaDePago = $('[id="formaDePago"]').val();
@@ -305,9 +305,9 @@
                     if(document.getElementById("btn_grabar").disabled == true){
                         document.getElementById("btn_grabar").removeAttribute("disabled");
                     }
-                    if(document.getElementById("repartidor").disabled == true){
-                        document.getElementById("repartidor").removeAttribute("disabled");
-                    }
+                    // if(document.getElementById("repartidor").disabled == true){
+                    //     document.getElementById("repartidor").removeAttribute("disabled");
+                    // }
                     contarViandas();
                 }                
                 break;
@@ -316,7 +316,7 @@
                 document.getElementById('div2').style.display = 'block';
                 document.getElementById('div3').style.display = 'none';
                 document.getElementById('cVFactura').style.display = 'none';
-                document.getElementById("repartidor").setAttribute("disabled",false);
+                //document.getElementById("repartidor").setAttribute("disabled",false);
                 document.getElementById("btn_grabar").setAttribute("disabled",false);
                 document.getElementById("btn_imp_comentarios").setAttribute("disabled",false);
                 if(document.getElementById("btn_imp_viandas").disabled == true){
@@ -328,7 +328,7 @@
                 document.getElementById('div2').style.display = 'none';
                 document.getElementById('div3').style.display = 'block';
                 document.getElementById('cVFactura').style.display = 'none';
-                document.getElementById("repartidor").setAttribute("disabled",false);
+                //document.getElementById("repartidor").setAttribute("disabled",false);
                 document.getElementById("btn_grabar").setAttribute("disabled",false);
                 document.getElementById("btn_imp_viandas").setAttribute("disabled",false);
                 if(document.getElementById("btn_imp_comentarios").disabled == true){

@@ -100,48 +100,6 @@
                             @endforeach
                         </div>
                     </div>
-                    <!-- <div class="tab-pane fade show {{$tab == 'Patio' ? 'active' : ''}}" id="patio" role="tabpanel" aria-labelledby="profile-tab">
-                        <div class="row mt-3">
-                            @foreach($info as $r)
-                                @if($r->estado == "Disponible")
-                                <div class="cuadrado-verde mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Ocupada")
-                                <div class="cuadrado-rojo mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Reservada")
-                                <div class="cuadrado-azul mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "C/factura")
-                                <div class="cuadrado-amarillo mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Cancelada")
-                                <div class="cuadrado-anaranjado mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div> -->
-                    <!-- <div class="tab-pane fade show {{$tab == 'Entrepiso' ? 'active' : ''}}" id="entrepiso" role="tabpanel" aria-labelledby="profile-tab">
-                        <div class="row mt-3">
-                            @foreach($info as $r)
-                                @if($r->estado == "Disponible")
-                                <div class="cuadrado-verde mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Ocupada")
-                                <div class="cuadrado-rojo mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Reservada")
-                                <div class="cuadrado-azul mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "C/factura")
-                                <div class="cuadrado-amarillo mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                                @if($r->estado == "Cancelada")
-                                <div class="cuadrado-anaranjado mr-2 mb-2" onclick="abrirMesa({{$r->id}})"><p>{{$r->descripcion}}</p></div>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div> -->
                 </div>
     		</div>
     	</div>

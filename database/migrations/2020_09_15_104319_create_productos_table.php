@@ -26,9 +26,12 @@ class CreateProductosTable extends Migration
             $table->enum('tipo', ['Art. Compra','Art. Venta','Ambos'])->default('Art. Venta');
             $table->enum('tiene_receta', ['si','no'])->default('no');
             $table->enum('controlar_stock', ['si','no'])->default('si');
-
+            
             $table->unsignedBigInteger('categoria_id');
             $table->foreign('categoria_id')->references('id')->on('categorias');
+            
+            $table->unsignedBigInteger('proveedor_id')->nullable();
+            $table->foreign('proveedor_id')->references('id')->on('proveedores');
 
             $table->boolean('salsa')->default(false);
             $table->boolean('guarnicion')->default(false);

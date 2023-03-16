@@ -25,7 +25,7 @@ class CreateClientesTable extends Migration
             
             $table->string('telefono',15)->nullable();
             $table->enum('vianda', ['1','2'])->nullable();
-            $table->enum('consignatario', ['1','2'])->nullable();
+            $table->enum('consignatario', ['0','1'])->default('0');//0 común, 1 consignatario
             $table->enum('saldo', ['0','1'])->nullable();
             
             $table->unsignedBigInteger('comercio_id');

@@ -1,7 +1,7 @@
 @extends('layouts.pdf')
 
 @section('content') 
-<div class="col-4">
+<div class="col-8">
 	<h5 class="text-center">Lista de Precios - L{{$listaNumero}}</h5>
     <div><span class="text-right" style="font-size:12px;">Fecha: {{\Carbon\Carbon::now()->format('d-m-Y')}}</span></div>
     <br>

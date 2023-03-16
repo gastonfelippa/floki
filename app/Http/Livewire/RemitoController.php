@@ -11,6 +11,7 @@ use App\Models\Comercio;
 use App\Models\Ctacte;
 use App\Models\DetRemito;
 use App\Models\Factura;
+use App\Models\Localidad;
 use App\Models\Producto;
 use App\Models\Remito;
 use App\Models\Stock;
@@ -29,8 +30,8 @@ class RemitoController extends Component
     public $selected_id = null, $numRemito;
     public $remitos, $delivery = 0, $action = 1, $forzar_arqueo = 0;  
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
-    public $comercioId, $arqueoGralId, $remito_id, $categorias, $articulos =null, $saldoCtaCte;
-    public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
+    public $comercioId, $comercioTipo, $arqueoGralId, $remito_id, $categorias, $articulos =null, $saldoCtaCte;
+    public $dirCliente, $apeNomCli, $apeNomRep, $clienteId, $cli_consig, $cli_consig_sing;
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $contador_filas, $imp_por_hoja, $imp_duplicado;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
@@ -39,11 +40,19 @@ class RemitoController extends Component
     {     
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
-        session(['facturaPendiente' => null]);  
+        session(['facturaPendiente' => null]); 
+
+        $this->comercioTipo = session('tipoComercio');
+        if($this->comercioTipo == 10){
+            $this->cli_consig      = 'Clientes';
+            $this->cli_consig_sing = 'Cliente';
+        }else{
+            $this->cli_consig      = 'Consignatarios';
+            $this->cli_consig_sing = 'Consignatario';
+        } 
         
         $comercio = Comercio::where('id', $this->comercioId)->get();
-        if($comercio->count())
-        {
+        if($comercio->count()){
             $this->imp_por_hoja  = $comercio[0]->imp_por_hoja;
             $this->imp_duplicado = $comercio[0]->imp_duplicado;
         }  
@@ -81,9 +90,13 @@ class RemitoController extends Component
                 ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
         }        
         $this->categorias = Categoria::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
-        $this->clientes = Cliente::where('comercio_id', $this->comercioId)
-            ->where('consignatario', '1')->orderBy('apellido')->get();
         
+        if($this->comercioTipo == 10) $cliConsig = '0';
+        else $cliConsig = '1';
+        $this->clientes = Cliente::where('comercio_id', $this->comercioId)
+            ->where('consignatario', $cliConsig)
+            ->where('nombre', 'not like', 'FINAL')->orderBy('apellido')->get();
+ 
         //capturo el id del repartidor Salón 
         $this->salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('users.name', '...')
@@ -228,21 +241,23 @@ class RemitoController extends Component
         $this->articulos = null;
     }
     public function verSaldo($id)
-    {            
-        $info2 = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
+    { 
+        $this->saldoCtaCte = 0;  
+
+        $info = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
             ->where('c.id', $id)
             ->where('c.comercio_id', $this->comercioId)
             ->select('cta_cte.cliente_id', DB::RAW("'' as importe"))->get(); 
 
-        foreach($info2 as $i) {
+        foreach($info as $i) {
             $sumaFacturas=0;
             $sumaRecibos=0;
-                //sumo las remitos del cliente
-            $importe = Ctacte::join('recibos as f', 'f.id', 'cta_cte.recibo_id') 
+                //sumo las facturas del cliente
+            $importe = Ctacte::join('facturas as f', 'f.id', 'cta_cte.factura_id') 
                 ->where('f.cliente_id', $i->cliente_id)
                 ->select('f.importe')->get();
             foreach($importe as $imp){
-                $sumaFacturas += $imp->importe; //calculo el total de remitos de cada cliente
+                $sumaFacturas += $imp->importe; //calculo el total de facturas de cada cliente
             }
                 //sumo los recibos del cliente
             $importe = Ctacte::join('recibos as r', 'r.id', 'cta_cte.recibo_id') 
@@ -313,7 +328,7 @@ class RemitoController extends Component
     }
     public function verificar_stock($id)
     {
-        if($this->inicio_remito && $this->cliente == 'Elegir') $this->emit('cargar_consignatario');
+        if($this->inicio_remito && $this->cliente == 'Elegir') $this->emit('cargar_consignatario', $this->cli_consig_sing);
         else{
             if($this->selected_id > 0){                 //si modificamos item
                 $record = DetRemito::find($this->selected_id);
@@ -495,7 +510,8 @@ class RemitoController extends Component
             }
             DB::commit();
             if($this->selected_id > 0) session()->flash('message', 'Registro Actualizado');       
-            else session()->flash('message', 'Registro Agregado');  
+            else session()->flash('message', 'Registro Agregado'); 
+            $this->emit('itemGrabado'); 
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -530,15 +546,15 @@ class RemitoController extends Component
                 ->where('caja_usuarios.estado', '1')->get();
             $this->nro_arqueo = $caja_abierta[0]->id;             
         } 
-        $dataCli = Cliente::join('localidades as loc','loc.id','clientes.localidad_id')
-            ->where('clientes.id', $info->cliente_id)->first();
-      
+
+        $dataCli = Cliente::find($info->cliente_id);
+        $loc     = Localidad::find($dataCli->localidad_id);
         $dataRep = User::find($repartidor);
 
         if($this->inicio_remito) {
             $this->mostrar_datos = 1;
             $this->apeNomCli = $dataCli->apellido . ' ' . $dataCli->nombre;
-            $this->dirCliente = $dataCli->calle . ' ' . $dataCli->numero . ' - ' . $dataCli->descripcion;
+            $this->dirCliente = $dataCli->calle . ' ' . $dataCli->numero . ' - ' . $loc->descripcion;
             $this->verSaldo($dataCli->id);
             $this->apeNomRep = $dataRep->apellido . ' ' . $dataRep->name;
             $this->cliente = $info->cliente_id;

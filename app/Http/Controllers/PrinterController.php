@@ -74,7 +74,7 @@ class PrinterController extends Controller
             //header del ticket
             $impresora->setJustification(Printer::JUSTIFY_CENTER);
             $impresora->setTextSize(2,2);      //tamaño nombre empresa
-            $impresora->text(strtoupper($empresa->nombre) . "\n");
+            $impresora->text(mb_strtoupper($empresa->nombre) . "\n");
             $impresora->setTextSize(1,1);      //tamaño por defecto
             $impresora->text("** Comprobante no válido como factura **\n\n");
             
@@ -142,7 +142,7 @@ class PrinterController extends Controller
          //header del ticket
          $impresora->setJustification(Printer::JUSTIFY_CENTER);
          $impresora->setTextSize(2,2);      //tamaño nombre empresa
-         $impresora->text(strtoupper($empresa[0]->nombre) . "\n");
+         $impresora->text(mb_strtoupper($empresa[0]->nombre) . "\n");
          $impresora->setTextSize(1,1);      //tamaño por defecto
          $impresora->text("** Recibo de Pensión **\n\n");
 

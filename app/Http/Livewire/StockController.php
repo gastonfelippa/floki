@@ -14,22 +14,31 @@ use DB;
 
 class StockController extends Component
 {
-    public $comercioId, $selected_id, $search = '', $placeHolderSearch = "Buscar por 'Código' o por 'Descripción'";
+    public $selected_id, $search = '', $placeHolderSearch = "Buscar por 'Código' o por 'Descripción'";
     public $action = 1, $stock, $stockHistorial, $producto_id=null, $producto=null, $cliente_id=null;
     public $nombreCliente, $cliente = 'Elegir', $clientes, $infoCli;
-    public $modConsignaciones, $title = "Stock", $valorTotalStock = 0, $valorTotalStockConsignacion = 0;
+    public $title = "Stock", $valorTotalStock = 0, $valorTotalStockConsignacion = 0;
     public $info_sp, $mostrar_subproducto = 0;
+    public $comercioId, $modConsignaciones, $comercioTipo;
 
     public function render()
     {
         //busca el comercio que está en sesión
 		$this->comercioId = session('idComercio');
         $this->modConsignaciones = session('modConsignaciones');
-        session(['facturaPendiente' => null]);  
+        $this->comercioTipo = session('tipoComercio');
 
-        $this->clientes = Cliente::where('comercio_id', $this->comercioId)
-            ->where('consignatario', '1')->orderBy('apellido')->get();
-        $this->stockPorCliente($this->cliente);  
+        if($this->comercioTipo == 11){
+            $this->clientes = Cliente::where('comercio_id', $this->comercioId)
+                    ->where('consignatario', '1')->orderBy('apellido')->get();
+        }else{
+            $this->clientes = Cliente::join('stock_en_consignacion as s', 's.cliente_id', 'clientes.id')
+                ->where('clientes.comercio_id', $this->comercioId)
+                ->where('s.remito_id', '<>', null)
+                ->groupBy('s.cliente_id')->select('clientes.*', 's.cliente_id')->orderBy('clientes.apellido')->get();
+        }
+        $this->stockPorCliente($this->cliente);
+          
 
 		if(strlen($this->search) && $this->action == 1){  //buscar >> stock local
             $this->valorTotalStock = 0;
@@ -119,19 +128,27 @@ class StockController extends Component
         $this->infoCli = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
             ->where('stock_en_consignacion.cliente_id', $id)
             ->select('stock_en_consignacion.producto_id', 'stock_en_consignacion.subproducto_id', DB::RAW("'' as articuloId"), DB::RAW("'' as articuloCodigo"), 
-                     DB::RAW("'' as cantidad"),  DB::RAW("'' as articuloDesc"), DB::RAW("'' as precio_venta_l2"), DB::RAW("0 as subtotal"))
+                     DB::RAW("'' as cantidad"),  DB::RAW("'' as articuloDesc"), DB::RAW("'' as precio_venta"), DB::RAW("0 as subtotal"))
             ->groupBy('stock_en_consignacion.producto_id', 'stock_en_consignacion.subproducto_id')->get();
         foreach ($this->infoCli as $i){
             if($i->producto_id != null){
-                $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
-                    ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
-                    ->where('stock_en_consignacion.producto_id', $i->producto_id)
-                    ->where('stock_en_consignacion.cliente_id', $id)
-                    ->select('p.id', 'p.codigo', 'p.descripcion', 'p.precio_venta_l2')->first();
+                if($this->comercioTipo == 11){
+                    $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
+                        ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
+                        ->where('stock_en_consignacion.producto_id', $i->producto_id)
+                        ->where('stock_en_consignacion.cliente_id', $id)
+                        ->select('p.id', 'p.codigo', 'p.descripcion', 'p.precio_venta_l2 as precio_venta')->first();
+                }else{
+                    $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
+                        ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
+                        ->where('stock_en_consignacion.producto_id', $i->producto_id)
+                        ->where('stock_en_consignacion.cliente_id', $id)
+                        ->select('p.id', 'p.codigo', 'p.descripcion', 'p.precio_venta_l1 as precio_venta')->first();
+                }
                 $i->articuloId = $stock_en_consig->id;
                 $i->articuloCodigo = $stock_en_consig->codigo;
                 $i->articuloDesc = $stock_en_consig->descripcion;
-                $i->precio_venta_l2 = $stock_en_consig->precio_venta_l2;
+                $i->precio_venta = $stock_en_consig->precio_venta;
 
                 $stock_en_consig_cantidad = StockEnConsignacion::where('producto_id', $i->producto_id)
                     ->where('cliente_id', $id)
@@ -153,7 +170,7 @@ class StockController extends Component
                     ->get()->sum('cantidad');
             }
             $i->cantidad = $stock_en_consig_cantidad;
-            $i->subtotal = $i->cantidad * $i->precio_venta_l2;
+            $i->subtotal = $i->cantidad * $i->precio_venta;
             $this->valorTotalStockConsignacion += $i->subtotal;
         }
         $this->producto_id=null;    
@@ -161,21 +178,12 @@ class StockController extends Component
     }
     public function doAction($action)
     {
-        // if($action == 5){
-        //     DB::statement("SET foreign_key_checks=0");
-        //     Remito::where('comercio_id',$this->comercioId)->delete();
-        //     Subproducto::truncate();
-        //     StockEnConsignacion::truncate();
-        //     DetRemito::truncate()->where('comercio_id',3);
-        //     DB::statement("SET foreign_key_checks=1");
-        // }else 
         $this->action = $action;
-
-        
-        // if($action == 1) $this->placeHolderSearch = "Buscar por 'Código' o por 'Descripción'";
-        // else $this->placeHolderSearch = "Buscar por 'Código', 'Nombre' o 'Apellido'";
-        if($action == 1) $this->title = "Stock"; else $this->title = "Stock en Consignación";
-        $this->emit('focus_search');
+        if($action == 1) $this->title = "Stock"; 
+        else{
+            if($this->comercioTipo == 10) $this->title = "Stock en Condicional";
+            else $this->title = "Stock en Consignación";
+        }
         $this->resetInput();
     }
     public function resetInput()

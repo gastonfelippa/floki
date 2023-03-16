@@ -1,17 +1,23 @@
 <div class="row layout-top-spacing justify-content-center"> 
+    @if($action == 1)
 	@include('common.alerts')
-    <div class="col-sm-12 col-md-6 layout-spacing">      
+    <div class="col-sm-12 col-md-8 layout-spacing">      
         <div class="widget-content-area">
             <div class="widget-one">
                 <div class="row">
-                    <div class="col-9">
+                    <div class="col-md-7 col-sm-12">
                         <h3><b>Receta de {{$prod_receta}}</b></h3>
                     </div> 
-                    <div class="col-3 text-right">
-                    <button type="button" onclick="volver()" class="btn btn-dark">
-                        <i class="mbri-left"></i> Volver
-                    </button>
-                </div> 
+                    <div class="col-md-3">
+                        <button type="button" wire:click="doAction(2)" class="btn btn-warning">
+                            Procedimiento
+                        </button>
+                    </div> 
+                    <div class="col-md-2">
+                        <button type="button" onclick="volver()" class="btn btn-dark">
+                            Volver
+                        </button>
+                    </div> 
     			</div> 
                 @include('common.messages')
                 <div class="row mt-2">                    
@@ -80,6 +86,17 @@
                                             onclick="Confirm({{$r->id}})"
                                             data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                         </li>
+                                        <li>
+                                            @if($r->principal == 'si')
+                                            <a href="javascript:void(0);" wire:click="GrabarPrincipal('no',{{$r->id}})" data-toggle="tooltip" data-placement="top" title="Es Componente Principal">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill text-warning" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                                            </a>
+                                            @else                  
+                                            <a href="javascript:void(0);" wire:click="GrabarPrincipal('si',{{$r->id}})" data-toggle="tooltip" data-placement="top" title="No es Componente Principal">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16"><path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z"/></svg>
+                                            </a>
+                                            @endif
+                                        </li>
                                     </ul>
                                 </td>
                             </tr>
@@ -95,7 +112,7 @@
                         </button>
                         <button type="button" 
                             @if($cantidad) enabled @else disabled @endif
-                            wire:click="StoreOrUpdate()"  
+                            onclick="calcularPrecioVenta()" 
                             @if($selected_id) class="btn bg-warning" id="btnModificar"
                             @else class="btn bg-primary" id="btnGuardar" 
                             @endif>
@@ -109,9 +126,16 @@
                     </div> 
                 </div>
             </div>
-    	</div> 
+    	</div>
     </div>
+    <input type="hidden" id="preguntarPorPrecio" wire:model="preguntarPorPrecio">
+    <input type="hidden" id="preguntarPorPrecio" wire:model="cambiar_precios">
+    @else
+    <input type="hidden" id="tieneProcedimiento" wire:model="procedimiento">
+	@include('livewire.recetas.procedimiento')		
+	@endif
 </div>
+
 
 <style type="text/css" scoped>
 .scroll{
@@ -123,31 +147,77 @@
 </style>
 
 <script type="text/javascript">
+    function calcularPrecioVenta() {
+        if($('[id="preguntarPorPrecio"]').val() == 'si'){
+            Swal.fire({
+                icon: 'question',
+                title: 'Elige una opción...',
+                showDenyButton: true,
+                confirmButtonColor: '#3085d6',
+                denyButtonColor: '#d33',
+                confirmButtonText: 'Deseo que solo se modifiquen los Precios de Venta Sugeridos',
+                denyButtonText: 'Deseo modificar tanto los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
+                closeOnConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {  
+                    window.livewire.emit('calcular_precio_venta', 'solo_costos', 'agregar', null, null);
+                } else if (result.isDenied) {
+                    window.livewire.emit('calcular_precio_venta', 'cambiar_todo', 'agregar', null, null);
+                }
+            }); 
+        }else window.livewire.emit('calcular_precio_venta', null, 'agregar', null, null);
+     
+    }
     function Confirm(id)
     {
+        var data_cambios = null;
+        if($('#preguntarPorPrecio').val() == 'si'){
+            Swal.fire({
+                icon: 'question',
+                title: 'Elige una opción...',
+                showDenyButton: true,
+                confirmButtonColor: '#3085d6',
+                denyButtonColor: '#d33',
+                confirmButtonText: 'Deseo que solo se modifiquen los Precios de Venta Sugeridos',
+                denyButtonText: 'Deseo modificar tanto los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
+                closeOnConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {  
+                    data_cambios = 'solo_costos';
+                    Confirm2(id, data_cambios);
+                } else if (result.isDenied) {
+                    data_cambios = 'cambiar_todo';
+                    Confirm2(id, data_cambios);
+                }
+            });
+        }else Confirm2(id, data_cambios);
+    } 
+    function Confirm2(id, data_cambios)
+    {
         Swal.fire({
-    		title: 'CONFIRMAR',
-    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
-    		icon: 'warning',
-			input: 'text',
-    		showCancelButton: true,
-    		confirmButtonText: 'Aceptar',
-    		cancelButtonText: 'Cancelar',
-    		closeOnConfirm: false,
-			inputValidator: comentario => {
-				if (!comentario) return "Por favor escribe un breve comentario";
-				else return undefined;
-			}
-		}).then((result) => {
-			if (result.isConfirmed) {
-				if (result.value) {
-					let comentario = result.value;
-					window.livewire.emit('deleteRow', id, comentario)
-				}
-			}else if (result.dismiss === Swal.DismissReason.cancel) {
-				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            title: 'CONFIRMAR',
+            text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+            icon: 'warning',
+            input: 'text',
+            showCancelButton: true,
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false,
+            inputValidator: comentario => {
+                if (!comentario) return "Por favor escribe un breve comentario";
+                else return undefined;
             }
-		})
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value) {
+                    let comentario = result.value;
+                    window.livewire.emit('calcular_precio_venta', data_cambios, 'eliminar', id, comentario);
+                    //window.livewire.emit('deleteRow', id, comentario)
+                }
+            }else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+        })
     }
     function volver()
     {

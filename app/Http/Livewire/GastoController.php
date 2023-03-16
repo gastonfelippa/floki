@@ -140,14 +140,14 @@ class GastoController extends Component
             }
             if($this->selected_id <= 0) {
                 $gasto =  Gasto::create([
-                    'descripcion'  => strtoupper($this->descripcion),
+                    'descripcion'  => mb_strtoupper($this->descripcion),
                     'categoria_id' => $this->categoria,
                     'comercio_id'  => $this->comercioId
                 ]);
             }else {   
                 $gasto = Gasto::find($this->selected_id);
                 $gasto->update([
-                    'descripcion' => strtoupper($this->descripcion),
+                    'descripcion' => mb_strtoupper($this->descripcion),
                     'categoria_id' => $this->categoria
                 ]);                
                 $this->action = 1;             

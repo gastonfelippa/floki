@@ -151,6 +151,7 @@ class ReservasEstadoMesasController extends Component
         if($idMozo){
             session(['idMozo' => $idMozo]);
             session(['idMesa' => $this->mesaId]);
+            session(['facturaPendiente' => null]);
             return redirect()->to('/facturasbar');
         }
     }
@@ -160,6 +161,7 @@ class ReservasEstadoMesasController extends Component
 
         if($info == 'd' || $info == 'D'){
             session(['idMesa' => $info]);
+            session(['facturaPendiente' => null]);
             return redirect()->to('/facturasbar');
         }else{
             $buscar_mesa = Mesa::find($info);
@@ -172,7 +174,8 @@ class ReservasEstadoMesasController extends Component
                 }elseif($buscar_mesa->estado == 'Deshabilitada'){
                     $this->emit('habilitar_mesa', $mesa);
                 }else{
-                    session(['idMozo' => null]); 
+                    session(['idMozo' => null]);
+                    session(['facturaPendiente' => null]); 
                 return redirect()->to('/facturasbar');  
                 } 
             }else session()->flash('message', 'La mesa ingresada no existe');
@@ -260,8 +263,8 @@ class ReservasEstadoMesasController extends Component
             }        
             if($this->selected_id <= 0) {
                 Reserva::create([
-                    'nombre'      => strtoupper($this->nombre),            
-                    'apellido'    => strtoupper($this->apellido),             
+                    'nombre'      => mb_strtoupper($this->nombre),            
+                    'apellido'    => mb_strtoupper($this->apellido),             
                     'telefono'    => $this->telefono,
                     'hora'        => $this->hora,
                     'cantidad'    => $this->cantidad,
@@ -274,8 +277,8 @@ class ReservasEstadoMesasController extends Component
             }else {   
                 $record = Reserva::find($this->selected_id);
                 $record->update([
-                    'nombre'      => strtoupper($this->nombre),            
-                    'apellido'    => strtoupper($this->apellido),             
+                    'nombre'      => mb_strtoupper($this->nombre),            
+                    'apellido'    => mb_strtoupper($this->apellido),             
                     'telefono'    => $this->telefono,
                     'hora'        => $this->hora,
                     'cantidad'    => $this->cantidad,

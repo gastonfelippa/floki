@@ -58,17 +58,18 @@
                         <div class="form-group row">
                             <div class="col-12">
                                 <select name="tipo" class="form-control text-left">
-                                    <option value="2">Bar/Pub/Restó</option>
-                                    <option value="3">Restaurante</option>
+                                    <option value="3">Bar/Pub/Restó</option>
                                     <option value="4">Pizzería</option>
                                     <option value="5">Cervecería</option>
                                     <option value="6">Heladería</option>
                                     <option value="7">Cafetería</option>
                                     <option value="8">Rotisería</option>
                                     <option value="9">Panadería</option>
-                                    <option value="10">Club/Entidad Social</option>
-                                    <option value="11">Otro comercio gastronómico</option>
-                                    <option value="12">Otro comercio no gastronómico</option>
+                                    <option value="10">Tienda/Zapatería</option>
+                                    <option value="11">Consignación</option>
+                                    <option value="12">Club/Entidad Social</option>
+                                    <option value="13">Otro comercio gastronómico</option>
+                                    <option value="14">Otro comercio no gastronómico</option>
                                 </select>
                             </div>
                         </div>

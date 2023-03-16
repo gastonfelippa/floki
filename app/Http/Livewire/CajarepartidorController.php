@@ -26,7 +26,7 @@ class CajarepartidorController extends Component
     public $clientes, $empleados, $productos, $repartidor = '0', $caja_abierta;
     public $usuarioAdmin = false, $usuario_habilitado = true;
     public $selected_id = null, $search, $id_factura, $fact_id, $infoDetalle, $comercioId, $estado = 1;
-    public $producto="Elegir", $action='1', $totalfactura, $nombreCliente, $nomRep, $nro_arqueo, $fecha_inicio;
+    public $producto="Elegir", $action = 1, $totalfactura, $nombreCliente, $nomRep, $nro_arqueo, $fecha_inicio;
     public $cantidadEdit, $productoEdit, $precioEdit, $editFacturaId = '', $importeFactura, $estado_entrega;
     public $importe, $gasto, $gastos, $totalCI, $totalCobrado, $totalGastos, $totalCF, $cajaGasto, $cantFacturas;
 
@@ -178,7 +178,7 @@ class CajarepartidorController extends Component
             }
         }
         $this->totalCF = $this->totalCI + $this->totalCobrado - $this->totalGastos;
-    
+
 		return view('livewire.cajarepartidor.component', [
             'info' => $info,
             'infoCaja' => $infoCaja,

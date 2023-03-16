@@ -135,14 +135,14 @@ class MesaController extends Component
             if($this->selected_id > 0) {
                 $mesa = Mesa::find($this->selected_id);
                 $mesa->update([
-                    'descripcion' => strtoupper($this->descripcion),
+                    'descripcion' => mb_strtoupper($this->descripcion),
                     'capacidad'   => $this->capacidad,
                     'sector_id'   => $this->sector
                 ]);                
                 $this->action = 1;   
             }else {   
                 $mesa =  Mesa::create([
-                    'descripcion' => strtoupper($this->descripcion),
+                    'descripcion' => mb_strtoupper($this->descripcion),
                     'capacidad'   => $this->capacidad,
                     'sector_id'   => $this->sector,
                     'comercio_id' => $this->comercioId

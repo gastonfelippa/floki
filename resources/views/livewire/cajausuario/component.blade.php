@@ -61,10 +61,14 @@
 			</div>
     	</div> 
     </div>
-	@else
-	@include('livewire.cajausuario.form')
-	@include('livewire.cajausuario.modal')	
-	@include('livewire.cajausuario.modalImporte')	
+	@elseif($action == 2)
+		@include('livewire.cajausuario.form')
+		@include('livewire.cajausuario.modal')	
+		@include('livewire.cajausuario.modalImporte')
+	@elseif($action == 3)
+		@include('livewire.cajausuario.cheques')
+		@include('livewire.cajausuario.modalCheques')  
+   		@include('livewire.cajausuario.modalBancos') 
 	@endif
 </div>
 
@@ -83,9 +87,99 @@
 }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+<script src="{{ asset('plugins/jquery-ui/jquery-ui.min.js') }}"></script>
 
 
 <script type="text/javascript">
+	function Confirm(chequeId, id)
+    {
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Eliminar el registro, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('deleteRow', chequeId, id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
+    }
+	function nuevoCheque()
+	{
+		$('#modalCheques').modal('show');
+	}
+	function seleccionarCheque()
+	{
+		//creo un array con los Id de las facturas que se cobran y luego lo paso a Json 
+		var arrId = $('[name="checks"]:checked').map(function(){
+			return this.id;
+		}).get();  
+		var dataId = JSON.stringify(arrId);
+
+		//creo un array con los Importes de las facturas que se cobran
+		var arrImporte = $('[name="checks"]:checked').map(function(){
+			return this.value;
+		}).get();
+		var dataImporte = JSON.stringify(arrImporte);
+		
+		var cantidad = 0;
+		var total = 0;  //calculo el total a cobrar
+		for(var i of arrImporte) {
+			total = parseInt(total) + parseInt(i);
+			cantidad ++; 
+		}
+		window.livewire.emit('chequeSeleccionado',dataId,dataImporte,total.toFixed(2),cantidad);
+	}
+    function openModalBancos()
+    {
+        $('#modalCheques').modal('hide')
+        $('#banco').val('')
+        $('#sucursal').val('')
+        $('#modalBancos').modal('show')
+	}
+	function guardarBanco()
+    {      
+        if($('#descripcion').val() == '') {
+            toastr.error('Ingresa un nombre válido para el Banco')
+            return;
+        }
+        if($('#sucursal').val() == '') {
+            toastr.error('Ingresa un nombre válido para la Sucursal')
+            return;
+        }
+        var data = JSON.stringify({
+            'banco'    : $('#descripcion').val(),
+            'sucursal' : $('#sucursal').val()
+        });
+       
+        $('#modalBancos').modal('hide');
+        window.livewire.emit('agregarBanco', data);
+
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldo').val()).toFixed(2));
+    }
+	function mostrarInput()
+    {  
+		if($('[id="formaDePago"]').val() == '1'){
+			window.livewire.emit('doAction',4)
+		}else if($('[id="formaDePago"]').val() == '2'){
+			window.livewire.emit('doAction',3)
+		}
+	}
 	function openModal()
     {
 		$('.modal-title').text('Agregar Caja')    
@@ -114,17 +208,18 @@
 	}
 	function saveEdit()
     {
-		if($('#importe').val() == '') {
+		if($('#importeEdit').val() == '') {
 			toastr.error('El campo Importe no puede estar vacío')
 			return;
 		}
 		var data = JSON.stringify({
 			'id'     : $('#id').val(),
-			'importe': $('#importe').val()
+			'importe': $('#importeEdit').val()
 		});
         $('#modalEditImporte').modal('hide')
         window.livewire.emit('editFromModal', data)
     }	
+
 	window.onload = function(){
 		if($('#usuario_habilitado').val() == 0){
             swal({
@@ -140,5 +235,43 @@
                 swal.close()   
             })
         }
+		Livewire.on('bancoCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Banco fue creado!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        Livewire.on('chequeCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Cheque se registró correctamente!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+		Livewire.on('registroEliminado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Registro Eliminado!',
+                text: 'Tu registro se eliminó correctamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})
+		Livewire.on('eliminarRegistro',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Tu registro no se puede eliminar!',
+                text: 'El Cheque ya fue entregado como medio de pago...',
+                showConfirmButton: false,
+                timer: 3500
+            })
+		}) 
 	}
 </script>

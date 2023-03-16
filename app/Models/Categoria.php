@@ -12,5 +12,6 @@ class Categoria extends Model
     protected $dates = ['deleted_at'];
     
     protected $table = 'categorias';
-    protected $fillable = ['descripcion', 'margen_1', 'margen_2', 'rubro_id', 'comercio_id'];
+    protected $fillable = ['descripcion', 'tipo', 'margen_1', 'margen_2', 'rubro_id',
+                            'mostrar_al_vender', 'comercio_id'];
 }

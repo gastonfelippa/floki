@@ -17,7 +17,7 @@ class ComandaController extends Component
     public $infoTerminado, $infoDetTerminado;
     public $comSelEnEspera = null, $comSelProcesando = null, $comSelTerminado = null;
     public $dato= null, $sectorComanda = null, $comercioId;
-    public $vista = null, $posicion = 0, $sonido = null;
+    public $vista = null, $posicion = 0, $sonido;
     public $contadorEE, $contadorP, $contadorT;
 
     public function render()
@@ -27,6 +27,8 @@ class ComandaController extends Component
         $this->contadorT  = -1;
 
         $this->comercioId = session('idComercio');
+
+        //if($this->sonido != 1) $this->sonido = null;
 
         if(!$this->sectorComanda){
             $sectorComanda = SectorComanda::where('descripcion', 'like', 'Cocina')
@@ -54,9 +56,9 @@ class ComandaController extends Component
             if ($diff->format('%h') > 0) $diff = $diff->format("%h h %i min");
             else $diff = $diff->format("%i min");
             $i->demora = $diff;
-        }   
+        } 
         $this->infoDetEnEspera = Detcomanda::join('comandas as c', 'c.id', 'detcomandas.comanda_id')
-            ->where('c.estado', 'en espera')->orderBy('descripcion')->get();
+        ->where('c.estado', 'en espera')->orderBy('descripcion')->get(); 
     
         $this->infoProcesando = Comanda::join('facturas as f', 'f.id', 'comandas.factura_id')
             ->join('users as u', 'u.id', 'f.mozo_id')
@@ -115,8 +117,13 @@ class ComandaController extends Component
 
     protected $listeners = [
         'cambiarEstado'          => 'cambiarEstado',
-        'seleccionarComanda'     => 'seleccionarComanda'
+        'seleccionarComanda'     => 'seleccionarComanda',
+        'leerSinCargar'   => 'leerSinCargar'
     ];
+    public function leerSinCargar()
+    {
+        // $this->emit('leer');
+    }
     public function cambiarEstado($idComanda, $vista, $movimiento)
     {
         $mover  = 0; 

@@ -12,7 +12,7 @@
                         </div>
                         <input id="nombre" name="nombre" type="text" class="form-control text-uppercase" wire:model="descripcion" autofocus autocomplete="off">
                     </div>
-                </div>
+                </div>            
                 <div class="col-12 col-md-6 layout-spacing">
                     <label >Rubro</label>
                     <select wire:model="rubro" class="form-control text-left">
@@ -23,15 +23,23 @@
                         </option>                                       
                         @endforeach                              
                     </select>		
-                </div>                             
+                </div>                                             
             </div>
             <div class="row">  
+                <!-- <div class="col-12 col-md-4 layout-spacing">
+                    <label >Tipo</label>
+                    <select wire:model="tipo" class="form-control text-left">
+                        <option value="Ambos">Ambos</option>
+                        <option value="Venta">Art. Venta</option>
+                        <option value="Compra">Art. Compra</option>
+                    </select>
+                </div> -->
                 <div class="col-12 col-md-6 layout-spacing">
                     <div class="input-group">
-                        @if($comercioTipo == 11)
-                        <label class="input-group">Margen Lista 1</label>
-                        @else
+                        @if($modComandas == "1")
                         <label class="input-group">Margen Lista Salón</label>
+                        @else
+                        <label class="input-group">Margen Lista 1</label>
                         @endif
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16"><path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm7 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg></span>
@@ -41,10 +49,10 @@
                 </div>
                 <div class="col-12 col-md-6 layout-spacing">
                     <div class="input-group ">
-                        @if($comercioTipo == 11)
-                        <label class="input-group">Margen Lista 2</label>
-                        @else
+                        @if($modComandas == "1")
                         <label class="input-group">Margen Lista Delivery</label>
+                        @else
+                        <label class="input-group">Margen Lista 2</label>
                         @endif                       
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16"><path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm7 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg></span>
@@ -53,7 +61,28 @@
                     </div>
                 </div>
             </div>
-            @include('common.btnCancelarGuardar') 
+            <div class="row">
+                <div class="col-12 col-md-6 layout-spacing">
+                    <div class="form-check form-switch ml-3">
+                        @if($mostrar_al_vender == 'si')
+                        <input class="form-check-input" type="checkbox" id="mostrar" checked>
+                        @else
+                        <input class="form-check-input" type="checkbox" id="mostrar">
+                        @endif
+                        <label class="form-check-label" for="flexSwitchCheckChecked">Mostrar Categoría al Vender</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="guardar()" class="btn btn-primary">
+                        Guardar
+                    </button>       
+                </div>
+            </div>
         </div>
     </div>	
 </div>

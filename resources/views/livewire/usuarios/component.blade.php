@@ -128,11 +128,8 @@
     } 
 	function verificarPorDni()
 	{
-		//var dni = $('#documento').val();
 		var dni = document.getElementById("documento");
-		var ex_regular_dni; 
-		ex_regular_dni = /^\d{8}(?:[-\s]\d{4})?$/;
-		//if(ex_regular_dni.test (dni) == true){
+		var ex_regular_dni = /^\d{8}(?:[-\s]\d{4})?$/;
 		if (ex_regular_dni.exec(dni.value)){
 			window.livewire.emit('verificarPorDni')
 		}else{
@@ -144,7 +141,7 @@
 	function validarNombre()
 	{
 		var nombre = document.getElementById("name");
-		var expRegNombre=/^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
+		var expRegNombre = /^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
 		if (!expRegNombre.exec(nombre.value)){
 			toastr.error("El campo Nombre solo admite letras y espacios.")
 			nombre.focus();
@@ -154,7 +151,7 @@
 	function validarApellido()
 	{
 		var apellido = document.getElementById("apellido");
-		var expRegApellido=/^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
+		var expRegApellido = /^[a-zA-ZÑñÁáÉéÍíÓóÚúÜü\s]+$/;
 		if (!expRegApellido.exec(apellido.value)){
 			toastr.error("El campo Apellido solo admite letras y espacios.")
 			apellido.focus();

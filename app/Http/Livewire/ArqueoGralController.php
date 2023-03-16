@@ -145,16 +145,30 @@ class ArqueoGralController extends Component
         $this->selected_id = null;
     }
     protected $listeners = [
-        'infoToPrintCorte'     => 'PrintCorte',
-        'cerrarArqueoGral'     => 'cerrarArqueoGral'
+        'infoToPrintCorte' => 'PrintCorte',
+        'cerrarArqueoGral' => 'cerrarArqueoGral'
     ];
+
+
+
+
+//////// Hacer una vista o modal para dejar la Caja del día siguiente
+
+
+
+
+
+
+
+
+
     public function Arqueo()
     {   
         //suma de todas las cajas iniciales del día
-        $this->cajaInicial = CajaUsuario::join('cajas as c', 'c.id', 'caja_usuarios.caja_id')
-                ->join('caja_inicials as ci', 'ci.caja_user_id', 'caja_usuarios.id')
-                ->where('c.comercio_id', $this->comercioId)
-                ->where('caja_usuarios.arqueo_gral_id', $this->arqueoGralId)->sum('importe');
+        $this->cajaInicial = CajaInicial::join('caja_usuarios as cu', 'cu.id', 'caja_inicials.caja_user_id')
+                ->join('cajas as c', 'c.id', 'cu.caja_id')
+                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+                ->sum('importe');
         //suma de todas las ventas de contado del día
         $this->ventas = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
                 ->join('arqueo_grals as ag', 'ag.id', 'cu.arqueo_gral_id')
@@ -190,8 +204,15 @@ class ArqueoGralController extends Component
         }
         $this->diferencia = $this->cajaFinalUsuarios - $this->cajaFinal;
     }    
-    public function cerrarArqueoGral()
+    public function cerrarArqueoGral($proximaCajaChica)
     { 
+
+
+        ///acá debo determinar cuánto dejo para la Caja Chica y cuánto se va para la Caja Gral.
+        ///incluído cheques
+
+
+
         DB::begintransaction();
         try{
             $record = ArqueoGral::where('id', $this->arqueoGralId);

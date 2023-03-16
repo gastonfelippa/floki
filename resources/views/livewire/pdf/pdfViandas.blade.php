@@ -19,6 +19,7 @@
                 <th class="text-center">HORA</th>
                 <th class="text-center">CLIENTE</th>
                 <th class="text-center">CANT</th>
+                <th class="text-center">COMENTARIO</th>
             </tr>
         </thead>
         <tbody style="font-size:12px">
@@ -27,6 +28,7 @@
                 <td class="text-center">{{\Carbon\Carbon::parse($r->hora)->format('H:i')}}</td>
                 <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>
                 <td class="text-center">{{$r->cantidad}}</td>
+                <td class="text-center">{{$r->comentarios}}</td>
             </tr>
             @endforeach
         </tbody>

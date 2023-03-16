@@ -32,6 +32,7 @@
     <link href="{{ asset('plugins/jquery-ui/jquery-ui.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('plugins/select2/select2.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/css/elements/color_library.css') }}" rel="stylesheet" type="text/css" />
+
     <style>
         body {
             background: url('../images/fondo_claro.jpg') no-repeat center center fixed;
@@ -128,13 +129,13 @@
                             @if($modClubes == "1")
                                 @can('Categorias_index')
                                     <li>
-                                        <a href="{{ url('categoriasclub') }}"> CATEGORIAS  </a>
+                                        <a href="{{ url('categoriasclub') }}"> CATEGORÍAS  </a>
                                     </li>
                                 @endcan
                             @else
                                 @can('Categorias_index')
                                     <li>
-                                        <a href="{{ url('categorias') }}"> CATEGORIAS/PRODUCTOS  </a>
+                                        <a href="{{ url('categorias') }}"> CATEGORÍAS/PRODUCTOS  </a>
                                     </li>
                                 @endcan
                             @endif
@@ -223,6 +224,14 @@
                                     </li>
                                 @endcan
                             @endif
+                            @can('Permisos_index')
+                            <li>
+                                <a href="{{ url('bancos') }}">BANCOS</a>
+                            </li>
+                            <li>
+                                <a href="{{ url('cheques') }}">CHEQUES</a>
+                            </li>
+                            @endcan
                         </ul>                         
                     </li>
                 @endcanany
@@ -249,7 +258,7 @@
                             @endcan 
                             @can('Auditorias_index')  
                                 <li>
-                                    <a href="{{ url('auditorias') }}">AUDITORIA</a>
+                                    <a href="{{ url('auditorias') }}">AUDITORÍA</a>
                                 </li>
                             @endcan
                             <li>
@@ -292,7 +301,11 @@
                             <li>
                                 <a href="{{ url('facturasacobrar') }}" >FACTURAS PENDIENTES</a>
                             </li>
-                            @if($modConsignaciones == "1")
+                            @if($modConsignaciones == "1" && $comercioTipo == "10")
+                            <li>
+                                <a href="{{ url('remitos') }}" >CONDICIONAL</a>
+                            </li>
+                            @elseif($modConsignaciones == "1")
                             <li>
                                 <a href="{{ url('remitos') }}" >REMITOS</a>
                             </li>
@@ -303,12 +316,20 @@
                 <!-- COMPRAS -->
                 @can('Compras_index')
                     <li class="menu single-menu">
-                        <a href="{{ url('compras') }}" >
+                        <a href="#compras" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
                                 <span>COMPRAS</span>
                             </div>                            
-                       </a>                    
+                       </a> 
+                       <ul class="collapse submenu list-unstyled" id="compras"  data-parent="#topAccordion">
+                            <li>
+                                <a href="{{ url('compras') }}" >COMPRAS</a>
+                            </li>
+                            <li>
+                                <a href="{{ url('pedidos') }}" >PEDIDOS</a>
+                            </li>
+                        </ul>                    
                     </li>
                 @endcan
                 <!-- CAJA -->
@@ -364,14 +385,14 @@
                         <ul class="collapse submenu list-unstyled" id="reportes"  data-parent="#topAccordion">
                             @can('VentasDiarias_index')    
                                 <li>
-                                    <a href="{{ url('ventasdiarias') }}"> VENTAS DEL DIA </a>
+                                    <a href="{{ url('ventasdiarias') }}"> VENTAS DEL DÍA </a>
                                 </li>
                             @endcan                        
-                            <!-- @can('VentasPorFechas_index')
+                            @can('VentasPorFechas_index')
                                 <li>
                                     <a  href="{{ url('ventasporfechas') }}"> VENTAS POR FECHAS </a>
                                 </li>  
-                            @endcan   -->
+                            @endcan  
                                 <li>
                                     <a  href="{{ url('stock') }}"> STOCK </a>
                                 </li>                       
@@ -471,6 +492,7 @@
     <script src="{{ asset('plugins/flatpickr/flatpickr_es.js') }}"></script>  
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>    
     <script src="{{ asset('assets/js/sweetalert.min.js') }}"></script>
+    
 
     <script>
         $(document).ready(function() {
@@ -481,6 +503,35 @@
                 'locale': 'es'
             });
         });
+        $(document).ready(function() {
+            App.init();
+            $(".flatpickrTime").flatpickr({
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true
+            });
+        });
+
+
+
+
+
+        /////código para prolongar la session
+        var keep_alive = false;
+        $(document).bind("click keydown keyup mousemove", function() {
+            keep_alive = true;
+        });
+        setInterval(function() {
+            if ( keep_alive ) {
+                pingServer();
+                keep_alive = false;
+            }
+        }, 120000 );   //
+        function pingServer() {
+            $.ajax('/keepAlive');
+        }
+        /////
     </script>
     @livewireScripts
 </body>

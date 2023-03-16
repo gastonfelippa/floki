@@ -286,8 +286,8 @@ class SocioController extends Component
                 Socio::create([
                     'tipo'           => $this->tipo,
                     'categoria_id'   => $this->categoria,
-                    'nombre'         => strtoupper($this->nombre),            
-                    'apellido'       => strtoupper($this->apellido),     
+                    'nombre'         => mb_strtoupper($this->nombre),            
+                    'apellido'       => mb_strtoupper($this->apellido),     
                     'calle'          => ucwords($this->calle),            
                     'numero'         => $this->numero,            
                     'localidad_id'   => $this->localidad,            
@@ -309,8 +309,8 @@ class SocioController extends Component
                 $record->update([
                     'tipo'           => $this->tipo,
                     'categoria_id'   => $this->categoria,
-                    'nombre'         => strtoupper($this->nombre),            
-                    'apellido'       => strtoupper($this->apellido),     
+                    'nombre'         => mb_strtoupper($this->nombre),            
+                    'apellido'       => mb_strtoupper($this->apellido),     
                     'calle'          => ucwords($this->calle),            
                     'numero'         => $this->numero,            
                     'localidad_id'   => $this->localidad,            

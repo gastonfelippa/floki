@@ -9,27 +9,41 @@ use DB;
 
 class VentaDiariaController extends Component
 {
-    public $comercioId, $arqueoGralId, $estado = 1, $search = null;
+    public $comercioId, $arqueoGralId, $estado = 1, $search = null, $searchCli = null;
 
     public function render()
     {
          //busca el comercio que está en sesión y el id del ArqueoGral
         $this->comercioId = session('idComercio');
-        $this->arqueoGralId = session('idArqueoGral');
+        $this->arqueoGralId = session('idArqueoGral');  
 
         if(strlen($this->search) > 0){
+            $info = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
+                ->join('users as u', 'u.id', 'facturas.user_id')
+                ->where('facturas.comercio_id', $this->comercioId)
+                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+                ->where('facturas.numero', $this->search)
+                ->orderBy('facturas.id')
+                ->select('facturas.*','u.name as nomRep','u.apellido as apeRep',
+                        DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"))
+                ->get();
+              
+            foreach ($info as $i){
+                if($i->cliente_id != null) $i->nomCli = $i->apeCli . ' ' . $i->nomCli; 
+                else $i->nomCli = 'C/F'; 
+                if($i->user_id != null) $i->nomRep = $i->apeRep . ' ' . $i->nomRep;
+                else $i->nomRep = ''; 
+            }
+        }elseif (strlen($this->searchCli) > 0) {
             $info = Factura::join('clientes as c', 'c.id', 'facturas.cliente_id')
                 ->join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
                 ->join('users as u', 'u.id', 'facturas.user_id')
                 ->where('facturas.comercio_id', $this->comercioId)
                 ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('facturas.numero', 'like', $this->search)
+                ->where('c.apellido', 'like', '%' .  $this->searchCli . '%')
                 ->orWhere('facturas.comercio_id', $this->comercioId)
                 ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('c.apellido', 'like', '%' .  $this->search . '%')
-                ->orWhere('facturas.comercio_id', $this->comercioId)
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('c.nombre', 'like', '%' .  $this->search . '%')
+                ->where('c.nombre', 'like', '%' .  $this->searchCli . '%')
                 ->orderBy('facturas.id')
                 ->select('facturas.*','u.name as nomRep','u.apellido as apeRep',
                         'c.nombre as nomCli','c.apellido as apeCli')
@@ -132,13 +146,23 @@ class VentaDiariaController extends Component
             }
         }
         $total = 0;
-        foreach($info as $i){
-            $total += $i->importe;
+        if(!$this->search && !$this->searchCli){
+            foreach($info as $i){
+                $total += $i->importe;
+            }
         }
 
         return view('livewire.reportes.component-ventas-diarias',
             [   'info'     => $info,
                 'sumaTotal'=> $total
             ]);
+    }
+
+    protected $listeners = ['limpiarSearch' => 'limpiarSearch'];
+
+    public function limpiarSearch()
+    {
+        $this->search = null;
+        $this->searchCli = null;
     }
 }

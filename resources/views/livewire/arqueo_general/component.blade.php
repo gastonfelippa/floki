@@ -133,7 +133,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 if (result.value) {
-                    window.livewire.emit('cerrarArqueoGral')
+                    cajaChica()
+                    
                 }
             }else if (result.dismiss === Swal.DismissReason.cancel) {
                 Swal.fire(
@@ -144,6 +145,54 @@
             }
         })
 	}	
+    function cajaChica()
+    {
+        Swal.fire({
+                title: 'ANTES DE IRTE A DESCANSAR...',
+                text: 'Ingresa el importe que dejas para la próxima Caja Diaria',
+                icon: 'warning',
+                input: 'text',
+                inputPlaceholder: 'Ingresa el Monto...',
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Cancelar',
+                closeOnConfirm: false,
+                inputValidator: proximaCajaChica => {
+				// Si el valor es válido, debes regresar undefined. Si no, una cadena
+				if (!proximaCajaChica) {
+					return "Debes ingresar el Monto que corresponde a la próxima Caja Diaria...";
+				} else {
+					return undefined;
+				}
+			}
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value) {
+                        let proximaCajaChica = result.value;
+                        var dato_a_comprobar = proximaCajaChica;
+                        var valoresAceptados = /^[0-9]+$/;
+                            if (dato_a_comprobar.match(valoresAceptados)){
+                                window.livewire.emit('cerrarArqueoGral',proximaCajaChica)
+                                // window.livewire.emit('cerrarCaja',proximaCajaChica)
+                            } else {
+                                Swal.fire({
+                                    position: 'center',
+                                    icon: 'error',
+                                    title: 'Ingresa solo números!!',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                })
+                            }
+                    }
+                }else if (result.dismiss === Swal.DismissReason.cancel) {
+                    Swal.fire(
+                        'Cancelado',
+                        'El cierre no se concretó...',
+                        'error'
+                    )
+                }
+            })
+    }
     function edit(row)
     {
         var info = JSON.parse(row)

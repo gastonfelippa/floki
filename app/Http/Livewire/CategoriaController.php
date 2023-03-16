@@ -12,10 +12,10 @@ use DB;
 
 class CategoriaController extends Component
 {
-	public $descripcion, $margen_1, $margen_2, $rubros, $rubro ='Elegir';
+	public $descripcion, $margen_1, $margen_2, $rubros, $rubro ='Elegir', $tipo = 'Ambos';
     public $selected_id, $search, $action = 1, $recuperar_registro = 0, $calcular_precio_de_venta;  
     public $descripcion_soft_deleted, $id_soft_deleted;
-    public $comercioId, $comercioTipo, $modComandas;
+    public $comercioId, $comercioTipo, $modComandas, $mostrar_al_vender = 'si', $mostrar_al_vender_ch;
 
     public function render()
     {
@@ -49,7 +49,8 @@ class CategoriaController extends Component
         ]);
     }    
     protected $listeners = [
-        'deleteRow'=>'destroy'        
+        'StoreOrUpdate' => 'StoreOrUpdate',       
+        'deleteRow'     =>'destroy'
     ];
     public function doAction($action)
     {
@@ -58,22 +59,27 @@ class CategoriaController extends Component
     }
     private function resetInput()
     {
-        $this->descripcion = '';
-        $this->margen_1    = '';
-        $this->margen_2    = '';
-        $this->rubro       = 'Elegir';
-        $this->selected_id = null;    
-        $this->search      = '';
+        $this->descripcion       = '';
+        $this->margen_1          = '';
+        $this->margen_2          = '';
+        $this->rubro             = 'Elegir';
+        $this->selected_id       = null;    
+        $this->search            = '';
+        $this->tipo              = 'Ambos';
+        $this->mostrar_al_vender = 'si';
     }
     public function edit($id)
     {
         $this->action = 2;
         $record = Categoria::findOrFail($id);
-        $this->selected_id = $id;
-        $this->descripcion = $record->descripcion;
-        $this->margen_1    = $record->margen_1;
-        $this->margen_2    = $record->margen_2;
-        $this->rubro       = $record->rubro_id;
+        $this->selected_id       = $id;
+        $this->descripcion       = $record->descripcion;
+        $this->tipo              = $record->tipo;
+        $this->margen_1          = $record->margen_1;
+        $this->margen_2          = $record->margen_2;
+        $this->rubro             = $record->rubro_id;
+        if($record->mostrar_al_vender == 'si') $this->mostrar_al_vender = 'si';
+        else $this->mostrar_al_vender = 'no';
     }
     public function volver()
     {
@@ -103,7 +109,7 @@ class CategoriaController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-    public function StoreOrUpdate()
+    public function StoreOrUpdate($mostrar)
     { 
         $this->validate(['rubro' => 'not_in:Elegir']);
         if ($this->calcular_precio_de_venta == 0){   //calcula el precio de venta sumando 
@@ -128,7 +134,6 @@ class CategoriaController extends Component
                 ->where('comercio_id', $this->comercioId)
                 ->withTrashed()->get();
                 if($existe->count() && $existe[0]->deleted_at != null) {
-                    //session()->flash('info', 'La Categoría que desea modificar ya existe pero fué eliminada anteriormente, para recuperarla haga click en el botón "Recuperar registro"');
                     $this->action = 1;
                     $this->recuperar_registro = 1;
                     $this->descripcion_soft_deleted = $existe[0]->descripcion;
@@ -158,19 +163,23 @@ class CategoriaController extends Component
             }
             if($this->selected_id <= 0) {
                 $category =  Categoria::create([
-                    'descripcion' => strtoupper($this->descripcion),            
-                    'margen_1'    => $this->margen_1,
-                    'margen_2'    => $this->margen_2,
-                    'rubro_id'    => $this->rubro,
-                    'comercio_id' => $this->comercioId            
+                    'descripcion'       => mb_strtoupper($this->descripcion), 
+                    'tipo'              => $this->tipo,           
+                    'margen_1'          => $this->margen_1,
+                    'margen_2'          => $this->margen_2,
+                    'rubro_id'          => $this->rubro,
+                    'mostrar_al_vender' => $mostrar,
+                    'comercio_id'       => $this->comercioId            
                 ]);
             }else {   
                 $record = Categoria::find($this->selected_id);
                 $record->update([
-                    'descripcion' => strtoupper($this->descripcion),
-                    'margen_1'    => $this->margen_1,
-                    'margen_2'    => $this->margen_2,
-                    'rubro_id'    => $this->rubro
+                    'descripcion'       => mb_strtoupper($this->descripcion), 
+                    'tipo'              => $this->tipo,           
+                    'margen_1'          => $this->margen_1,
+                    'margen_2'          => $this->margen_2,
+                    'rubro_id'          => $this->rubro,
+                    'mostrar_al_vender' => $mostrar
                 ]);
                 $this->action = 1;              
             }

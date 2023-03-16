@@ -97,7 +97,7 @@
 
         if(rolesList.length < 1)
         {
-            toastr.error('','Selecciona al menos un role')
+            toastr.error('','Selecciona al menos un rol')
             return;
         }
         else if($('#userId option:selected').val() == 'Seleccionar')
@@ -124,7 +124,7 @@
         
         if($('#roleSelected option:selected').val() == 'Seleccionar')
         {
-            toastr.error('','Selecciona un role')
+            toastr.error('','Selecciona un rol')
             return;
         }
         

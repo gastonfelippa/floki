@@ -152,7 +152,7 @@ class CategoriaClubController extends Component
             if($this->selected_id > 0) {
                 $record = CategoriaClub::find($this->selected_id);
                 $record->update([
-                    'descripcion' => strtoupper($this->descripcion),            
+                    'descripcion' => mb_mb_strtoupper($this->descripcion),            
                     'edad_minima' => $this->edad_minima,
                     'edad_maxima' => $this->edad_maxima,
                     'importe'     => $this->importe
@@ -160,7 +160,7 @@ class CategoriaClubController extends Component
                 $this->action = 1; 
             }else {  
                  $category =  CategoriaClub::create([
-                    'descripcion' => strtoupper($this->descripcion),            
+                    'descripcion' => mb_strtoupper($this->descripcion),            
                     'edad_minima' => $this->edad_minima,
                     'edad_maxima' => $this->edad_maxima,
                     'importe'     => $this->importe,

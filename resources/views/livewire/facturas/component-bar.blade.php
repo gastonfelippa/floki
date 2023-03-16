@@ -19,15 +19,19 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
                                 </button>
                                 <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                                    onclick="Cobrar({{$delivery}},{{$clienteId}})">
+                                    wire:click="doAction(2)">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
                                 </button>
+                                <!-- <button type="button" class="btn btn-outline-danger" title="Cobrar"
+                                    onclick="Cobrar({{$delivery}},{{$clienteId}})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                                </button> -->
                                 <button type="button" class="btn btn-outline-danger" title="Anular"
                                     onclick="AnularFactura({{$factura_id}})">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
                                 </button>
-                                <button type="button" class="btn btn-dark" title="Salir">
-                                <a href="{{url('reservas-estado-mesas')}}"></a>Salir
+                                <button type="button" class="btn btn-dark" title="Salir"
+                                    onclick="Salir()">Salir
                                 </button>
                             </div>  
                         </div>
@@ -51,10 +55,14 @@
                                         Dejar Pendiente
                                     </button>
                                 @endif 
-                                <button type="button" onclick="Cobrar({{$delivery}},{{$clienteId}})" 
+                                <button type="button" wire:click="doAction(2)" 
                                     class="btn btn-primary" enabled>
                                     Cobrar   
                                 </button>
+                                <!-- <button type="button" onclick="Cobrar({{$delivery}},{{$clienteId}})" 
+                                    class="btn btn-primary" enabled>
+                                    Cobrar   
+                                </button> -->
                                 <button type="button" class="btn btn-outline-success" enabled>
                                 <!-- <a id="link">
                                 Imprimir</a> -->
@@ -63,7 +71,7 @@
                                 </button>
                                 <button type="button" onclick="AnularFactura({{$factura_id}})" 
                                     class="btn btn-info" enabled>
-                                    Anular Factura  
+                                    Anular Factura 
                                 </button>
                             @endif
                             </div>
@@ -114,15 +122,19 @@
                             </div>
                         </div>                
                     @endif  
-                    <div class="btn-group" role="group"> 
+                    <div class="btn-group col-4 offset-4" role="group"> 
                         <button type="button" class="btn btn-outline-danger" title="Imprimir" enabled>
                             <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
                         </button>
                         <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                            onclick="Cobrar({{$delivery}},{{$clienteId}})" enabled>
+                            wire:click="doAction(2)" enabled>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
                         </button>
+                        <!-- <button type="button" class="btn btn-outline-danger" title="Cobrar"
+                            onclick="Cobrar({{$delivery}},{{$clienteId}})" enabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                        </button> -->
                         <button type="button" class="btn btn-outline-danger" title="Anular"
                             onclick="AnularFactura({{$factura_id}})" enabled>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
@@ -140,19 +152,25 @@
                             @else
                                 <a class="nav-link {{$tab == 'factura' ? 'active' : ''}}" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Factura</a>
                             @endif
-                            </li>
+                        </li>
                         <li class="nav-item">
                             @if($infoComanda->count())
                                 <a class="nav-link {{$tab == 'comanda' ? 'active' : ''}}" style="color:red;" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false"><b>Comanda</b></a>
                             @else
                                 <a class="nav-link {{$tab == 'comanda' ? 'active' : ''}}" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Comanda</a>
                             @endif
-                            </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{$tab == 'enviarComanda' ? 'active' : ''}}" wire:click="enviarComanda()" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="false">Enviar Comanda</a>
                         </li>
+                        @if($infoComanda->count())
                         <li class="nav-item">
-                            <a class="nav-link {{$tab == 'verComanda' ? 'active' : ''}}" onclick="verCom()" id="home-tab2" data-toggle="tab" href="#home2" role="tab" aria-controls="home2" aria-selected="false">Ver Comanda</a>
+                                <a class="nav-link {{$tab == 'enviarComanda' ? 'active' : ''}}" wire:click="enviarComanda()" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="false">Enviar Comanda</a>
+                            </li>
+                            @endif
+                        <li class="nav-item">
+                            @if($infoComandaEnEspera->count())
+                                <a class="nav-link {{$tab == 'verComanda' ? 'active' : ''}}" style="color:red;" onclick="verCom()" id="home-tab2" data-toggle="tab" href="#home2" role="tab" aria-controls="home2" aria-selected="false"><b>Ver Comanda Enviada</b></a>
+                            @else
+                                <!-- <a class="nav-link {{$tab == 'verComanda' ? 'active' : ''}}" onclick="verCom()" id="home-tab2" data-toggle="tab" href="#home2" role="tab" aria-controls="home2" aria-selected="false">Ver Comanda Enviada</a> -->
+                            @endif
                         </li>
                     </ul>
                     
@@ -167,17 +185,27 @@
                                             <th class="text-center">DESCRIPCIÓN</th>
                                             <th class="text-right">P/UNITARIO</th>
                                             <th class="text-right">IMPORTE</th>
-                                            <th class="text-center">ACCIONES</th>
+                                            <!-- <th class="text-center">ACCIONES</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($info as $r)
                                         <tr class="">
-                                            <td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
+                                         <td class="text-center">   
+                                        <div class="btn-group" role="group">
+                                            @if(!$r->sectorcomanda_id)
+                                                <button type="button" wire:click="StoreOrUpdateButton({{$r->producto_id}},0, {{$r->id}}, {{$r->precio}})" class="btn btn-success">-</button>
+                                            @else
+                                                <button type="button" onclick="descontar_producto()" class="btn btn-success">-</button>
+                                            @endif
+                                            <button type="button" class="btn btn-primary">{{number_format($r->cantidad,0)}}</button>
+                                            <button type="button" style="font: size 35px;" wire:click="StoreOrUpdateButton({{$r->producto_id}},1, {{$r->id}}, {{$r->precio}})" class="btn btn-success">+</button>
+                                        </div>
+                                            </td>
                                             <td class="text-left">{{$r->producto}}</td>
                                             <td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
                                             <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
-                                            <td class="text-center">
+                                            <!-- <td class="text-center">
                                                 @if(!$r->sectorcomanda_id)
                                                     <ul class="table-controls">
                                                         <li>
@@ -186,15 +214,14 @@
                                                             data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                                         </li>
                                                     </ul>
-                                                    <!-- @include('common.actions-destroy', ['destroy' => 'Facturas_destroy_item']) -->
                                                 @endif
-                                            </td>
+                                            </td> -->
                                         </tr>
                                         @endforeach
                                     </tbody>
                                 </table>                   
                             </div>
-                            <div class="row mt-3 mr-1 justify-content-end">
+                            <div class="row mt-1 mr-1 justify-content-end">
                                 <h5 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h5> 
                             </div>
                 @if($delivery != 1)
@@ -207,13 +234,17 @@
                                         <tr>
                                             <th class="text-center">CANTIDAD</th>
                                             <th class="text-center">DESCRIPCIÓN</th>
+                                            <th class="text-center">ACCIONES</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($infoComanda as $r)
-                                        <tr class="">
+                                        <tr>
                                             <td class="text-center">{{number_format($r->cantidad,0)}}</td>
                                             <td class="text-left">{{$r->descripcion}}</td>
+                                            <td class="text-center">
+                                            @include('common.actions-destroy-item', ['destroy' => 'Facturas_destroy_item'])
+                                            </td>                                        
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -255,7 +286,6 @@
                         </div>
                     </div>
                 @endif
-                
             </div>			
 		</div>
 	</div>
@@ -301,11 +331,11 @@
                                 @if($articulos != null)
                                     @if($mostrar_sp == 0)
                                         @foreach($articulos as $a)                    
-                                            <button style="width: 30%;height: 75px;font-size: 13px;" wire:click="StoreOrUpdateButton({{$a->id}})" type="button" class="btn btn-outline-primary mb-1">{{$a->descripcion}}</button>
+                                            <button style="width: 30%;height: 75px;font-size: 13px;" wire:click="StoreOrUpdateButton({{$a->id}},1,'','')" type="button" class="btn btn-outline-primary mb-1">{{$a->descripcion}}</button>
                                         @endforeach 
                                     @else
                                         @foreach($tiene_sp as $sp)                    
-                                            <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}})" type="button" class="btn btn-outline-success mb-1">{{$sp->descripcion}}</button>
+                                            <button style="width: 30%;height: 75px;" wire:click="StoreOrUpdateButton({{$sp->id}},1,'','')" type="button" class="btn btn-outline-success mb-1">{{$sp->descripcion}}</button>
                                         @endforeach 
                                     @endif
                                 @endif                   
@@ -320,16 +350,23 @@
                 <input type="hidden" id="tiene_comentario" value="{{$comentario_comanda}}">  
                 <input type="hidden" id="idFact" value="{{$factura_id}}">  
                 <input type="hidden" id="delivery" value="{{$delivery}}">  
+                <input type="hidden" id="total" value="{{$total}}">
+                
+                <input type="hidden" id="modDelivery" wire:model="modDelivery">  
+                <input type="hidden" id="lista" wire:model="lista">  
+                <input type="hidden" id="importeTotal" value="{{$total}}">  
+                <input type="hidden" id="comercioTipo" wire:model="comercioTipo">  
             </div> 
         </div> 
     </div>
  
     @include('livewire.facturas.modal-bar')  
-    @include('livewire.facturas.modalCtacte')  
     @include('livewire.facturas.modalSalsas')    
     @else    
     @include('livewire.facturas.formaDePago')  
-    @include('livewire.facturas.modalNroCompPago')  
+    @include('livewire.facturas.modalNroCompPago') 
+    @include('livewire.facturas.modalCheques')  
+    @include('livewire.facturas.modalBancos')  
 	@endif        
 </div>
 
@@ -341,7 +378,7 @@
     }
     .scroll{
         position: relative;
-        max-height: 200px;
+        max-height: 230px;
         margin-top: .5rem;
         overflow: auto;
     }
@@ -355,6 +392,13 @@
         height:330px;
         overflow: auto;
     }
+    
+    thead tr th {     /* fija la cabecera de la tabla */
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
     /* .scrollc {
         width: 100%;
         overflow:hidden;
@@ -367,6 +411,9 @@
     } */
     @media screen and (max-width: 640px) {
         #botones {
+            display:none;
+        }
+        #importe {
             display:none;
         }
         .btnRubro {
@@ -429,6 +476,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
 <script type="text/javascript">
+    function Salir()
+    {
+        window.location.href="{{ url('reservas-estado-mesas') }}";
+    }
     function limitarCaracteres(elemento, max_chars)
     {
 	    limite_text = $(elemento).text();
@@ -455,35 +506,90 @@
             closeOnConfirm: false
             },
             function() {
-                window.livewire.emit('deleteRow', id, idProducto, idSubproducto, cantidad, comanda)    
-                toastr.success('info', 'Registro eliminado con éxito')
+                window.livewire.emit('deleteRow', id, idProducto, idSubproducto, cantidad, comanda)  
                 swal.close()   
             })
     }
-    function Cobrar(delivery, idCli)
-    {
+    function cobrar_factura()
+    { 
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        $('[id="importe"]').val(Number.parseFloat($('[id="importe"]').val()).toFixed(2));
+        var saldo           = $('[id="saldo"]').val();
+        var formaDePago     = $('[id="formaDePago"]').val();
+        var nroCompPago     = $('[id="num"]').val();
+        var importe         = $('[id="importe"]').val();
+        var terminarFactura = 1;
+
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        }
+   
+        if(importe != saldo) terminarFactura = 0; 
+
         Swal.fire({
-            title: 'Elige una opción...',
+            icon: 'question',
+            title: 'Confirmar',
+            text: '¿Deseas registrar el pago de esta factura?',
             showDenyButton: true,
-            showCancelButton: true,
-            cancelButtonText: `Cancelar`,
-            confirmButtonText: `Contado`,
-            denyButtonText: `Cuenta Corriente`,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.livewire.emit('elegirFormaDePago');
-            } else if (result.isDenied) {
-                if(delivery == 0) {
-                    modalCtacte()
-                }else {
-                    var data = JSON.stringify({
-                        'cliente_id' : idCli
-                    });
-                    window.livewire.emit('factura_ctacte', data)
+            confirmButtonColor: '#3085d6',
+            denyButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            denyButtonText: 'Cancelar',
+            closeOnConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {                    
+                    window.livewire.emit('cobrar_factura',formaDePago,nroCompPago,importe,terminarFactura);
+                } else if (result.isDenied) {
+                    Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                    resetear();
                 }
-            }
-        })
+            });            
     }
+ 	function ConfirmItem(id, cantidad, controlar_stock)
+    {
+        let me = this
+        swal({
+            title: 'CONFIRMAR',
+            text: '¿DESEAS ELIMINAR EL REGISTRO?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false
+            },
+            function() {
+                window.livewire.emit('eliminarItemComanda', id, cantidad, controlar_stock)    
+                //toastr.success('info', 'Registro eliminado con éxito')
+                swal.close()   
+            })
+    }
+    // function Cobrar(delivery, idCli)
+    // {
+    //     Swal.fire({
+    //         title: 'Elige una opción...',
+    //         showDenyButton: true,
+    //         showCancelButton: true,
+    //         cancelButtonText: `Cancelar`,
+    //         confirmButtonText: `Contado`,
+    //         denyButtonText: `Cuenta Corriente`,
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             window.livewire.emit('elegirFormaDePago');
+    //         } else if (result.isDenied) {
+    //             if(delivery == 0) {
+    //                 modalCtacte()
+    //             }else {
+    //                 var data = JSON.stringify({
+    //                     'cliente_id' : idCli
+    //                 });
+    //                 window.livewire.emit('factura_ctacte', data)
+    //             }
+    //         }
+    //     })
+    // }
     function verCom()
     {
         var x = document.getElementById("home-tab2");
@@ -505,21 +611,21 @@
             }
         })
     }
-    function factura_contado()
-    { 
-        if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
-            Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: 'Faltan datos, se cobrará como efectivo!!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-            $('[id="formaDePago"]').val(1)
-        }else{
-            window.livewire.emit('factura_contado')
-        }    
-    }
+    // function factura_contado()
+    // { 
+    //     if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
+    //         Swal.fire({
+    //             position: 'center',
+    //             icon: 'warning',
+    //             title: 'Faltan datos, se cobrará como efectivo!!',
+    //             showConfirmButton: false,
+    //             timer: 1500
+    //         })
+    //         $('[id="formaDePago"]').val(1)
+    //     }else{
+    //         window.livewire.emit('factura_contado')
+    //     }    
+    // }
     function AnularFactura(id)
     {
         Swal.fire({
@@ -582,48 +688,229 @@
         $('#facturaId').hide()
         $('#cliente').val('Elegir')
         $('#empleado').val('Elegir')
-        $('#modal').modal('show')
+        $('#modal').modal({backdrop: 'static', keyboard: false})  //hace que desaparezca al hacer click fuera del modal
 	}
-	function save()
-    {     
-        if($('#cliente option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Cliente')
-            return;
+	// function save()
+    // {     
+    //     if($('#cliente option:selected').val() == 'Elegir') {
+    //         toastr.error('Elige una opción válida para el Cliente')
+    //         return;
+    //     }
+    //     if($('#empleado option:selected').val() == 'Elegir') {
+    //         toastr.error('Elige una opción válida para el Repartidor')
+    //         return;
+    //     }
+    //     var data = JSON.stringify({
+    //         'factura_id'   : $('#facturaId').val(),
+    //         'cliente_id'   : $('#cliente option:selected').val(),
+    //         'empleado_id'  : $('#empleado option:selected').val()
+    //     });
+    //     $('#modal').modal('hide')
+    //     window.livewire.emit('modCliRep', data)
+    // }
+    function save()
+    {
+        if($('#lista').val() != 3){     
+            if($('#cliente option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Cliente')
+                return;
+            }
+        }else{
+            if($('#consignatario option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Cliente')
+                return;
+            }
         }
-        if($('#empleado option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Repartidor')
-            return;
+        if($('#modDelivery').val() == "1"){	
+            if($('#empleado option:selected').val() == 'Elegir') {
+                toastr.error('Elige una opción válida para el Repartidor')
+                return;
+            }
         }
-        var data = JSON.stringify({
-            'factura_id'   : $('#facturaId').val(),
-            'cliente_id'   : $('#cliente option:selected').val(),
-            'empleado_id'  : $('#empleado option:selected').val()
-        });
+        if($('#modDelivery').val() == "1"){	
+            var data = JSON.stringify({
+                'factura_id'   : $('#facturaId').val(),
+                'cliente_id'   : $('#cliente option:selected').val(),
+                'empleado_id'  : $('#empleado option:selected').val()
+            });
+        }else{
+            var cliente = null;
+            if($('#lista').val() != 3) cliente = $('#cliente option:selected').val();
+            else cliente = $('#consignatario option:selected').val();
+            var data = JSON.stringify({
+                'factura_id'   : $('#facturaId').val(),
+                'cliente_id'   : cliente,
+                'empleado_id'  : "Salon"
+            });
+        }
         $('#modal').modal('hide')
         window.livewire.emit('modCliRep', data)
     } 
+    function openModalBancos()
+    {
+        $('#modalCheques').modal('hide')
+        $('#banco').val('')
+        $('#sucursal').val('')
+        $('#modalBancos').modal('show')
+	}
+    function guardarBanco()
+    {      
+        if($('#descripcion').val() == '') {
+            toastr.error('Ingresa un nombre válido para el Banco')
+            return;
+        }
+        if($('#sucursal').val() == '') {
+            toastr.error('Ingresa un nombre válido para la Sucursal')
+            return;
+        }
+        var data = JSON.stringify({
+            'banco'    : $('#descripcion').val(),
+            'sucursal' : $('#sucursal').val()
+        });
+       
+        $('#modalBancos').modal('hide');
+        window.livewire.emit('agregarBanco', data);
+
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldo').val()).toFixed(2));
+    }
+    function ocultar_sp()
+    {
+        window.livewire.emit('ocultar_sp')
+    } 
     function mostrarInput()
-    {		
+    {
 		$('[id="nroCompPago"]').val('');
 		$('[id="num"]').val('');
+     
 		if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-				|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+				|| $('[id="formaDePago"]').val() == '4') {        
+            $('[id="importeComp"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));        
 			$('#modalNroComprobanteDePago').modal('show');
+        }else if($('[id="formaDePago"]').val() == '5'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                $('#modalCheques').modal('show');
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
+        }else if($('[id="formaDePago"]').val() == '6'){
+            if($('[id=clienteId]').val() && $('[id=clienteId]').val() != $('[id=esConsFinal]').val()){
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Confirmar',
+                    text: '¿Deseas enviar esta factura a Cuenta Corriente?',
+                    showDenyButton: true,
+                    confirmButtonColor: '#3085d6',
+                    denyButtonColor: '#d33',
+                    confirmButtonText: 'Aceptar',
+                    denyButtonText: 'Cancelar',
+                    closeOnConfirm: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {                    
+                            window.livewire.emit('factura_ctacte');
+                        } else if (result.isDenied) {
+                            Swal.fire('Cancelado','Tu registro está a salvo :)','info')
+                            resetear();
+                        }
+                    });
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: 'Primero debes cargar un Cliente!!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $('[id="formaDePago"]').val(1);
+            }
 		}else{
 			guardarDatosPago();
 		}
 	}
 	function guardarDatosPago()
     {
-		$('[id="num"]').val($('[id="nroCompPago"]').val())
-        if($('[id="num"]').val() != ''){
-            var formaDePago = $('[id="formaDePago"]').val();
-		    var nroCompPago = $('[id="nroCompPago"]').val();
-        }else{
-            $('[id="formaDePago"]').val(1)           
-        }		
-		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+        $('[id="num"]').val($('[id="nroCompPago"]').val());
+		$('[id="importe"]').val(Number.parseFloat($('[id="importeComp"]').val()).toFixed(2));        
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        var formaDePago = $('[id="formaDePago"]').val();
+        var nroCompPago = $('[id="nroCompPago"]').val();
+        var importe     = $('[id="importe"]').val();
+        var saldo       = $('[id="saldo"]').val();
+        
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        } 
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago,importe);
 	}
+	function guardarDatosCheque()
+    {
+        $('[id="saldo"]').val(Number.parseFloat($('[id="saldo"]').val()).toFixed(2));
+        $('[id="importeCheque"]').val(Number.parseFloat($('[id="importeCheque"]').val()).toFixed(2));
+        var saldo           = $('[id="saldo"]').val();
+        var importe         = $('[id="importeCheque"]').val();
+        var terminarFactura = 1;
+
+        if(importe > saldo){
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
+        } 
+        
+        if(importe != saldo) terminarFactura = 0;
+
+        var data = JSON.stringify({
+                'banco'         : $('#banco').val(),
+                'numero'        : $('#numCheque').val(),
+                'fechaDeEmision': $('#fechaDeEmision').val(),
+                'fechaDePago'   : $('#fechaDePago').val(),
+                'importe'       : $('#importeCheque').val(),
+                'cuitTitular'   : $('#cuitTitular').val(),
+                'terminarFactura' : terminarFactura,
+            });		
+		window.livewire.emit('enviarDatosCheque', data);
+        resetear();
+	}
+    function resetear()
+    {
+        $('#formaDePago').val('1');
+        $('#num').val('');
+        $('#importe').val(Number.parseFloat($('#saldo').val()).toFixed(2));
+        return;
+    }
+    function cerrar()
+    {
+        window.location.href="{{ url('pedidos') }}";
+    }
+    // function mostrarInput()
+    // {		
+	// 	$('[id="nroCompPago"]').val('');
+	// 	$('[id="num"]').val('');
+	// 	if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
+	// 			|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
+	// 		$('#modalNroComprobanteDePago').modal('show');
+	// 	}else{
+	// 		guardarDatosPago();
+	// 	}
+	// }
+	// function guardarDatosPago()
+    // {
+	// 	$('[id="num"]').val($('[id="nroCompPago"]').val())
+    //     if($('[id="num"]').val() != ''){
+    //         var formaDePago = $('[id="formaDePago"]').val();
+	// 	    var nroCompPago = $('[id="nroCompPago"]').val();
+    //     }else{
+    //         $('[id="formaDePago"]').val(1)           
+    //     }		
+	// 	window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
+	// }
     function openModalComandas()
     {
         if($('#tiene_salsa').val() == 1) $('#divSalsas').show();
@@ -688,9 +975,11 @@
     }
     function StoreOrUpdate()
     {
+        var cantidad = $('#cantidad').val();
         var texto_comanda = $('#texto_comanda').val();
+        console.log(texto_comanda,cantidad);
         $('#modalSalsas').modal('hide')
-        window.livewire.emit('StoreOrUpdate', texto_comanda);
+        window.livewire.emit('StoreOrUpdate', cantidad, texto_comanda);
     } 
     function verBotones()
     {
@@ -705,6 +994,47 @@
         }
         
     }
+    function grabarCantidad()
+    {
+        var stock = Math.trunc($('[id="stock"]').val());  //'Math.trunc' devuelve la parte entera de un numero removiendo cualquier dígito decimal 
+        var cantidad = $('[id="cantidad"]').val();
+        
+        if(stock < cantidad){
+            var texto = 'Solo restan ';
+            var unidades = ' unidades';
+            if(stock == 0 || stock == null){
+                texto = 'Restan ';
+                stock = '0';
+            }else if(stock == 1){
+                texto = 'Solo resta ';
+                unidades = ' unidad';  
+            } 
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Stock no disponible',
+                text: texto + stock + unidades,
+                showConfirmButton: true
+            })
+            $('[id="cantidad"]').val(stock);
+        }       
+    }
+    function descontar_producto()
+    {
+        Swal.fire({
+            position: 'center',
+            icon: 'info',
+            title: 'Este Producto debe descontarse desde la pestaña "Comanda"...',
+            showConfirmButton: false,
+            timer: 3000
+        })
+    }
+    $(window).on("beforeunload", function() {    //ejecuta código antes de salir
+        if($('[id="delivery"]').val() == 1){
+
+        window.livewire.emit('salir'); 
+        }
+    });
     /////código para prolongar la session
     var keep_alive = false;
     $(document).bind("click keydown keyup mousemove", function() {
@@ -758,7 +1088,7 @@
                 swal.close()   
             })
         }
-        if($('#delivery').val() == 1){
+        if($('#delivery').val() == 1 && $('#inicio_factura').val()){
             openModal(2);
         }
         Livewire.on('facturaCobrada',()=>{
@@ -822,7 +1152,34 @@
                 }
             })
 		})
-        Livewire.on('stock_no_disponible',(stock)=>{
+        Livewire.on('registroAgregado',(accion)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Registro ' + accion + ' exitosamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})
+        Livewire.on('stock_no_disponible',(stock, producto)=>{
+            var texto = 'Solo restan ';
+            var unidades = ' unidades';
+            if(stock == 0 || stock == null){
+                texto = 'Restan ';
+                stock = '0';
+            }else if(stock == 1){
+                texto = 'Solo resta ';
+                unidades = ' unidad';  
+            }
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Stock no disponible',
+                text: texto + stock + unidades + ' de ' + producto,
+                showConfirmButton: true
+            })
+        })
+        Livewire.on('stock_receta_no_disponible',(stock, producto, id)=>{
             var texto = 'Solo restan ';
             var unidades = ' unidades';
             if(stock == 0 || stock == null){
@@ -834,11 +1191,60 @@
             } 
             Swal.fire({
                 position: 'center',
-                icon: 'success',
-                title: 'Stock no disponible',
-                text: texto + stock + unidades,
+                icon: 'info',
+                title: 'Stock de Materia Prima no disponible',
+                text: texto + stock + unidades + ' de ' + producto,
+                showDenyButton: true,
+                confirmButtonText: `Permitir cargar sin stock`,
+                denyButtonText: `Anular carga`,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.livewire.emit('permitirCargaSinStock', 'si', id);
+                } else if (result.isDenied) {
+                    window.livewire.emit('permitirCargaSinStock', 'no', id);
+                }
+            })
+        })
+        Livewire.on('receta_sin_detalle',(producto)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Debe agregar un detalle para la receta de '+ producto,
+                text: 'O simplemente indicar que no tiene receta...',
                 showConfirmButton: true
             })
+		})
+        Livewire.on('bancoCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Banco fue creado!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        Livewire.on('chequeCreado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El Cheque se registró correctamente!!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        Livewire.on('cobroRegistrado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'El cobro a cuenta fue registrado!!',
+                showConfirmButton: false,
+                timer: 2000
+            });            
+            resetear();
+        })
+        Livewire.on('importeMayorQueSaldo',()=>{
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            return;
         })
     } 
 </script>

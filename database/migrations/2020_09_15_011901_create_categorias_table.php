@@ -16,6 +16,7 @@ class CreateCategoriasTable extends Migration
         Schema::create('categorias', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
+            $table->enum('tipo', ['Compra','Venta','Ambos'])->default('Venta');
             $table->string('margen_1')->nullable();
             $table->string('margen_2')->nullable();
 

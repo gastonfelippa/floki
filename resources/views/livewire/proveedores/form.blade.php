@@ -119,6 +119,6 @@
 
 <script type="text/javascript">
     window.onload = function() {
-        document.getElementById("nombre").focus();
+        document.getElementById("nombre_empresa").focus();
     }
 </script>

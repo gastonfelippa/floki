@@ -88,7 +88,7 @@
                                                     <a href="javascript:void(0);" 
                                                     wire:click="ver_receta({{$r->id}})" 
                                                     data-toggle="tooltip" data-placement="top" title="Ver Fórmula o Receta">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-card-list" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/><path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>
                                                 </li>
                                                 @endif
                                             <li>
@@ -104,6 +104,26 @@
                                                 data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                             </li>
                                             @endcan
+                                            <li>
+                                                <a href="javascript:void(0);"   
+                                                onclick="openModalProveedor({{$r->id}})"
+                                                data-toggle="tooltip" data-placement="top" title="Ver Proveedor">
+                                                @if($r->proveedor == 1)
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-success" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
+                                                @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-danger" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
+                                                @endif
+                                            </li>
+                                            <li>
+                                                <a href="javascript:void(0);"   
+                                                onclick="openModalHistorial({{$r->id}})"
+                                                data-toggle="tooltip" data-placement="top" title="Historial de compras">
+                                                @if($r->historial == 1)
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-success" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                                
+                                                @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-danger" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                               
+                                                @endif
+                                            </li>
                                         </ul>
                                     </td>
                                 </tr>
@@ -115,14 +135,18 @@
             </div>
         </div>
     </div>
+    @include('livewire.productos.modal_productoProveedor')			
+    @include('livewire.productos.modal_productoHistorial')			
     @elseif($action == 2)
         <input type="hidden" id="cliComanda" wire:model="modComandas">
         <input type="hidden" id="habilitar_model" wire:model="habilitar_model"> 
+        <input type="hidden" id="modificar" wire:model="selected_id"> 
         @can('Productos_create')
             @include('livewire.productos.form')			
             @include('livewire.productos.modal')
             @include('livewire.productos.modal_subproducto')			
         @endcan
+    @elseif($action == 3)
     @else
         @include('livewire.productos.modal_subproducto')			
         @include('livewire.productos.form_sp')			
@@ -139,6 +163,12 @@
 .scroll_sp{
     position: relative;
     height: 230px;
+    margin-top: .5rem;
+    overflow: auto;
+}
+.scroll-small{
+    position: relative;
+    height: 150px;
     margin-top: .5rem;
     overflow: auto;
 }
@@ -199,9 +229,67 @@
             }
 		})
     }
-    function calcularPrecioVenta() {
-        window.livewire.emit('calcular_precio_venta');
+    function ConfirmProductoProveedor(id)
+    {
+       let me = this
+       swal({
+            title: 'CONFIRMAR',
+            text: '¿DESEAS ELIMINAR EL REGISTRO?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false
+        },
+		function() {
+			window.livewire.emit('deleteProductoProveedor', id)    
+			swal.close()   
+		})
     }
+    function precioBajo()
+    {
+        const costo_actual = new Number($('[id="costo_actual"]').val());
+        const precio = new Number($('[id="precio_costo"]').val());
+        if(precio > 0){
+            if(costo_actual > precio){
+                Swal.fire({
+                    position: 'center',
+                    icon: 'warning',
+                    title: 'Atención!!  Verificar la Opción de Guardado...',
+                    text: 'El Precio del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
+                    showConfirmButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) { 
+                        opcionCambiarPrecios();
+                    }
+                });     //////PREGUNTAR POR CAMBIAR O NO LOS PRECIOS DE LAS RECETAS
+            } window.livewire.emit('calcular_precio_venta');
+        }    
+    }
+    function opcionCambiarPrecios() 
+    {          
+        Swal.fire({
+            icon: 'question',
+            title: 'Elige una opción de Guardado...',
+            text: 'Tener en cuenta que los cambios también afectarán a todos los Productos que contengan a éste como parte de sus recetas',
+            showDenyButton: true,
+            confirmButtonColor: '#3085d6',
+            denyButtonColor: '#d33',
+            confirmButtonText: 'Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos',
+            denyButtonText: 'Deseo modificar tanto los Precios de Costo como así también los de Venta Sugeridos y los de Lista',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) { 
+                window.livewire.emit('opcionCambiarPrecios', 'solo_costos');
+            } else if (result.isDenied) {
+                window.livewire.emit('opcionCambiarPrecios', 'cambiar_todo');
+            }
+        });       
+    }
+
     function validarProducto()
     {
         if($('#nombre').val() != '') window.livewire.emit('validarProducto');
@@ -209,16 +297,24 @@
     function guardar()
     {
         var salsa = false, guarn = false, receta='no', stock='no';
-        console.log(salsa, guarn, receta, stock);
         if(document.getElementById('salsa_si')){
             if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
         }
-        if(document.getElementById('salsa_si')){
+        if(document.getElementById('guarn_si')){
             if(document.getElementById('cliComanda').value == '1' && document.getElementById('guarn_si').checked) guarn = true;
         }
         if(document.getElementById('receta_si').checked) receta = 'si';
         if(document.getElementById('stock_si').checked) stock = 'si';
         window.livewire.emit('guardar', salsa, guarn, receta, stock);
+    }
+    function openModalProveedor(id)
+    { 
+        $('#proveedor').val('Elegir');
+        window.livewire.emit('productoProveedor', id);
+    }
+    function openModalHistorial(id)
+    { 
+        window.livewire.emit('productoHistorial', id);
     }
     function openModal()
     {     
@@ -227,6 +323,13 @@
             $('#modal').modal('show');  
         }  
 	}
+	function saveProductoProveedor()
+    {
+        var proveedor = $('#proveedor').val();
+        window.livewire.emit('grabarProductoProveedor', proveedor);
+        $('#proveedor').val('Elegir');
+        $('#modal_productoProveedor').modal('hide'); 
+    } 
 	function save()
     {
         var texto = $('#texto').val();
@@ -263,6 +366,10 @@
         if(texto != '') window.livewire.emit('grabar_subproducto',id_subproducto,texto, stock_actual_sp, stock_ideal_sp, stock_minimo_sp);
         $('#modal_subproducto').modal('hide'); 
     } 
+    function agregarProveedor()
+    {
+        window.location.href="{{ url('proveedores') }}";
+    }
     /////código para prolongar la session
     var keep_alive = false;
     $(document).bind("click keydown keyup mousemove", function() {
@@ -273,7 +380,7 @@
             pingServer();
             keep_alive = false;
         }
-    }, 1200000 );
+    }, 120000 );
     function pingServer() {
         $.ajax('/keepAlive');
     }
@@ -299,6 +406,7 @@
                 showConfirmButton: false,
                 timer: 1500
             })
+            $('#modal_productoProveedor').modal('hide'); 
 		}) 
         Livewire.on('registroRepetido',()=>{
             var producto = document.getElementById("nombre");
@@ -352,6 +460,54 @@
                 timer: 1500
             })
             $('#modal').modal('hide');
+		})
+        Livewire.on('agregarProveedor',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: 'Debes seleccionar algún proveedor...',
+                showConfirmButton: true
+            })
+		})
+        Livewire.on('cambiarPrecioDetalle',(cantidad, cambiarPrecios)=>{
+            if(cambiarPrecios == 'solo_costos'){
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: '¡¡¡ATENCIÓN!!!',
+                    text: 'Existen ' + cantidad + ' facturas abiertas y/o pendientes en donde tenés cargado este producto con el precio anterior... además deberías actualizar los Precios de Listas de este Producto, ya no tenías esa Opción seleccionada anteriormente',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Actualizar los Precios de Lista del Producto y además los precios de todas las facturas...',
+                    showCancelButton: true,
+                    cancelButtonText: 'Continuar sin modificaciones...'
+                }).then((result) => {
+                    if (result.isConfirmed) { 
+                        window.livewire.emit('actualizarPreciosCargados', 'actualizar_todo');
+                    }
+                }); 
+            }else{
+                Swal.fire({
+                    position: 'center',
+                    icon: 'info',
+                    title: '¡¡¡ATENCIÓN!!!',
+                    text: 'Existen ' + cantidad + ' facturas abiertas y/o pendientes en donde tenés cargado este producto con el precio anterior...',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Actualizar los precios de todas las facturas...',
+                    showCancelButton: true,
+                    cancelButtonText: 'Continuar sin modificaciones...'
+                }).then((result) => {
+                    if (result.isConfirmed) { 
+                        window.livewire.emit('actualizarPreciosCargados', '');
+                    }
+                }); 
+            }           
+		})
+        Livewire.on('abrirModal',()=>{
+            $('#modal_productoProveedor').modal('show'); 
+		})
+        Livewire.on('abrirModalHistorial',()=>{
+            $('#modal_productoHistorial').modal('show'); 
 		})
     }
 </script>

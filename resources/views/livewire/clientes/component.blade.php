@@ -11,7 +11,7 @@
     			</div>
                 @if($recuperar_registro == 1)
 				@include('common.recuperarRegistro')
-				@else     		
+				@else 	
                     @include('common.inputBuscarBtnNuevo', ['create' => 'Clientes_create'])
                     <div class="table-resposive scroll">
                         <table class="table table-hover table-checkable table-sm">

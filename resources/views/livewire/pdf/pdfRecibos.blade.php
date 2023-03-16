@@ -34,8 +34,11 @@
 				</tbody>
 			</table> 		                  
 		</div><br>
-		<div class="text-right mr-2">
+		<div>
+			<span style="font-size:14px">Son: {{$numeroEnLetra}}</span><br>
+		</div>
+			<div class="text-right mr-2">
 			<b>Total Recibo: $  {{number_format($info[0]->total,2,',','.')}}</b>
 		</div>
-	</div>
+	</div>	
 @endsection

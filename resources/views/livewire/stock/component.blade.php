@@ -33,13 +33,17 @@
                         </div>
                         @endif
                     </div>
-                    @if($modConsignaciones == '1')
+                    @if($comercioTipo == 10 || $comercioTipo == 11)
                     <div class="col-sm-12 col-md-6">
                         @if($action == 1)
-                        <button id="btnNuevo" type="button" wire:click="doAction(2)" class="btn btn-danger btn-block">
-                            <span style="text-decoration: underline;">V</span>er Stock Por Consignatario</button> 
+                            <button id="btnNuevo" type="button" wire:click="doAction(2)" class="btn btn-danger btn-block">
+                            @if($comercioTipo == 10)
+                                <span style="text-decoration: underline;">V</span>er Condicional Por Cliente</button>
+                            @else 
+                                <span style="text-decoration: underline;">V</span>er Stock Por Consignatario</button> 
+                            @endif
                         @else
-                        <button id="btnNuevo" type="button" wire:click="doAction(1)" class="btn btn-danger btn-block">
+                            <button id="btnNuevo" type="button" wire:click="doAction(1)" class="btn btn-danger btn-block">
                             <span style="text-decoration: underline;">V</span>er Stock Local</button>
                         @endif
                     </div>
@@ -51,9 +55,13 @@
                             <thead>
                                 <tr>                                             
                                     <th class="">DESCRIPCIÓN</th>
-                                    @if($modConsignaciones == '1')
+                                    @if($comercioTipo == 10 || $comercioTipo == 11)
                                         <th class="text-center">LOCAL</th>
-                                        <th class="text-center">EN CONSIGNACIÓN</th>
+                                        @if($comercioTipo == 10)
+                                            <th class="text-center">CONDICIONAL</th>
+                                        @else
+                                            <th class="text-center">EN CONSIGNACIÓN</th>
+                                        @endif
                                         <th class="text-center">TOTAL</th>
                                     @else
                                         <th class="text-center">CANTIDAD</th>
@@ -144,8 +152,14 @@
                                     <th class="text-center">CANTIDAD</th>
                                     <th class="text-left">DESCRIPCION</th>
                                     @can('Productos_create')
-                                    <th class="text-right">PRECIO LISTA 2</th>
-                                    <th class="text-right">IMPORTE</th>
+                                    @if($modConsignaciones == '1')
+                                        @if($comercioTipo == 11) <!-- consignacion -->
+                                            <th class="text-right">PRECIO LISTA 2</th>
+                                        @else                  <!-- tienda -->
+                                            <th class="text-right">PRECIO LISTA 1</th>
+                                        @endif
+                                        <th class="text-right">IMPORTE</th>
+                                    @endif
                                     @endcan
                                 </tr>
                             </thead>
@@ -156,7 +170,7 @@
                                         <td class="text-center">{{$r->cantidad}}</td>
                                         <td class="text-left">{{$r->articuloDesc}}</td>
                                         @can('Productos_create')
-                                        <td class="text-right">{{number_format($r->precio_venta_l2,2,',','.')}}</td>
+                                        <td class="text-right">{{number_format($r->precio_venta,2,',','.')}}</td>
                                         <td class="text-right">{{number_format($r->subtotal,2,',','.')}}</td>
                                         @endcan
                                     @endif
@@ -175,13 +189,19 @@
 </div>
  
 <style type="text/css" scoped>
-.scroll{
-    position: relative;
-    height: 235px;
-    margin-top: .5rem;
-    overflow: auto;
-    margin-bottom: 10px;
-}
+    .scroll{
+        position: relative;
+        height: 235px;
+        margin-top: .5rem;
+        overflow: auto;
+        margin-bottom: 10px;
+    }
+    thead tr th {     /* fija la cabecera de la tabla */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #ffffff;
+    }
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

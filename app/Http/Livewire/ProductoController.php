@@ -6,7 +6,14 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Comercio;
+use App\Models\Detcompra;
+use App\Models\DetReceta;
+use App\Models\Detfactura;
+use App\Models\Factura;
 use App\Models\Producto;
+use App\Models\ProductoProveedor;
+use App\Models\Proveedor;
+use App\Models\Receta;
 use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\TextoBaseComanda;
@@ -16,8 +23,8 @@ use DB;
 
 class ProductoController extends Component
 {
-	public $categoria ='Elegir', $tipo = 'Ambos', $sector = 0, $texto = null, $estado='Disponible';
-	public $codigo = null, $codigo_sugerido, $descripcion, $categorias, $producto;
+	public $categoria ='Elegir', $tipo = 'Ambos', $sector = 0, $texto = null, $estado='Disponible', $proveedor ='Elegir';
+	public $codigo = null, $codigo_sugerido, $descripcion, $categorias, $proveedores, $producto;
 	public $stock_actual = null, $stock_ideal = null, $stock_minimo = null;
 	public $precio_costo, $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
 	public $selected_id = null, $calcular_precio_de_venta, $redondear_precio_de_venta;
@@ -25,8 +32,10 @@ class ProductoController extends Component
 	public $action = 1, $search, $habilitar_model = false;
 	public $sectores, $se_imprime = 0, $textos;
 	public $salsa = false, $guarnicion = false, $tiene_receta = 'no', $controlar_stock = 'si';
-	public $texto_subproducto, $search_sp, $tiene_sp = null;
-	public $comercioId, $comercioTipo, $modComandas, $modDelivery; 
+	public $texto_subproducto, $search_sp, $tiene_sp = null, $descProducto;
+	public $comercioId, $comercioTipo, $modComandas, $modDelivery, $infoProductoProveedor; 
+	public $idProducto, $idProductoHistorial;
+	public $cambiar_precios, $costo_actual, $detalleProductoCargado;
 	
 	public function render()
 	{
@@ -39,14 +48,18 @@ class ProductoController extends Component
 		
 		if($this->sector == 0) $this->se_imprime = 0; else $this->se_imprime = 1;
 		
-		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->get();
+		$this->categorias = Categoria::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
 		$this->sectores = SectorComanda::select('*')->where('comercio_id', $this->comercioId)->get();
 		$this->textos = TextoBaseComanda::select('*')->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+		$this->proveedores = Proveedor::select('id', 'nombre_empresa')->where('comercio_id', $this->comercioId)->orderBy('nombre_empresa')->get();
 		
 		$record = Comercio::find($this->comercioId);
 		$this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
 		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
-		
+		if(!$this->cambiar_precios){
+            if($record->opcion_de_guardado_producto == "1") $this->cambiar_precios = 'solo_costos';
+            else $this->cambiar_precios = 'cambiar_todo';
+        }
 		if($this->selected_id == null) {
 			$nuevo_codigo = Producto::select('*')->where('comercio_id', $this->comercioId)->get();
 			if ($nuevo_codigo->count() == 0){
@@ -65,18 +78,22 @@ class ProductoController extends Component
 
 		if(strlen($this->search) > 0) {
 			$info = Producto::join('categorias as r','r.id','productos.categoria_id')
-				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"))
+				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"), 
+					DB::RAW("0 as proveedor"), DB::RAW("0 as historial"))
 				->where('productos.descripcion', 'like', '%' . $this->search .'%')
 				->where('productos.comercio_id', $this->comercioId)
 				->orWhere('productos.estado', 'like', '%' . $this->search .'%')
 				->where('productos.comercio_id', $this->comercioId)
 				->orWhere('r.descripcion', 'like', '%' . $this->search .'%')
 				->where('productos.comercio_id', $this->comercioId)
+				->orWhere('productos.codigo', 'like', '%' . $this->search .'%')
+				->where('productos.comercio_id', $this->comercioId)
 				->orderBy('productos.descripcion', 'asc')
 				->get();
 		}else {
 			$info = Producto::join('categorias as r','r.id','productos.categoria_id')
-				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"))
+				->select('productos.*', 'r.descripcion as categoria', DB::RAW("0 as stock_actual"), 
+					DB::RAW("0 as proveedor"), DB::RAW("0 as historial"))
 				->where('productos.comercio_id', $this->comercioId)
 				->orderBy('productos.descripcion', 'asc')
 				->get();
@@ -95,6 +112,16 @@ class ProductoController extends Component
 				$stock = Stock::where('producto_id', $i->id)->first();
 				$i->stock_actual = $stock->stock_actual;
 			}
+		
+			$proveedor = ProductoProveedor::where('producto_id', $i->id)
+				->where('comercio_id', $this->comercioId)->select('id')->get();
+			if($proveedor->count()) $i->proveedor = 1;
+			else $i->proveedor = 0;
+
+			$historial = Detcompra::where('producto_id', $i->id)
+				->where('comercio_id', $this->comercioId)->select('id')->get();
+			if($historial->count()) $i->historial = 1;
+			else $i->historial = 0;	
         }
 
 		if(strlen($this->search_sp) > 0) {
@@ -123,20 +150,100 @@ class ProductoController extends Component
 				$i->stock_minimo = $stock->stock_minimo;
 			}
 		}
+
+		if($this->idProducto){
+			$this->infoProductoProveedor = ProductoProveedor::join('proveedores as p', 'p.id', 'producto_proveedores.proveedor_id')
+				->where('producto_proveedores.producto_id', $this->idProducto)
+				->where('producto_proveedores.comercio_id', $this->comercioId)
+				->select('producto_proveedores.id', 'p.nombre_empresa')->get();
+			$descProducto = Producto::where('id', $this->idProducto)->select('descripcion')->first();
+			$this->descProducto = $descProducto->descripcion;
+			$this->emit('abrirModal');
+		}else $this->infoProductoProveedor = [];
+
+		//busco el historial de compras para el producto seleccionado
+		if($this->idProductoHistorial){
+			$infoHistorial = Detcompra::join('compras as c', 'c.id', 'det_compras.factura_id')
+				->join('proveedores as p', 'p.id', 'c.proveedor_id')
+				->join('productos as pr', 'pr.id', 'det_compras.producto_id')
+				->where('det_compras.producto_id', $this->idProductoHistorial)
+				->where('det_compras.comercio_id', $this->comercioId)
+				->select('det_compras.cantidad', 'pr.descripcion',
+					'det_compras.precio','c.created_at', 'c.fecha_fact', 'p.nombre_empresa')
+				->orderBy('c.fecha_fact', 'desc')->get();
+			if($infoHistorial->count()) $this->producto = $infoHistorial[0]->descripcion;
+			else{
+				$producto = Producto::find($this->idProductoHistorial);
+				$this->producto = $producto->descripcion;
+			}
+			$this->emit('abrirModalHistorial');
+		}else $infoHistorial = [];
+
+
 		return view('livewire.productos.component', [
-			'info'         => $info,
-			'subproductos' => $subproductos
+			'info'          => $info,
+			'infoHistorial' => $infoHistorial,
+			'subproductos'  => $subproductos
 		]);
 	}
 	protected $listeners = [
-		'deleteRow'             => 'destroy',
-		'delete_sp'             => 'destroy_sp',
-		'calcular_precio_venta' => 'calcular_precio_venta',
-		'validarProducto'       => 'validarProducto',
-		'guardar'               => 'StoreOrUpdate', 
-		'grabar_texto_base'     => 'grabar_texto_base', 
-		'grabar_subproducto'    => 'grabar_subproducto'
+		'deleteRow'                 => 'destroy',
+		'deleteProductoProveedor'   => 'destroy_productoProveedor',
+		'delete_sp'                 => 'destroy_sp',
+		'calcular_precio_venta'     => 'calcular_precio_venta',
+		'validarProducto'           => 'validarProducto',
+		'guardar'                   => 'StoreOrUpdate', 
+		'grabar_texto_base'         => 'grabar_texto_base', 
+		'grabar_subproducto'        => 'grabar_subproducto',
+		'productoProveedor'         => 'productoProveedor',
+		'productoHistorial'         => 'productoHistorial',
+		'grabarProductoProveedor'   => 'grabarProductoProveedor',
+		'opcionCambiarPrecios'      => 'opcionCambiarPrecios',
+		'actualizarPreciosCargados' => 'actualizarPreciosCargados'
 	];
+	public function opcionCambiarPrecios($cambiar_precios)
+    {
+        $this->cambiar_precios = $cambiar_precios;
+		$this->calcular_precio_venta();
+		
+    }
+	public function actualizarPreciosCargados($actualizar_todo)
+	{
+		//ACTUALIZO LOS IMPORTES QUE FIGUREN EN LOS DETALLE DE FACTURA ABIERTA O PENDIENTE
+		//EN DONDE CONTENGAN AL PRODUCTO QUE ESTAMOS MODIFICANDO
+		DB::begintransaction();
+        try{
+			$detalle = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+				->where('facturas.estado', 'abierta')
+				->where('facturas.comercio_id', $this->comercioId)
+				->where('df.producto_id', $this->selected_id)
+				->orWhere('facturas.estado', 'pendiente')
+				->where('facturas.comercio_id', $this->comercioId)
+				->where('df.producto_id', $this->selected_id)
+				->select('df.id', 'df.precio')->get();
+			if($detalle->count()){
+				foreach ($detalle as $i) {
+					$grabar = Detfactura::find($i->id);
+					$grabar->update(['precio' => $this->precio_venta_sug_l1]);
+				}
+			}
+			if($actualizar_todo == 'actualizar_todo'){
+				$producto = Producto::find($this->selected_id);
+				$producto->update([
+					'precio_venta_l1' => $this->precio_venta_sug_l1,
+					'precio_venta_l2' => $this->precio_venta_sug_l2
+				]);
+			}
+			if($actualizar_todo == 'actualizar_todo') session()->flash('msg-ok', 'Facturas y Producto actualizados exitosamente!!!'); 
+			else session()->flash('msg-ok', 'Facturas actualizadas exitosamente!!!'); 
+			DB::commit();               
+		}catch (\Exception $e){
+			DB::rollback();
+			session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+		}
+		$this->resetInput();
+		return;
+	}
 	public function ver_receta($id)
 	{
 		session(['producto_receta_id' => $id]); 
@@ -150,30 +257,33 @@ class ProductoController extends Component
 	}
 	public function resetInput()
 	{
-		$this->codigo              = null;
-		$this->descripcion         = '';
-		$this->precio_costo        = null;
-		$this->precio_venta_l1     = '';
-		$this->precio_venta_l2     = '';
-		$this->precio_venta_sug_l1 = '';
-		$this->precio_venta_sug_l2 = '';
-		$this->stock_actual        = null; 
-		$this->stock_ideal         = null; 
-		$this->stock_minimo        = null;
-		$this->tipo                = 'Ambos';
-		$this->categoria           = 'Elegir';
-		$this->sector              = 0;
-		$this->texto               = null;
-		$this->salsa               = false;
-		$this->estado              = 'Disponible';
-		$this->selected_id         = null;
-		$this->search              = '';
-		$this->search_sp           = '';
-		$this->habilitar_model     = false;
-		$this->tiene_sp            = null;
-		$this->tiene_receta        = 'no';
-		$this->controlar_stock     = 'si';
-		$this->texto_subproducto   = '';
+		$this->codigo               = null;
+		$this->descripcion          = '';
+		$this->precio_costo         = null;
+		$this->precio_venta_l1      = '';
+		$this->precio_venta_l2      = '';
+		$this->precio_venta_sug_l1  = '';
+		$this->precio_venta_sug_l2  = '';
+		$this->stock_actual         = null; 
+		$this->stock_ideal          = null; 
+		$this->stock_minimo         = null;
+		$this->tipo                 = 'Ambos';
+		$this->categoria            = 'Elegir';
+		$this->sector               = 0;
+		$this->texto                = null;
+		$this->salsa                = false;
+		$this->estado               = 'Disponible';
+		$this->selected_id          = null;
+		$this->search               = '';
+		$this->search_sp            = '';
+		$this->habilitar_model      = false;
+		$this->tiene_sp             = null;
+		$this->tiene_receta         = 'no';
+		$this->controlar_stock      = 'si';
+		$this->texto_subproducto    = '';
+		$this->proveedor            = 'Elegir';
+		$this->descProducto         = null;
+		$this->cambiar_precios      = null;
 	}	
 	public function edit($id)
 	{
@@ -193,6 +303,7 @@ class ProductoController extends Component
 		$this->tipo                = $record->tipo;
 		$this->estado              = $record->estado;
 		$this->texto               = $record->texto_base_comanda_id;
+		$this->costo_actual        = $record->precio_costo;
 		if($record->sectorcomanda_id) $this->sector = $record->sectorcomanda_id;
 		else $this->sector = 0;
 
@@ -429,6 +540,7 @@ class ProductoController extends Component
 		DB::begintransaction();
         try{
 			if($this->selected_id) {
+				//BUSCO SI LA DESCRIPCIÓN DEL PRODUCTO YA EXISTE
 				$existeProducto = Producto::where('descripcion', $this->descripcion)
 					->where('id', '<>', $this->selected_id)
 					->where('comercio_id', $this->comercioId)				
@@ -445,7 +557,7 @@ class ProductoController extends Component
 					$this->resetInput();
 					return;
 				}
-				
+				//BUSCO SI EL CÓDIGO DEL PRODUCTO YA EXISTE
 				$existeCodigo = Producto::where('codigo', $this->codigo)
 					->where('id', '<>', $this->selected_id)
 					->where('comercio_id', $this->comercioId)
@@ -494,31 +606,131 @@ class ProductoController extends Component
 				}
 			}
 			if($this->selected_id) {
+				//ACTUALIZO EL PRECIO DE COMPRA Y/O VENTA DEL PRODUCTO COMPRADO... O NO
 				$record = Producto::find($this->selected_id);
-				$record->update([
-					'descripcion'  	        => ucwords($this->descripcion),
-					'precio_costo' 	        => $this->precio_costo,			
-					'precio_venta_l1'       => $this->precio_venta_l1,
-					'precio_venta_l2'       => $this->precio_venta_l2,	
-					'precio_venta_sug_l1'   => $this->precio_venta_sug_l1,
-					'precio_venta_sug_l2'   => $this->precio_venta_sug_l2,	
-					'tipo'         	        => $this->tipo,
-					'tiene_receta'          => $this->tiene_receta,
-					'controlar_stock'       => $this->controlar_stock,
-					'categoria_id' 	        => $this->categoria,
-					'estado'       	        => $this->estado,
-					'salsa'                 => $salsa,
-					'guarnicion'            => $guarnicion,
-					'sectorcomanda_id'      => $this->sector,
-					'texto_base_comanda_id' => $this->texto
-				]);
-				$stock = Stock::where('producto_id', $this->selected_id)->first();
-				$stock->update([
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
-				]);
+				if($this->cambiar_precios == 'solo_costos'){        //modifica precios sugeridos  
+					$record->update([
+						'descripcion'  	        => ucwords($this->descripcion),
+						'precio_costo' 	        => $this->precio_costo,	
+						'precio_venta_sug_l1'   => $this->precio_venta_sug_l1,
+						'precio_venta_sug_l2'   => $this->precio_venta_sug_l2,	
+						'tipo'         	        => $this->tipo,			
+						'tiene_receta'          => $this->tiene_receta,
+						'controlar_stock'       => $this->controlar_stock,
+						'categoria_id' 	        => $this->categoria,
+						'estado'       	        => $this->estado,
+						'salsa'                 => $salsa,
+						'guarnicion'            => $guarnicion,
+						'sectorcomanda_id'      => $this->sector,
+						'texto_base_comanda_id' => $this->texto
+					]);
+				}elseif($this->cambiar_precios == 'cambiar_todo'){  //modifica todo
+					$record->update([
+						'descripcion'  	        => ucwords($this->descripcion),
+						'precio_costo' 	        => $this->precio_costo,			
+						'precio_venta_l1'       => $this->precio_venta_l1,
+						'precio_venta_l2'       => $this->precio_venta_l2,	
+						'precio_venta_sug_l1'   => $this->precio_venta_sug_l1,
+						'precio_venta_sug_l2'   => $this->precio_venta_sug_l2,	
+						'tipo'         	        => $this->tipo,
+						'tiene_receta'          => $this->tiene_receta,
+						'controlar_stock'       => $this->controlar_stock,
+						'categoria_id' 	        => $this->categoria,
+						'estado'       	        => $this->estado,
+						'salsa'                 => $salsa,
+						'guarnicion'            => $guarnicion,
+						'sectorcomanda_id'      => $this->sector,
+						'texto_base_comanda_id' => $this->texto
+					]);
+				} 
+				//ACTUALIZO LOS ARTICULOS CON RECETA QUE CONTENGAN ESTE PRODUCTO COMO MATERIA PRIMA.
+				//PARA ELLO DEBO CALCULAR EL TOTAL DE LA RECETA TENIENDO ESPECIAL ATENCIÓN AL VALOR DE LA
+				//MATERIA PRIMA QUE ESTAMOS CARGANDO PARA UTILIZARLO EN DICHO CÁLCULO
+				$record = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+					->where('det_recetas.producto_id', $this->selected_id)
+					->where('det_recetas.comercio_id', $this->comercioId)
+					->select('det_recetas.receta_id')->get();
+				if($record){    //recetas con el producto como materia prima
+					foreach ($record as $i) {
+						$total_costo_receta = 0;  
+						$total = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+							->where('det_recetas.receta_id', $i->receta_id)
+							->where('det_recetas.comercio_id', $this->comercioId)
+							->select('det_recetas.*', 'p.precio_costo')->get();
+						if($total){                  //calculo el costo total de la receta para modificar 
+							foreach ($total as $j) { //luego el costo del producto de venta
+								if($j->producto_id == $this->selected_id) $total_costo_receta += $j->cantidad * $this->precio_costo;
+								else $total_costo_receta += $j->cantidad * $j->precio_costo; 
+							}
+						}
+						//RECUPERO DATOS DEL PRODUCTO DE LA RECETA 
+						$data_producto_receta = Receta::join('productos as p', 'p.id', 'recetas.producto_id')
+							->join('categorias as c', 'c.id', 'p.categoria_id')
+							->where('recetas.id', $i->receta_id)                      
+							->where('recetas.comercio_id', $this->comercioId)
+							->select('p.id', 'c.margen_1', 'c.margen_2')->get();
+
+						$this->precio = $total_costo_receta;   
+						if ($this->calcular_precio_de_venta == 0){
+							//calcula el precio de venta sumando el margen de ganancia al costo del producto
+							$this->precio_venta_sug_l1 = ($this->precio * $data_producto_receta[0]->margen_1) / 100 + $this->precio;
+							$this->precio_venta_sug_l2 = ($this->precio * $data_producto_receta[0]->margen_2) / 100 + $this->precio;
+							$this->precio_venta_l1 = ($this->precio * $data_producto_receta[0]->margen_1) / 100 + $this->precio;
+							$this->precio_venta_l2 = ($this->precio * $data_producto_receta[0]->margen_2) / 100 + $this->precio;
+						
+						}else{
+							//calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+							$this->precio_venta_sug_l1 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_1);
+							$this->precio_venta_sug_l2 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_2);
+							$this->precio_venta_l1 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_1);
+							$this->precio_venta_l2 = $this->precio * 100 / (100 - $data_producto_receta[0]->margen_2);
+						}
+						if ($this->redondear_precio_de_venta == 1){
+							$this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+							$this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+							$this->precio_venta_l1 = round($this->precio_venta_l1);
+							$this->precio_venta_l2 = round($this->precio_venta_l2);
+						}
+						//modifico los datos del producto de la receta
+						$record = Producto::find($data_producto_receta[0]->id);
+						if($this->cambiar_precios == 'solo_costos'){   //modifica precios sugeridos  
+							$record->update([
+								'precio_costo' 	      => $this->precio,		
+								'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+								'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+							]);
+						}else{       				//modifica todo
+							$record->update([
+								'precio_costo' 	      => $this->precio,			
+								'precio_venta_l1'     => $this->precio_venta_l1,
+								'precio_venta_l2'     => $this->precio_venta_l2,	
+								'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+								'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+							]);
+						}                         
+					}
+				}
+				
+		
+		//VERIFICO LOS DETALLES DE FACTURA ABIERTA O PENDIENTE QUE CONTENGAN AL PRODUCTO
+		//QUE ESTAMOS MODIFICANDO PARA LUEGO PREGUNTAR SI LOS QUIEREN MODIFICAR O NO
+		$this->detalleProductoCargado = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+		->where('facturas.estado', 'abierta')
+		->where('facturas.comercio_id', $this->comercioId)
+		->where('df.producto_id', $this->selected_id)
+		->orWhere('facturas.estado', 'pendiente')
+		->where('facturas.comercio_id', $this->comercioId)
+		->where('df.producto_id', $this->selected_id)
+		->select('df.id', 'df.precio')->get();
+				//ACTUALIZO STOCK SOLO SI EL PRODUCTO NO POSEE RECETA
+				if($this->tiene_receta == 'no'){
+					$stock = Stock::where('producto_id', $this->selected_id)->first();
+					$stock->update([
+						'stock_actual'          => $this->stock_actual,
+						'stock_ideal'           => $this->stock_ideal,
+						'stock_minimo'          => $this->stock_minimo
+					]);
+				}				
 				$this->action = 1;
 			}else {				
 				$producto = Producto::create([
@@ -540,24 +752,30 @@ class ProductoController extends Component
 					'sectorcomanda_id'      => $this->sector,
 					'texto_base_comanda_id' => $this->texto
 				]);
-				$stock = Stock::create([
-					'producto_id'           => $producto->id,
-					'stock_actual'          => $this->stock_actual,
-					'stock_ideal'           => $this->stock_ideal,
-					'stock_minimo'          => $this->stock_minimo,
-					'comercio_id'           => $this->comercioId
-				]);
+				if($this->tiene_receta == 'no'){
+					$stock = Stock::create([
+						'producto_id'           => $producto->id,
+						'stock_actual'          => $this->stock_actual,
+						'stock_ideal'           => $this->stock_ideal,
+						'stock_minimo'          => $this->stock_minimo,
+						'comercio_id'           => $this->comercioId
+					]);
+				}
 			}
 			if($this->selected_id > 0) session()->flash('msg-ok', 'Producto Actualizado');       
 			else session()->flash('msg-ok', 'Producto Creado');
 
 			DB::commit();               
-		}catch (Exception $e){
+		}catch (\Exception $e){
 			DB::rollback();
 			session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-		}
-		$this->resetInput();
-		return;
+		}		
+		if($this->detalleProductoCargado){
+			$this->emit('cambiarPrecioDetalle', $this->detalleProductoCargado->count(), $this->cambiar_precios);
+		}else{
+			$this->resetInput();
+			return;
+		}		
 	}			
 	public function destroy($id, $comentario)
     {
@@ -612,34 +830,53 @@ class ProductoController extends Component
     } 			
 	public function calcular_precio_venta()
 	{
-		if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
-			$porcentaje = Categoria::where('id', $this->categoria)->select('margen_1', 'margen_2')->get();
-			if ($this->calcular_precio_de_venta == 0){
-				//calcula el precio de venta sumando el margen de ganancia al costo del producto
-				$this->precio_venta_sug_l1 = ($this->precio_costo * $porcentaje[0]->margen_1) / 100 + $this->precio_costo;
-				$this->precio_venta_sug_l2 = ($this->precio_costo * $porcentaje[0]->margen_2) / 100 + $this->precio_costo;
-				if(!$this->selected_id){
+		if(!$this->selected_id){
+			$this->cambiar_precios == 'cambiar_todo';
+		}
+		if($this->cambiar_precios == 'cambiar_todo'){  //modifica todo
+			if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
+				$porcentaje = Categoria::where('id', $this->categoria)->select('margen_1', 'margen_2')->get();
+				if ($this->calcular_precio_de_venta == 0){
+					//calcula el precio de venta sumando el margen de ganancia al costo del producto
+					$this->precio_venta_sug_l1 = ($this->precio_costo * $porcentaje[0]->margen_1) / 100 + $this->precio_costo;
+					$this->precio_venta_sug_l2 = ($this->precio_costo * $porcentaje[0]->margen_2) / 100 + $this->precio_costo;
 					$this->precio_venta_l1 = ($this->precio_costo * $porcentaje[0]->margen_1) / 100 + $this->precio_costo;
 					$this->precio_venta_l2 = ($this->precio_costo * $porcentaje[0]->margen_2) / 100 + $this->precio_costo;
-				}
-			}else{
-				//calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
-				$this->precio_venta_sug_l1 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
-				$this->precio_venta_sug_l2 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
-				if(!$this->selected_id){
+				}else{
+					//calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+					$this->precio_venta_sug_l1 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
+					$this->precio_venta_sug_l2 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
 					$this->precio_venta_l1 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
 					$this->precio_venta_l2 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
 				}
+				if ($this->redondear_precio_de_venta == 1){
+					$this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+					$this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+					$this->precio_venta_l1 = round($this->precio_venta_l1);
+					$this->precio_venta_l2 = round($this->precio_venta_l2);
+				}
+			}else{
+				session()->flash('msg-error', 'Debe elegir una Categoría');
 			}
-			if ($this->redondear_precio_de_venta == 1){
-				$this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
-				$this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
-				$this->precio_venta_l1 = round($this->precio_venta_l1);
-				$this->precio_venta_l2 = round($this->precio_venta_l2);
+		}else{           //modifica solo los precios de venta sugeridos
+			if($this->precio_costo <> '' && $this->categoria <> 'Elegir') {
+				$porcentaje = Categoria::where('id', $this->categoria)->select('margen_1', 'margen_2')->get();
+				if ($this->calcular_precio_de_venta == 0){
+					//calcula el precio de venta sumando el margen de ganancia al costo del producto
+					$this->precio_venta_sug_l1 = ($this->precio_costo * $porcentaje[0]->margen_1) / 100 + $this->precio_costo;
+					$this->precio_venta_sug_l2 = ($this->precio_costo * $porcentaje[0]->margen_2) / 100 + $this->precio_costo;
+				}else{
+					//calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+					$this->precio_venta_sug_l1 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
+					$this->precio_venta_sug_l2 = $this->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
+				}
+				if ($this->redondear_precio_de_venta == 1){
+					$this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1);
+					$this->precio_venta_sug_l2 = round($this->precio_venta_sug_l2);
+				}
+			}else{
+				session()->flash('msg-error', 'Debe elegir una Categoría');
 			}
-			//$this->precio_costo = number_format($this->precio_costo,2);
-		}else{
-			session()->flash('msg-error', 'Debe elegir una Categoría');
 		}
 	}	
 	public function validarProducto()
@@ -677,5 +914,55 @@ class ProductoController extends Component
 			}else $this->habilitar_model = true; //habilito la presentación del model para agregar Texto Base
 		}
 	}
+	public function productoProveedor($idProducto)
+	{
+		$this->idProducto = $idProducto;
+		$this->idProductoHistorial = null;
+	}
+	public function productoHistorial($idProducto)
+	{
+		$this->idProductoHistorial = $idProducto;
+		$this->idProducto = null;
+	}
+	public function grabarProductoProveedor($idProveedor)
+	{
+		if($idProveedor == 'Elegir'){
+			$this->emit('agregarProveedor');
+			return;
+		}else{
+			DB::begintransaction();
+			try{
+				$grabar = ProductoProveedor::create([
+					'producto_id'  => $this->idProducto,
+					'proveedor_id' => $idProveedor,
+					'comercio_id'  => $this->comercioId
+				]);
+				session()->flash('msg-ok', 'Proveedor agregado');
+
+				DB::commit();               
+			}catch (Exception $e){
+				DB::rollback();
+				session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+			}
+			$this->resetInput();
+			return;
+		}
+	}
+	public function destroy_productoProveedor($id)
+    {
+        if ($id) {
+            DB::begintransaction();
+            try{
+                $record = ProductoProveedor::find($id)->delete();
+                DB::commit();  
+                $this->emit('registroEliminado');             
+            }catch (Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }             
+			$this->resetInput();
+            return;
+        }
+    } 
 }
 	

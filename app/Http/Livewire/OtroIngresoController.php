@@ -129,13 +129,13 @@ class OtroIngresoController extends Component
             }
             if($this->selected_id <= 0) {
                 $OtroIngreso =  OtroIngreso::create([
-                    'descripcion' => strtoupper($this->descripcion),
+                    'descripcion' => mb_strtoupper($this->descripcion),
                     'comercio_id' => $this->comercioId
                 ]);
             }else {   
                 $OtroIngreso = OtroIngreso::find($this->selected_id);
                 $OtroIngreso->update([
-                    'descripcion' => strtoupper($this->descripcion)
+                    'descripcion' => mb_strtoupper($this->descripcion)
                 ]);                
                 $this->action = 1;             
             }

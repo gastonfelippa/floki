@@ -11,5 +11,5 @@ class CajaInicial extends Model
     protected $dates = ['deleted_at'];
     
     protected $table = 'caja_inicials';
-    protected $fillable = ['caja_user_id', 'importe', 'comentarios', 'user_id'];
+    protected $fillable = ['caja_user_id', 'tipo', 'cheque_id', 'importe', 'user_id'];
 }

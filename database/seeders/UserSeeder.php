@@ -90,16 +90,18 @@ class UserSeeder extends Seeder
         Permission::create(['name' => 'ModViandas', 'alias' => 'Ver']);
         
         //creamos tipos de comercio
-        TipoComercio::create(['descripcion' => 'Tipo SuperAdmin']);
-        TipoComercio::create(['descripcion' => 'Tipo Abonado']);
+        TipoComercio::create(['descripcion' => 'SuperAdmin']);
+        TipoComercio::create(['descripcion' => 'Abonado']);
         TipoComercio::create(['descripcion' => 'Bar/Pub/Restó']);
-        TipoComercio::create(['descripcion' => 'Restaurante']);
         TipoComercio::create(['descripcion' => 'Pizzería']);
         TipoComercio::create(['descripcion' => 'Cervecería']);
         TipoComercio::create(['descripcion' => 'Heladería']);
         TipoComercio::create(['descripcion' => 'Cafetería']);
         TipoComercio::create(['descripcion' => 'Rotisería']);
         TipoComercio::create(['descripcion' => 'Panadería']);
+        TipoComercio::create(['descripcion' => 'Tienda/Zapatería']);
+        TipoComercio::create(['descripcion' => 'Consignación']);
+        TipoComercio::create(['descripcion' => 'Club/Entidad Social']);
         TipoComercio::create(['descripcion' => 'Otro comercio gastronómico']);
         TipoComercio::create(['descripcion' => 'Otro comercio no gastronómico']);
 

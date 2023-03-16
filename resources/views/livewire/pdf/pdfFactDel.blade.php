@@ -24,8 +24,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -33,7 +33,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -69,8 +69,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -78,7 +78,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -113,8 +113,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -122,7 +122,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -156,8 +156,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-right">Pr. Unitario</th>
-						<th class="text-right">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -165,7 +165,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-3">{{$r->precio}}</td>
+						<td class="text-right mr-3">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -200,8 +200,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -209,7 +209,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -243,8 +243,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -252,7 +252,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -285,8 +285,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -294,7 +294,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -328,8 +328,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-center">P. Unit</th>
-						<th class="text-center">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -337,7 +337,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right mr-2">{{$r->precio}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
@@ -371,8 +371,8 @@
 					<tr>
 						<th class="text-center">Cant</th>
 						<th class="text-left">Descripción</th>
-						<th class="text-right">P. Unit</th>
-						<th class="text-right">Importe</th>
+						<th class="text-right mr-2">P. Unit</th>
+						<th class="text-right mr-2">Importe</th>
 					</tr>
 				</thead>
 				<tbody style="font-size:12px">
@@ -380,7 +380,7 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right">{{$r->precio}}</td>
+						<td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
 						<td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach

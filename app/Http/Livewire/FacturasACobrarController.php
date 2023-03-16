@@ -88,9 +88,10 @@ class FacturasACobrarController extends Component
                 ->where('facturas.comercio_id', $this->comercioId)
                 ->where('facturas.estado','like','pendiente')
                 ->where('facturas.repartidor_id', $this->salon[0]->id)
+                ->orWhere('facturas.comercio_id', $this->comercioId)
+                ->where('facturas.estado','like','pendiente')
                 ->where('facturas.user_id', auth()->user()->id)
                 ->orderBy('facturas.id', 'asc')->get(); 
-                //dd($info[0]->nomCli,$info[0]->apeCli,$info[0]->nomRep,$info[0]->apeRep);
        //}
         return view('livewire.facturasacobrar.component', [
             'info' => $info
@@ -120,10 +121,10 @@ class FacturasACobrarController extends Component
     }
     public function verDet($id, $nomCli, $apeCli)
     {
-        $idMesa = Factura::where('id', $id)
-            ->select('mesa_id')->get();
-            
-        session(['idMesa' => $idMesa[0]->mesa_id]);
+        // $idMesa = Factura::where('id', $id)
+        //     ->select('mesa_id')->get();
+    
+        session(['idMesa' => 'D']);
         session(['facturaPendiente' => $id]);
         return redirect()->to('/facturasbar');
     }

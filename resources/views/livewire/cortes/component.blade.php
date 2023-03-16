@@ -32,9 +32,13 @@
                     <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Abiertas...</button>
                     @elseif($factPendiente == 2)
                     <button onclick="cerrarCaja(2,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes...</button>
+                    
+                    @elseif($compraPendiente == 1)
+                    <button onclick="cerrarCaja(3,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas de Compras Abiertas...</button>
                     @else
                     <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mb-2">Cerrar Caja</button>
                     @endif
+              
                 @endif
             </div>
         </div>
@@ -51,21 +55,37 @@
         <hr>
     @endif
     <div class="row">
-        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+        <div class="col-sm-4 col-md-3 layout-spacing">
             <div class="color-box">
                 <span onclick="openModal(1)" class="cl-example text-center" style="background-color: #394BA1; font-size: 3rem;color: white;cursor:pointer">#</span>
                 <div class="cl-info">
-                    <h1 class="cl-title">Caja Inicial</h1>
-                    <span>$ {{number_format($cajaInicial,2,',','.')}}</span>
-                    <!-- <span>Efectivo<br>$ {{number_format($cajaInicial,2,',','.')}}</span> -->
+                    <div class="row">  
+                        <div class="col-4">
+                            <h1 class="cl-title">Caja Inicial</h1>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span>$ {{number_format($cajaInicial,2,',','.')}}</span>
+                        </div>
+                    </div>
+                    <div class="row">  
+                        <div class="col-6">
+                            <span>Efectivo</span><br>
+                            <span>Cheque</span>
+                        </div>
+                        <div class="col-6 text-right">
+                            {{number_format($infoCI,2,',','.')}}<br>
+                            {{number_format($cajaCheques,2,',','.')}}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+        <div class="col-sm-4 col-md-3 layout-spacing">
+        <!-- <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing"> -->
             <div class="color-box mb-1">
                 <span onclick="openModal(2)" class="cl-example text-center" style="background-color: #8dbf42; font-size: 3rem;color: white;cursor:pointer">+</span>
                 <div class="cl-info">
-                    <h1 class="cl-title">Ventas Contado</h1>
+                    <h1 class="cl-title">Ventas</h1>
                     <span>$ {{number_format($ventas,2,',','.')}}</span>
                 </div>
             </div>
@@ -84,7 +104,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+        <div class="col-sm-4 col-md-3 layout-spacing">
             <div class="color-box">
                 <span onclick="openModal(5)" class="cl-example text-center" style="background-color: #F2351F; font-size: 3rem;color: white;cursor:pointer">-</span>
                 <div class="cl-info">
@@ -93,18 +113,41 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-4 col-md-4 col-lg-3 layout-spacing">
+        <div class="col-sm-4 col-md-3 layout-spacing">
             <div class="color-box">
-                <span onclick="openModal(6)" class="cl-example text-center" style="background-color: #394BA1; font-size: 3rem;color: white;cursor:pointer">#</span>
+                <span onclick="openModalCajaFinal()" class="cl-example text-center" style="background-color: #394BA1; font-size: 3rem;color: white;cursor:pointer">#</span>
                 <div class="cl-info">
-                    <h1 class="cl-title">Caja Final</h1>
-                       <span>$ {{number_format($cajaFinal,2,',','.')}}</span>
+                    <div class="row">
+                        <div class="col-4">
+                            <h1 class="cl-title">Caja Final</h1>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span>$ {{number_format($totalPorMedioDePago,2,',','.')}}</span>
+                        </div>
+                    </div>
+                    <div class="row">  
+                        <div class="col-6">
+                            <span>Efectivo</span><br>
+                            <span>T. Debito</span><br>
+                            <span>T. Crédito</span><br>
+                            <span>Transferencia</span><br>
+                            <span>Cheque</span>
+                        </div>
+                        <div class="col-6 text-right">
+                            {{number_format($totalEfvo,2,',','.')}}<br>
+                            {{number_format($totalTDebito,2,',','.')}}<br>
+                            {{number_format($totalTCredito,2,',','.')}}<br>
+                            {{number_format($totalTransferencia,2,',','.')}}<br>
+                            {{number_format($totalCheque,2,',','.')}}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 @include('livewire.cortes.modal')
+@include('livewire.cortes.modalCajaFinal')
     <input type="hidden" id="caja_abierta" wire:model="caja_abierta">
     <input type="hidden" id="usuario_habilitado" wire:model="usuario_habilitado">
     <input type="hidden" id="id" value="0">
@@ -139,6 +182,8 @@
             window.location = "{{url('cajarepartidor')}}";
             else
             window.location = "{{url('facturasacobrar')}}";
+        }else if(factPendiente == 3){
+            window.location = "{{url('compras')}}";
         }else{
             Swal.fire({
                 title: 'CONFIRMAR',
@@ -162,7 +207,6 @@
                 if (result.isConfirmed) {
                     if (result.value) {
                         let cajaFinalSegunUsuario = result.value;
-
                         var dato_a_comprobar = cajaFinalSegunUsuario;
                         var valoresAceptados = /^[0-9]+$/;
                             if (dato_a_comprobar.match(valoresAceptados)){
@@ -208,7 +252,6 @@
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide()
             $('.modal-title').text('Caja Inicial')
         }else if(id == 2){
             $('#id').hide()
@@ -220,7 +263,6 @@
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Ventas Diarias')
         }else if(id == 3){
             $('#id').hide()
@@ -232,7 +274,6 @@
             $('#modalCobros').show()
             $('#modalIngresos').hide()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Cobros de Cuenta Corriente')
         }else if(id == 4){
             $('#id').hide()
@@ -244,9 +285,8 @@
             $('#modalCobros').hide()
             $('#modalIngresos').show()
             $('#modalEgresos').hide()
-            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Otros Ingresos')
-        }else if(id == 5){
+        }else {
             $('#id').hide()
             $('#importe').hide()
             $('#labelImporte').hide()
@@ -256,22 +296,23 @@
             $('#modalCobros').hide()
             $('#modalIngresos').hide()
             $('#modalEgresos').show()
-            $('#modalCajaFinal').hide()
             $('.modal-title').text('Listado de Egresos')
-        }else{
-            $('#id').hide()
-            $('#importe').hide()
-            $('#labelImporte').hide()
-            $('#btnGuardar').hide()
-            $('#modalCajaInicial').hide()
-            $('#modalVentas').hide()
-            $('#modalCobros').hide()
-            $('#modalIngresos').hide()
-            $('#modalEgresos').hide()
-            $('#modalCajaFinal').show()
-            $('.modal-title').text('Caja Final')
         }
-        $('#modalCajaRep').modal('show')
+        $('#modalCaja').modal('show')
+    }
+    function openModalCajaFinal()
+    {
+        $('#id').hide()
+        $('#importe').hide()
+        $('#labelImporte').hide()
+        $('#btnGuardar').hide()
+        $('#modalCajaInicial').hide()
+        $('#modalVentas').hide()
+        $('#modalCobros').hide()
+        $('#modalIngresos').hide()
+        $('#modalEgresos').hide()
+        $('.modal-title').text('Caja Final')
+        $('#modalCajaFinal').modal('show')
     }
     window.onload = function() {
         if($('#caja_abierta').val() == 0){   

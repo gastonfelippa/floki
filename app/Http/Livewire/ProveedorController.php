@@ -219,30 +219,30 @@ class ProveedorController extends Component
                 }   
                 if($this->selected_id <= 0) {
                     Proveedor::create([
-                        'nombre_empresa' => strtoupper($this->nombre_empresa),            
+                        'nombre_empresa' => mb_strtoupper($this->nombre_empresa),            
                         'tel_empresa' => $this->tel_empresa,      
                         'condiva_id' => $this->condIvaId,      
                         'cuit' => $this->cuit,            
                         'calle' => ucwords($this->calle),            
                         'numero' => $this->numero,            
                         'localidad_id' => $this->localidad,            
-                        'nombre_contacto' => strtoupper($this->nombre_contacto),            
-                        'apellido_contacto' => strtoupper($this->apellido_contacto),            
+                        'nombre_contacto' => mb_strtoupper($this->nombre_contacto),            
+                        'apellido_contacto' => mb_strtoupper($this->apellido_contacto),            
                         'tel_contacto' => $this->tel_contacto,      
                         'comercio_id' => $this->comercioId            
                     ]);
                 }else {   
                     $record = Proveedor::find($this->selected_id);
                     $record->update([
-                        'nombre_empresa' => strtoupper($this->nombre_empresa),            
+                        'nombre_empresa' => mb_strtoupper($this->nombre_empresa),            
                         'tel_empresa' => $this->tel_empresa,      
                         'condiva_id' => $this->condIvaId,      
                         'cuit' => $this->cuit,            
                         'calle' => ucwords($this->calle),            
                         'numero' => $this->numero,            
                         'localidad_id' => $this->localidad,            
-                        'nombre_contacto' => strtoupper($this->nombre_contacto),            
-                        'apellido_contacto' => strtoupper($this->apellido_contacto),            
+                        'nombre_contacto' => mb_strtoupper($this->nombre_contacto),            
+                        'apellido_contacto' => mb_strtoupper($this->apellido_contacto),            
                         'tel_contacto' => $this->tel_contacto  
                     ]);
                     $this->action = 1;              

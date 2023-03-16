@@ -2,7 +2,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title">Agregar Consignatario</h5>
+            <h5 class="modal-title">Agregar {{$cli_consig_sing}}</h5>
         </div>       
         <div class="modal-body">
             <div class="widget-content-area">

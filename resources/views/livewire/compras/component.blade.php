@@ -1,159 +1,173 @@
 <div class="row layout-top-spacing justify-content-center">
     @if($action == 1)
-        <div class="col-md-12 col-lg-6 layout-spacing"> 		
-            <div class="widget-content-area br-4">
-                <div class="widget-one widget-h">
-                    <div class="row">
-                        <div class="col-md-6 text-left">
-                            <h5>Factura: '{{$letra}}' {{str_pad($sucursal, 4, '0', STR_PAD_LEFT)}}-{{str_pad($numFact, 8, '0', STR_PAD_LEFT)}}</h5>  
-                            <h6>Fecha: {{$fecha}}</h6>  
-                            <h6>Proveedor: {{$nombreProveedor}}</h6>  
-                        </div>
-                        <div class="col-md-6 text-center">
-                            <h3 class="bg-danger" style="border-radius: 5px;">Total : $ {{number_format($total,2,',','.')}}</h3> 
-                            <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
-                                @if($total > 0)                             
-                                    <button type="button" onclick="openModal({{$factura_id}})"
-                                        class="btn btn-dark" enabled>
-                                        Modificar Encabezado                                         
-                                    </button>
-                                    <button type="button" onclick="Cobrar(0,1)" 
-                                        class="btn btn-primary" enabled>
-                                        Pagar   
-                                    </button>
-                                    <button type="button" onclick="AnularFactura({{$factura_id}})" 
-                                        class="btn btn-info" enabled>
-                                        Anular Factura  
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>     
-                    @if($mostrar_datos == 1)
-                        <div class="row mt-2">
-                            <div class="col-7">
-                                <h6>Proveedor:  {{$encabezado[0]->nombre_empresa}}</h6>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-7">
-                                <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}} 
-                                            - {{$encabezado[0]->descripcion}}</h6>   
-                            </div>
-                        </div>   
-                    @endif
-                    @include('common.alerts')
-                    <div class="table-responsive scroll">
-                        <table class="table table-hover table-checkable table-sm mb-4">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">CANTIDAD</th>
-                                    <th class="text-center">DESCRIPCIÓN</th>
-                                    <th class="text-center">PRECIO UNITARIO</th>
-                                    <th class="text-center">IMPORTE</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($info as $r)
-                                <tr>
-                                    <td class="text-center">{{number_format($r->cantidad,2)}}</td>
-                                    <td class="text-left">{{$r->producto}}</td>
-                                    <td class="text-right">{{$r->precio}}</td>
-                                    <td class="text-right">{{number_format($r->importe,2)}}</td>
-                                    <td class="text-center">
-                                        <ul class="table-controls">
-                                            <li>
-                                                <a href="javascript:void(0);" wire:click="edit({{$r->id}},{{$r->es_producto}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);"          		
-                                                onclick="Confirm('{{$r->id}}','{{$r->es_producto}}')"
-                                                data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>                   
+    <div class="col-md-12 col-lg-6 layout-spacing"> 		
+        <div class="widget-content-area br-4">
+            <div class="widget-one widget-h">
+                <div class="row">
+                    <div class="col-md-6 text-left">
+                        <h5>Factura: '{{$letra}}' {{str_pad($sucursal, 4, '0', STR_PAD_LEFT)}}-{{str_pad($numFact, 8, '0', STR_PAD_LEFT)}}</h5>  
+                        <h6>Fecha: {{$fecha}}</h6>  
+                        <h6>Proveedor: {{$nombreProveedor}}</h6>  
                     </div>
-                </div>			
-            </div>
+                    <div class="col-md-6 text-center">
+                        <h3 class="bg-danger" style="border-radius: 5px;">Total : $ {{number_format($total,2,',','.')}}</h3> 
+                        <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
+                            @if($total > 0)                             
+                                <button type="button" onclick="openModal({{$factura_id}})"
+                                    class="btn btn-dark" enabled>
+                                    Modificar Encabezado                                         
+                                </button>
+                                <button type="button" onclick="Cobrar(0,1)" 
+                                    class="btn btn-primary" enabled>
+                                    Pagar   
+                                </button>
+                                <button type="button" onclick="AnularFactura({{$factura_id}})" 
+                                    class="btn btn-info" enabled>
+                                    Anular Factura  
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>     
+                @if($mostrar_datos == 1)
+                    <div class="row mt-2">
+                        <div class="col-7">
+                            <h6>Proveedor:  {{$encabezado[0]->nombre_empresa}}</h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-7">
+                            <h6>Dirección:  {{$encabezado[0]->calle}} {{$encabezado[0]->numero}} 
+                                        - {{$encabezado[0]->descripcion}}</h6>   
+                        </div>
+                    </div>   
+                @endif
+                @include('common.alerts')
+                <div class="table-responsive scroll">
+                    <table class="table table-hover table-checkable table-sm mb-4">
+                        <thead>
+                            <tr>
+                                <th class="text-center">CANTIDAD</th>
+                                <th class="text-center">DESCRIPCIÓN</th>
+                                <th class="text-center">PRECIO UNITARIO</th>
+                                <th class="text-center">IMPORTE</th>
+                                <th class="text-center">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($info as $r)
+                            <tr>
+                                <td class="text-center">{{number_format($r->cantidad,2)}}</td>
+                                <td class="text-left">{{$r->producto}}</td>
+                                <td class="text-right">{{$r->precio}}</td>
+                                <td class="text-right">{{number_format($r->importe,2)}}</td>
+                                <td class="text-center">
+                                    <ul class="table-controls">
+                                        <li>
+                                            <a href="javascript:void(0);" wire:click="edit({{$r->id}},{{$r->es_producto}})" data-toggle="tooltip" data-placement="top" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
+                                        </li>
+                                        <li>
+                                            <a href="javascript:void(0);"          		
+                                            onclick="Confirm('{{$r->id}}','{{$r->es_producto}}')"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>                   
+                </div>
+            </div>			
         </div>
-        <div class="col-md-12 col-lg-6 layout-spacing">
+    </div>
+    <div class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
             <div class="widget-one">
                 @if($selected_id > 0)
                     <h5><b>Editar Item</b></h5>
                 @else
-                    <h5><b>Agregar Item</b></h5>
+                <div class="row justify-content-between">
+                    <div class="col-4">
+                        <h5><b>Agregar Item</b></h5>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-danger btn-sm" onclick="agregarProducto()">Agregar Producto</button>
+                    </div>
+                </div>
                 @endif 
-                <form>
-                    @include('common.messages')    
-                    <div class="row">
-                        <div class="form-group col-sm-12 col-md-2">
-                            <label>Cantidad</label>
-                            <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
-                                class="form-control form-control-sm text-center">
-                        </div> 
-                            <div class="form-group col-sm-12 col-md-2">
-                                <label >Código</label>
-                                <input id="barcode" wire:model.lazy="barcode"  type="text" 
-                                    onblur="buscarPorCodigo()" class="form-control form-control-sm">
-                            </div>
-                        <div class="form-group col-sm-12 col-md-5">
-                            @if($es_producto == 1)
-                                <label>Producto</label>
-                                @if($selected_id > 0)
-                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm" disabled>
-                                    @foreach($productos as $t)    
-                                        <option value="{{ $t->id }}">{{$t->descripcion}}</option>
-                                    @endforeach 
-                                    </select>
-                                @else
-                                    <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm">
-                                        <option value="Elegir" >Elegir</option>
-                                        @foreach($productos as $t)
+                @include('common.messages')
+                <div class="row mt-1">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Cantidad</label>
+                        <input id="cantidad" wire:model.lazy="cantidad" onclick.keydown.enter="setfocus('barcode')" type="text" 
+                            class="form-control form-control-sm text-center">
+                    </div> 
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label >Código</label>
+                        <input id="barcode" wire:model.lazy="barcode"  type="text" 
+                            onblur="buscarPorCodigo()" class="form-control form-control-sm">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        @if($es_producto == 1)
+                            <label>Producto</label>
+                            @if($selected_id > 0)
+                                <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm" disabled>
+                                @foreach($productos as $t)    
+                                    <option value="{{ $t->id }}">{{$t->descripcion}}</option>
+                                @endforeach 
+                                </select>
+                            @else
+                                <select wire:model="producto" onclick="ocultar_sp()" class="form-control form-control-sm">
+                                    <option value="Elegir" >Elegir</option>
+                                    @foreach($productos as $t)
+                                        <option value="{{ $t->id }}">{{$t->descripcion}}</option>                                         
+                                    @endforeach   
+                                </select>			               
+                            @endif 
+                            <input type="hidden" id="costo_actual" wire:model="costo_actual">	
+                        @else                            
+                            <label>Subproducto</label>
+                            @if($selected_id > 0)
+                                <select wire:model="subproducto" class="form-control form-control-sm" disabled>
+                                    @foreach($subproductos as $t)
+                                        <option value="{{ $t->id }}">{{$t->descripcion}}</option> 
+                                    @endforeach   
+                                </select>  
+                            @else
+                                <select wire:model="subproducto" class="form-control form-control-sm">
+                                    <option value="Elegir" >Elegir</option>
+                                        @foreach($subproductos as $t)
                                         <option value="{{ $t->id }}">
                                             {{$t->descripcion}}                         
                                         </option> 
                                         @endforeach   
-                                    </select>			               
-                                @endif 			               
-                            @else                            
-                                <label>Subproducto</label>
-                                @if($selected_id > 0)
-                                    <select wire:model="subproducto" class="form-control form-control-sm" disabled>
-                                        @foreach($subproductos as $t)
-                                            <option value="{{ $t->id }}">{{$t->descripcion}}</option> 
-                                        @endforeach   
-                                    </select>  
-                                @else
-                                    <select wire:model="subproducto" class="form-control form-control-sm">
-                                        <option value="Elegir" >Elegir</option>
-                                            @foreach($subproductos as $t)
-                                            <option value="{{ $t->id }}">
-                                                {{$t->descripcion}}                         
-                                            </option> 
-                                            @endforeach   
-                                    </select> 
-                                @endif 
+                                </select> 
                             @endif 
-                        </div>            
-                        <div class="form-group col-sm-12 col-md-3">
-                            <label>P/Unitario</label>
-                            <input wire:model.lazy="precio" type="text" class="form-control form-control-sm text-right">
-                        </div>
+                        @endif 
+                    </div>            
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label>P/Unitario</label>
+                        <input id="precio" wire:model.lazy="precio" onblur="precioBajo()" type="text" class="form-control form-control-sm text-right">
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">Cancelar</button>
-                            <button type="button" wire:click="StoreOrUpdateButton(0)" class="btn btn-primary">
-                            Guardar</button>    
-                        </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5 col-sm-12 mb-2">
+                        <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">Cancelar</button>
+                        <button type="button" wire:click="calcularPrecioVenta()" class="btn btn-primary">
+                        Guardar</button>    
                     </div>
-                </form>
+                    <div class="col-md-7 col-sm-12">
+                        @if($cambiar_precios == 'no')
+                            <p><b>(Al Guardar NO SE MODIFICARÁ NINGÚN PRECIO... ni de Costo, ni Sugeridos ni de Listas)</b>
+                        @elseif($cambiar_precios == 'solo_costos')
+                            <p><b>(Al Guardar SOLO SE ACTUALIZARÁN el Precio de Costo y los Precios Sugeridos)</b>
+                        @else
+                            <p><b>(Al Guardar SE ACTUALIZARÁN TODOS LOS PRECIOS... el de Costo, los Sugeridos y los de Lista)</b>
+                        @endif
+                        <span class="badge bg-danger" onClick="opcionCambiarPrecios()">Cambiar Opción de Guardado</span></p>
+                    </div>
+                </div>
             </div>
         </div>
         <input type="hidden" id="action" value="{{$action}}"> 
@@ -174,6 +188,12 @@
 </div>
 
 <style type="text/css" scoped>
+    thead tr th {     /* fija la cabecera de la tabla */
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
     .widget-h{
         position: relative;
         height:375px;
@@ -209,7 +229,7 @@
     }
 </style>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 <script type="text/javascript">
  	function Confirm(id, es_producto)
@@ -228,7 +248,6 @@
             },
             function() {
                 window.livewire.emit('deleteRow', id, es_producto)    
-                toastr.success('info', 'Registro eliminado con éxito')
                 swal.close()   
             })
     }
@@ -255,6 +274,44 @@
                 }
             }
         })
+    }
+    function precioBajo()
+    {
+        const costo_actual = new Number($('[id="costo_actual"]').val());
+        const precio = new Number($('[id="precio"]').val());
+        if(precio > 0){
+            if(costo_actual > precio){
+                Swal.fire({
+                    position: 'center',
+                    icon: 'warning',
+                    title: 'Atención!!  Verificar la Opción de Guardado...',
+                    text: 'El Precio del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
+                    showConfirmButton: true
+                })
+            } 
+        }       
+    }
+    function opcionCambiarPrecios() 
+    {          
+        Swal.fire({
+            icon: 'question',
+            title: 'Elige una opción de Guardado...',
+            showDenyButton: true,
+            confirmButtonColor: '#3085d6',
+            denyButtonColor: '#d33',
+            confirmButtonText: 'Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos',
+            denyButtonText: 'Deseo modificar tanto los Precios de Costo como así también los de Venta Sugeridos y los de Lista',
+            showCancelButton: true,
+            cancelButtonText: 'NO DESEO MODIFICAR NINGÚN PRECIO... ni de Costo, ni Sugeridos ni de Lista'
+        }).then((result) => {
+            if (result.isConfirmed) { 
+                window.livewire.emit('opcionCambiarPrecios', 'solo_costos');
+            } else if (result.isDenied) {
+                window.livewire.emit('opcionCambiarPrecios', 'cambiar_todo');
+            } else if (result.dismiss == 'cancel') {
+                window.livewire.emit('opcionCambiarPrecios', 'no');
+            }
+        });        
     }
     function buscarPorCodigo()
     {
@@ -333,7 +390,6 @@
     } 
     function openModal(id)
     {
-
         $('#facturaId').val(id)
         $('#facturaId').hide()
         if($('#inicio_factura').val()){
@@ -409,6 +465,10 @@
         }		
 		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
 	}
+    function agregarProducto()
+    {
+        window.location.href="{{ url('productos') }}";
+    }
     /////código para prolongar la session
     var keep_alive = false;
     $(document).bind("click keydown keyup mousemove", function() {
@@ -419,7 +479,7 @@
             pingServer();
             keep_alive = false;
         }
-    }, 1200000 );
+    }, 120000 );
     function pingServer() {
         $.ajax('/keepAlive');
     }
@@ -446,6 +506,15 @@
                 timer: 2500
             })
 		})
+        Livewire.on('item_existente',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'El producto que deseas cargar ya existe en el detalle!!',
+                text: 'Para agregarlo deberás modificar el mismo...',
+                showConfirmButton: true
+            })
+		}) 
   
     } 
 </script>

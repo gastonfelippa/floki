@@ -9,7 +9,9 @@
         <div class="modal-body">
             <div class="widget-content-area">
                 <div class="widget-one">
-                    <input class="col-12" id="texto_comanda" disabled>
+                    <!-- <input id="cantidad" type="number" onchange="grabarCantidad()" value="{{$cantidad}}" style="width: 50px;" class="text-center"> -->
+                    <input id="cantidad" type="number" value="{{$cantidad}}" style="width: 50px;" class="text-center">
+                    <input class="col-12 mt-2" id="texto_comanda" disabled>
                     <input class="col-12 mt-2" onchange="agregarComentario()" id="texto_comentario" placeholder="Ingresa un breve comentario...">
                     
                     <input type="hidden" id="texto_base" value="{{$texto_base}}">
@@ -17,8 +19,7 @@
                     <input type="hidden" id="tiene_guarnicion" value="{{$guarnicion}}">  
                     <input type="hidden" id="texto_salsa">  
                     <input type="hidden" id="texto_guarnicion"> 
-                    
-
+                    <input type="hidden" id="stock" value="{{$stock}}">  
                     <hr>
                     <div id="divSalsas" class="col-sm-12 ">
                         <div class="widget-one scrollc"> 
@@ -46,7 +47,7 @@
             </div>
         </div>
         <div class="modal-footer">
-      
+     
         </div>
     </div>
 </div>

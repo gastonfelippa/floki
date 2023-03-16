@@ -12,9 +12,11 @@ use App\Models\CtaCteClub;
 use App\Models\Debito;
 use App\Models\DebitoGenerado;
 use App\Models\Detfactura;
+use App\Models\Detpedido;
 use App\Models\DetRemito;
 use App\Models\Factura;
 use App\Models\Localidad;
+use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\Subproducto;
 use App\Models\Recibo;
@@ -149,8 +151,28 @@ class PdfController extends Controller
             $info->fecha = $i->fecha;            
             $info->num_factura =  $i->num_factura;          
             $info->importe =  $i->importe;  
+        };
+
+        $valor = $info[0]->total;
+        $desc_moneda = 'pesos'; 
+        $sep = 'con';
+        $desc_decimal = 'centavos';
+
+        $arr = explode(".", $valor);
+        $entero = $arr[0];
+        if (isset($arr[1])) {
+            $decimos = strlen($arr[1]) == 1 ? $arr[1] . '0' : $arr[1];
+        }        
+        $fmt = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        if (is_array($arr)) {
+            $num_word = ($arr[0]>=1000000) ? "{$fmt->format($entero)} de $desc_moneda" : "{$fmt->format($entero)} $desc_moneda";
+            if (isset($decimos) && $decimos > 0) {
+                $num_word .= " $sep {$fmt->format($decimos)} $desc_decimal";
+            }
         }
-        $pdf = PDF::loadView('livewire.pdf.pdfRecibos', compact('info'));
+        $numeroEnLetra = $num_word;
+
+        $pdf = PDF::loadView('livewire.pdf.pdfRecibos', compact('info','numeroEnLetra'));
         return $pdf->stream('facturas.pdf');
     }
     public function PDFFactDel($id) 
@@ -263,50 +285,50 @@ class PdfController extends Controller
                         ->where('viandas.c_lunes_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_lunes_m as cantidad','viandas.h_lunes_m as hora',
-                                 'c.apellido', 'c.nombre')->orderBy('viandas.h_lunes_m')->get();                
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_lunes_m')->get();                
             break;
         case '2':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('viandas.c_martes_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_martes_m as cantidad','viandas.h_martes_m as hora',
-                                 'c.apellido', 'c.nombre')->get(); 
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_martes_m')->get(); 
             break;
         case '3':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('viandas.c_miercoles_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_miercoles_m as cantidad','viandas.h_miercoles_m as hora',
-                                 'c.apellido', 'c.nombre')->get(); 
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_miercoles_m')->get(); 
             break;
         case '4':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('viandas.c_jueves_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_jueves_m as cantidad','viandas.h_jueves_m as hora',
-                                 'c.apellido', 'c.nombre')->orderBy('h_jueves_m')->get(); 
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('h_jueves_m')->get(); 
             break;
         case '5':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('viandas.c_viernes_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_viernes_m as cantidad','viandas.h_viernes_m as hora', 
-                                 'c.apellido', 'c.nombre')->get(); 
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_viernes_m')->get(); 
             break;
         case '6':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('c.vianda', '1')
                         ->where('viandas.c_sabado_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
-                        ->select('c_sabado_m as cantidad','h_sabado_m as hora','c.apellido', 'c.nombre')
-                        ->orderBy('h_sabado_m')->get();       
+                        ->select('viandas.c_sabado_m as cantidad','viandas.h_sabado_m as hora',
+                                'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_sabado_m')->get();       
             break;
         case '7':
                 $info = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
                         ->where('viandas.c_domingo_m', '<>', '')
                         ->where('c.comercio_id', $this->comercioId)
                         ->select('viandas.c_domingo_m as cantidad','viandas.h_domingo_m as hora',
-                                 'c.apellido', 'c.nombre')->get(); 
+                                 'c.apellido', 'c.nombre', 'viandas.comentarios')->orderBy('viandas.h_domingo_m')->get(); 
             break;
             default:
         }
@@ -487,6 +509,54 @@ class PdfController extends Controller
                 ->where('comercio_id', $this->comercioId)->orderBy('codigo', 'asc')->get();
         }
         $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
+        return $pdf->stream();
+    }
+    public function PDFpedidos2($pedidoId)
+    {
+        $this->comercioId = session('idComercio');
+        $info = Pedido::join('proveedores as p', 'p.id', 'pedidos.proveedor_id')
+            ->where('pedidos.estado', 'cargado')
+            ->where('pedidos.comercio_id', $this->comercioId)
+            ->select('pedidos.id', 'p.nombre_empresa')->orderBy('pedidos.updated_at', 'desc')->get();
+   
+        foreach($info as $i) { 
+            $infoDetPedido = Detpedido::join('productos as p','p.id','detpedidos.producto_id')
+                ->join('pedidos as pe', 'pe.id', 'detpedidos.pedido_id')
+                ->join('proveedores as pr', 'pr.id', 'pe.proveedor_id')
+                ->where('pe.id', $i->id)
+                ->where('pe.comercio_id', $this->comercioId)
+                ->select('detpedidos.id','detpedidos.cantidad', 'p.descripcion as producto', 
+                    'p.precio_costo', 'pr.nombre_empresa')
+                ->orderBy('detpedidos.id')->get(); 
+        }  
+        $pdf = PDF::loadView('livewire.pdf.pdfpedidos', compact('info','infoDetPedido'));
+        return $pdf->stream();
+         
+      
+    }
+    public function PDFpedidos($pedidoId)
+    {
+        $this->comercioId = session('idComercio');
+        $info = Pedido::join('proveedores as p', 'p.id', 'pedidos.proveedor_id')
+            ->where('pedidos.estado', 'cargado')
+            ->where('pedidos.comercio_id', $this->comercioId)
+            ->select('pedidos.*', 'p.nombre_empresa')->orderBy('pedidos.updated_at', 'desc')->get();
+        
+        $infoDetPedido = Detpedido::join('productos as p','p.id','detpedidos.producto_id')
+            ->join('pedidos as pe','pe.id','detpedidos.pedido_id')
+            ->join('proveedores as pr','pr.id','pe.proveedor_id')
+            ->where('detpedidos.pedido_id', $pedidoId)
+            ->select('detpedidos.*', 'p.descripcion as producto', 'p.precio_costo', 
+                'pr.nombre_empresa', DB::RAW("'' as importe"))
+            ->orderBy('detpedidos.id')->get(); 
+
+        $empresa = $infoDetPedido[0]->nombre_empresa;
+        $total = 0;
+        foreach ($infoDetPedido as $i){
+            $i->importe=$i->cantidad * $i->precio_costo;
+            $total += $i->importe;
+        }
+        $pdf = PDF::loadView('livewire.pdf.pdfpedidos', compact('info', 'infoDetPedido', 'empresa', 'total'));
         return $pdf->stream();
     }
 }

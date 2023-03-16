@@ -32,6 +32,7 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+    
     public function index()
     {
         if(Auth()->user()->id != 1)
@@ -56,12 +57,12 @@ class HomeController extends Controller
             session(['modDelivery'       => $modulos->modDelivery]);
             session(['modConsignaciones' => $modulos->modConsignaciones]);
             session(['modClubes'         => $modulos->modClubes]);
-            $modViandas        = session('modViandas');
-            $this->modComandas = session('modComandas');
-            $modDelivery       = session('modDelivery');
+            $modViandas              = session('modViandas');
+            $this->modComandas       = session('modComandas');
+            $modDelivery             = session('modDelivery');
             $this->modConsignaciones = session('modConsignaciones');
-            $this->modClubes = session('modClubes');
-    
+            $this->modClubes         = session('modClubes');
+   
             //averiguamos la hora de apertura del comercio para comprobar el arqueo
             $horaApertura = Comercio::select('hora_apertura')
                 ->where('id', $this->comercioId)->first();
@@ -78,26 +79,28 @@ class HomeController extends Controller
                 $hoy = $hoy_solo_fecha . ' 23:59:59';
                 //comparamos las dos fecha/hora
                 $diff = $date->diffInDays($hoy);
- 
                 $hora_actual = Carbon::now()->format('H:i');
                 //si estamos en el mismo día 'o' es el día siguiente 
                 //y 'no' es más tarde que la hora de apertura del comercio
+
                 if($diff == 0 || $diff <= $this->periodoArqueo && $hora_actual < '23:59:59' 
-                              || $diff <= $this->periodoArqueo && $hora_actual <= $horaApertura->hora_apertura){
+                    || $diff <= $this->periodoArqueo && $hora_actual <= $horaApertura->hora_apertura){
                     session(['estadoArqueoGral' => 'activo']); 
                 }else{    //sino, debemos hacer el arqueo 'si o si', e igualamos la variable a cero
                     session(['estadoArqueoGral' => 'pendiente']);
                 }     
             }else{
                 session(['idArqueoGral' => -1]);
-                session(['estadoArqueoGral' => 'no existe']); //si no existe ningún arqueo para este comercio, 
-                    //igualamos la variable a 'no_existe', para indicar que hay iniciar el arqueo al
-                    //inicializar alguna Caja. 
+                session(['estadoArqueoGral' => 'no existe']); 
+                    //si no existe ningún arqueo abierto para este comercio, 
+                    //igualamos la variable a 'no_existe', para indicar que hay iniciar 
+                    //el arqueo al inicializar alguna Caja. 
             }               
             $this->estadoAqueoGral = session('estadoArqueoGral');
 
-            //verifica si hay un arqueo cerrado con la misma fecha que hoy
-            //en tal caso, no permitimos abrir otro hasta el día siguiente, después del horario de apertura del local
+            //verifica si hay un arqueo cerrado con la misma fecha que hoy,
+            //en tal caso, no permitimos abrir otro hasta el día siguiente, 
+            //después del horario de apertura del local
             if($this->estadoAqueoGral == 'no existe'){
                 $idArqueoGral = ArqueoGral::where('estado', '0')
                     ->where('comercio_id', $this->comercioId)->orderBy('created_at', 'desc')->get();
@@ -107,7 +110,6 @@ class HomeController extends Controller
                     $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d');
                     $hoy = $hoy_solo_fecha . ' 23:59:59';
                     $diff = $date->diffInDays($hoy);
-                    $diff = $date->diffInDays($hoy);
                     $hora_actual = Carbon::now()->format('H:i');
                     if($diff == 0 || $diff == 1 && $hora_actual <= $horaApertura->hora_apertura){
                         session(['estadoArqueoGral' => 'ya existe']);
@@ -116,11 +118,7 @@ class HomeController extends Controller
                 }
             }
 
-            //averiguamos el tipo de comercio para derivarlo al template que le corresponda
-            $tipo = Comercio::select('tipo_id')
-            ->where('id', $this->comercioId)->first();
-
-            //verificaciones de planes
+            //verificamos el estado del plan del comercio y lo derivamos de acuerdo a su Tipo
             $fecha_actual = Carbon::now();      
             $estado = UsuarioComercioPlanes::select('*')
                 ->where('comercio_id', $this->comercioId)
@@ -145,7 +143,7 @@ class HomeController extends Controller
             {
                 if($this->estadoAqueoGral == 'pendiente') return view('livewire.admin.mensajes.forzar_arqueo');
                 else{
-                    if ($this->comercioTipo == 10) return view('home-club'); else return view('home');                   
+                    if ($this->comercioTipo == 12) return view('home-club'); else return view('home');                   
                 }
             }              
             
@@ -161,6 +159,6 @@ class HomeController extends Controller
     }
     public function notificado()
     {
-        if (session('tipoComercio') == 10) return view('home-club'); else return view('notify');
+        if ($this->comercioTipo == 12) return view('home-club'); else return view('notify');
     }
 }

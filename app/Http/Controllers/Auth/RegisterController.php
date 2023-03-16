@@ -103,7 +103,7 @@ class RegisterController extends Controller
         DB::begintransaction();                 //iniciar transacción para grabar
         try{    
             $comercio = Comercio::create([
-                'nombre'          => strtoupper($data['nombreComercio']),            
+                'nombre'          => mb_strtoupper($data['nombreComercio']),            
                 'tipo_id'         => $data['tipo'],
                 'hora_apertura'   => '08:00:00',
                 'telefono'        => null,
@@ -161,7 +161,7 @@ class RegisterController extends Controller
             ]); 
             
             //asigno los módulos básicos
-            if($data['tipo'] == "10"){
+            if($data['tipo'] == "12"){       //si es un Club
                 $modulos = Modulo::create([
                     'modViandas'        => '0',
                     'modComandas'       => '0',
@@ -170,9 +170,17 @@ class RegisterController extends Controller
                     'modClubes'         => '1',
                     'comercio_id'       => $this->comercioId
                 ]);
-            }else{
+            }elseif($data['tipo'] == "10" || $data['tipo'] == "11"){  //si es una tienda o una consignación
                 $modulos = Modulo::create([
                     'modViandas'        => '0',
+                    'modComandas'       => '0',
+                    'modDelivery'       => '0',
+                    'modConsignaciones' => '1',
+                    'comercio_id'       => $this->comercioId
+                ]);
+            }else{
+                $modulos = Modulo::create([
+                    'modViandas'        => '1',
                     'modComandas'       => '1',
                     'modDelivery'       => '1',
                     'modConsignaciones' => '0',
@@ -180,7 +188,7 @@ class RegisterController extends Controller
                 ]);
             }
 
-            if($data['tipo'] == "10"){  //si es un club, creo el rol Cobrador
+            if($data['tipo'] == "12"){  //si es un club, creo el rol Cobrador
                 $rolAdmin = Role::create([
                     'name'        => 'Cobrador'. $this->comercioId,
                     'alias'       => 'Cobrador',

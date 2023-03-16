@@ -94,7 +94,7 @@ class PlanesController extends Component
         if($this->selected_id <= 0) {
             //creamos el registro
             $plan = Plan::create([
-                'descripcion' => strtoupper($this->descripcion),            
+                'descripcion' => mb_strtoupper($this->descripcion),            
                 'precio' => $this->precio,
                 'duracion' => $this->duracion,           
                 'estado' => $this->estado         
@@ -106,7 +106,7 @@ class PlanesController extends Component
             $record = Plan::find($this->selected_id);
             //actualizamos el registro
             $record->update([
-            'descripcion' => strtoupper($this->descripcion),
+            'descripcion' => mb_strtoupper($this->descripcion),
             'precio' => $this->precio,
             'duracion' => $this->duracion,           
             'estado' => $this->estado
