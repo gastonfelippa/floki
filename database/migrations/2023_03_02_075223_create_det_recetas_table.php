@@ -15,15 +15,17 @@ class CreateDetRecetasTable extends Migration
     {
         Schema::create('det_recetas', function (Blueprint $table) {
             $table->id();
-
+            
             $table->unsignedBigInteger('receta_id');
             $table->foreign('receta_id')->references('id')->on('recetas');
-
+            
             $table->decimal('cantidad',10,3);
             $table->enum('unidad_de_medida', ['Un','Kg','Lt', 'Mt']);
-
+            
             $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');
+            
+            $table->enum('principal', ['si','no'])->default('no');
             
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');
