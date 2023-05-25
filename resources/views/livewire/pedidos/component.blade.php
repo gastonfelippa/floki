@@ -270,7 +270,7 @@
 		Livewire.on('productosPedido',(cantidad,producto,proveedor,fecha,estado)=>{
 			Swal.fire({
 			title: 'El producto ' + producto + ' ya fue pedido!',
-			text: 'Se pidieron ' + cantidad + ' unidades a ' + proveedor + ' el día ' + fecha,
+			text: 'Se pidieron ' + cantidad + ' unidades/kg a ' + proveedor + ' el día ' + fecha,
 			icon: 'question',
 			showDenyButton: true,
 			confirmButtonText: `Confirmar item pedido`,

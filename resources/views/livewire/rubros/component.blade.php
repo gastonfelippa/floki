@@ -40,8 +40,8 @@
 	@else
 	@can('Categorias_create')
 	@include('livewire.rubros.form')		
-	@endif
 	@endcan
+	@endif
 </div>
 
 <style type="text/css" scoped>

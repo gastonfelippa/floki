@@ -267,16 +267,19 @@
 		</div>
 	</div>
 @elseif($impPorHoja == '4' && $impDuplicado == 0)
-	<div class="col-5 offset-3">
+	<div class="col-7 offset-2">
 		<div>			
-			<b>Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Original<br>                       
+			<b style="font-size:14px">Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Original<br>                       
 			@if($cliente)
-			<b>Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
-			<b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
+			<b style="font-size:14px">Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
+			<b style="font-size:14px">Dir:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
 			@endif
-			<b>Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
+			<b style="font-size:14px">Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
 			@if($repartidor)
-			<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			<b style="font-size:14px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			@endif	
+			@if($mesa)
+			<br><b style="font-size:14px">Mesa N°:</b> {{$mesa}}&nbsp;&nbsp;&nbsp;&nbsp;<b style="font-size:14px">Mozo N°:</b> {{$mozo}}<br>
 			@endif	
 		</div>
 		<div>
@@ -310,16 +313,19 @@
 		</div>
 	</div>
 @elseif($impPorHoja == 4 && $impDuplicado == '1')
-	<div class="col-5 offset-3">
+	<div class="col-7 offset-2">
 		<div>			
-			<b>Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Original<br>                       
+			<b style="font-size:14px">Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Original<br>                       
 			@if($cliente)
-			<b>Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
-			<b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
+			<b style="font-size:14px">Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
+			<b style="font-size:14px">Dir:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
 			@endif
-			<b>Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
+			<b style="font-size:14px">Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
 			@if($repartidor)
-			<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			<b style="font-size:14px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			@endif	
+			@if($mesa)
+			<br><b style="font-size:14px">Mesa N°:</b> {{$mesa}}&nbsp;&nbsp;&nbsp;&nbsp;<b style="font-size:14px">Mozo N°:</b> {{$mozo}}<br>
 			@endif	
 		</div>
 		<div>
@@ -350,19 +356,22 @@
 		</div>
 		<div class="text-center font-italic" style="font-size:14px">
 			<p>{{$leyendaFactura}}</p>
-		</div>	
+		</div>
 		<!-- .....................duplicado................ -->
 		<div class="pagebreak"> </div>
 		<!-- .............................................. -->
 		<div>			
-			<b>Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Duplicado<br>                       
+			<b style="font-size:14px">Comprobante: </b>F - {{str_pad($info[0]->numero, 6, '0', STR_PAD_LEFT)}} - Duplicado<br>                       
 			@if($cliente)
-			<b>Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
-			<b>Dirección:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
+			<b style="font-size:14px">Cliente:</b>  {{$info[0]->apeCli}} {{$info[0]->nomCli}} <br> 
+			<b style="font-size:14px">Dir:</b>  {{$info[0]->calleCli}} {{$info[0]->numCli}} - {{$info[0]->localidad}}<br> 
 			@endif
-			<b>Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
+			<b style="font-size:14px">Fecha:</b>  {{\Carbon\Carbon::parse($info[0]->created_at)->format('d-m-Y')}}			
 			@if($repartidor)
-			<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			<b style="font-size:14px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rep:</b> {{$info[0]->repartidor_id}}<br>
+			@endif	
+			@if($mesa)
+			<br><b style="font-size:14px">Mesa N°:</b> {{$mesa}}&nbsp;&nbsp;&nbsp;&nbsp;<b style="font-size:14px">Mozo N°:</b> {{$mozo}}<br>
 			@endif	
 		</div>
 		<div>
@@ -380,8 +389,8 @@
 					<tr>
 						<td class="text-center">{{number_format($r->cantidad,2,',','.')}}</td>
 						<td class="text-left">{{$r->producto}}</td>
-						<td class="text-right">{{number_format($r->precio,2,',','.')}}</td>
-						<td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+						<td class="text-right mr-2">{{number_format($r->precio,2,',','.')}}</td>
+						<td class="text-right mr-2">{{number_format($r->importe,2,',','.')}}</td>
 					</tr>
 					@endforeach
 				</tbody>

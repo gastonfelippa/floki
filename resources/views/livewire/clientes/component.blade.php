@@ -19,11 +19,14 @@
                                 <tr>
                                     <th class="">NOMBRE</th>
                                     <th class="">DIRECCIÓN</th>
-                                    <th class="text-center">TELÉFONO</th>
+                                    <th class="text-left">TELÉFONO</th>
                                     @if($modViandas == "1")
                                         @can('Viandas_index')
                                         <th class="text-center">CLIENTE/VIANDA</th>
                                         @endcan
+                                    @endif
+                                    @if($modConsignaciones == "1")
+                                        <th class="text-left">TIPO</th>
                                     @endif
                                     @can('Clientes_edit')
                                     <th class="text-center">ACCIONES</th>
@@ -40,7 +43,7 @@
                                         <td >{{$r->apellido}} {{$r->nombre}}</td>
                                         <td>...</td>
                                     @endif
-                                    <td class="text-center">{{$r->telefono}}</td>
+                                    <td class="text-left">{{$r->telefono}}</td>
                                     @if($modViandas == "1")
                                         @can('Viandas_index')
                                         @if($r->vianda == 1)
@@ -67,6 +70,9 @@
                                             </td>
                                         @endif
                                         @endcan
+                                    @endif
+                                    @if($modConsignaciones == "1")
+                                        <td class="text-left">{{$r->tipo}}</td>
                                     @endif
                                     @if($r->esConsFinal == 0)
                                         <td class="text-center">
@@ -107,6 +113,12 @@
     margin-top: .5rem;
     overflow: auto;
 }
+thead tr th {     /* fija la cabecera de la tabla */
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 

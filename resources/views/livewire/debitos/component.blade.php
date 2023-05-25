@@ -110,7 +110,7 @@
                 text: 'Verifica la descarga del Pdf para que puedas imprimir los cupones correspondientes...',
                 showConfirmButton: true
             }),
-            window.location.href="{{url('pdfCuotaSocio')}}"
+            window.open("{{url('pdfCuotaSocio')}}","_blank");
         })
     }
 </script>

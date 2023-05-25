@@ -127,9 +127,9 @@
 </div>
 
 <script type="text/javascript">
-    window.onload = function() {
+    $(document).ready(function() {
         document.getElementById("nombre").focus();
-    }
+    });
 </script>
 
 

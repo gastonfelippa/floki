@@ -269,6 +269,7 @@
                 @endcanany
                 <!-- MESAS -->
                 @if($modComandas == "1")
+                    @can('Facturas_index')
                     <li class="menu single-menu">
                         <a href="{{ url('reservas-estado-mesas') }}" >
                             <div class="">
@@ -277,6 +278,7 @@
                             </div>                            
                        </a>                    
                     </li>
+                    @endcan
                 @endif           
                 <!-- FACTURAS -->
                 @can('Facturas_index')
@@ -289,11 +291,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </a> 
                         <ul class="collapse submenu list-unstyled" id="ventas"  data-parent="#topAccordion">
-                            @if($modComandas == "1")
-                                <li>
-                                    <a href="{{ url('abrir-mesa') }}" >FACTURA</a>
-                                </li>
-                            @else
+                            @if($modComandas != "1")
                                 <li>
                                     <a href="{{ url('facturas') }}" >FACTURA</a>
                                 </li>
@@ -487,12 +485,12 @@
     <script src="{{ asset('assets/js/app.js') }}"></script>  
     <script src="{{ asset('assets/js/custom.js') }}"></script>
     <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
-    <!-- <script src="{{ asset('plugins/notification/snackbar/snackbar.min.js') }}"></script> -->
     <script src="{{ asset('plugins/flatpickr/flatpickr.js') }}"></script>
     <script src="{{ asset('plugins/flatpickr/flatpickr_es.js') }}"></script>  
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>    
     <script src="{{ asset('assets/js/sweetalert.min.js') }}"></script>
     
+    <!-- <script src="{{ asset('plugins/notification/snackbar/snackbar.min.js') }}"></script> -->
 
     <script>
         $(document).ready(function() {

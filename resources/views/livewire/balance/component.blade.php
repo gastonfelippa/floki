@@ -10,9 +10,9 @@
                         <h3><b>Balance</b></h3>
                     </div>
                     <div class="col-8 text-center">
-                        <button type="button" wire:click="grabarEI()"  class="btn btn-dark mr-1">
+                        <!-- <button type="button" wire:click="grabarEI()"  class="btn btn-dark mr-1">
                             Grabar Existencia Inicial
-                        </button>
+                        </button> -->
                         <button type="button" wire:click="doAction(2)"  class="btn btn-dark mr-1">
                             Margen de Contribución
                         </button>
@@ -22,7 +22,7 @@
                     </div> 
                 </div>
                 <hr/>
-                <div class="row">
+                <!-- <div class="row">
                     <div class="col-sm-8 col-md-7 text-left">
                         <b>Existencia Inicial:</b>
                         <br>
@@ -159,7 +159,7 @@
                         <font size=2 color="Olive" face="Comic Sans MS,arial"> {{number_format($p_m_c,2,',','.')}} %</font>
                     </div> 
                 </div>
-                <hr/>
+                <hr/> -->
             </div>
         </div>
     </div>

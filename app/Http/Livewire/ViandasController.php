@@ -92,6 +92,7 @@ class ViandasController extends Component
             $i->importe = $i->cantidad * $i->precio_venta_l1;
             $this->cantidad_a_preparar = $this->cantidad_a_preparar + $i->cantidad;
         }
+        //dd($info);
         //treae info para la vista Facturas
         $info2 = Vianda::join('clientes as c', 'c.id', 'viandas.cliente_id')
             ->join('productos as p', 'p.id', 'viandas.producto_id')
@@ -198,7 +199,8 @@ class ViandasController extends Component
                     ]);	
                     Ctacte::create([
                         'cliente_id' => $i->cliente_id,
-                        'factura_id' => $factura->id
+                        'factura_id' => $factura->id,
+                        'estado'     => '1'
                     ]);                    
                     ViandasContado::create([             //guardamos la factura cobrada 
                         'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral
@@ -207,9 +209,7 @@ class ViandasController extends Component
                         'estado'         => 'Cta cte'
                     ]);
                     $record = Cliente::find($i->cliente_id);//marca que el cliente tiene un saldo en ctacte
-                    $record->update([
-                        'saldo' => '1'
-                    ]);               
+                    $record->update([ 'saldo' => '1' ]);               
                 }
             }
             DB::commit();
@@ -462,7 +462,8 @@ class ViandasController extends Component
                     ]);	
                     Ctacte::create([
                         'cliente_id' => $i->cliente_id,
-                        'factura_id' => $factura->id
+                        'factura_id' => $factura->id,
+                        'estado'     => '1'
                     ]);
                     ViandasContado::create([             //guardamos la factura cobrada 
                         'factura_id'     => $factura->id,   //para no repetir la acción en el mismo Arqueo Gral

@@ -1,5 +1,4 @@
 <div class="row layout-top-spacing justify-content-center"> 
-    @include('common.alerts')
     @if($action == 1)  
     <div class="col-sm-12 col-md-10 layout-spacing">             
         <div class="widget-content-area">
@@ -39,8 +38,8 @@
                         </button>
                     </div>
                 </div>
-				@else   		
-				    @include('common.inputBuscarBtnNuevo', ['create' => 'Productos_create']) 
+				@else 
+                    @include('common.inputBuscarBtnNuevo', ['create' => 'Productos_create']) 
                     <div class="table-responsive scroll">
                         <table class="table table-hover table-checkable table-sm">
                             <thead>
@@ -172,6 +171,12 @@
     margin-top: .5rem;
     overflow: auto;
 }
+thead tr th {     /* fija la cabecera de la tabla */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #ffffff;
+}
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -250,23 +255,32 @@
     }
     function precioBajo()
     {
-        const costo_actual = new Number($('[id="costo_actual"]').val());
-        const precio = new Number($('[id="precio_costo"]').val());
-        if(precio > 0){
-            if(costo_actual > precio){
-                Swal.fire({
-                    position: 'center',
-                    icon: 'warning',
-                    title: 'Atención!!  Verificar la Opción de Guardado...',
-                    text: 'El Precio del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
-                    showConfirmButton: true
-                }).then((result) => {
-                    if (result.isConfirmed) { 
-                        opcionCambiarPrecios();
-                    }
-                });     //////PREGUNTAR POR CAMBIAR O NO LOS PRECIOS DE LAS RECETAS
-            } window.livewire.emit('calcular_precio_venta');
-        }    
+        var selected = document.getElementById("selected_id");
+        if(selected){
+            const costo_actual = new Number($('[id="costo_actual"]').val());   //costo_en_bd
+            const costo_nuevo = new Number($('[id="precio_costo"]').val());    //costo_nuevo
+            if(costo_nuevo > 0){
+                if(costo_nuevo < costo_actual){
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'warning',
+                        title: 'Atención!!',
+                        text: 'El nuevo Precio de Costo del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) { 
+                            opcionCambiarPrecios();
+                        }else if (result.dismiss === Swal.DismissReason.cancel) {
+                            $('[id="precio_costo"]').val($('[id="costo_actual"]').val());
+                            Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+                        }
+                    });  
+                }else if(costo_nuevo >= costo_actual) window.livewire.emit('calcular_precio_venta');
+            } 
+        }else window.livewire.emit('calcular_precio_venta');
     }
     function opcionCambiarPrecios() 
     {          
@@ -277,8 +291,8 @@
             showDenyButton: true,
             confirmButtonColor: '#3085d6',
             denyButtonColor: '#d33',
-            confirmButtonText: 'Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos',
-            denyButtonText: 'Deseo modificar tanto los Precios de Costo como así también los de Venta Sugeridos y los de Lista',
+            confirmButtonText: 'Deseo que al Modificar el Precio de Costo solo se efectúen cambios en éste y en los Precios de Venta Sugeridos',
+            denyButtonText: 'Deseo que al Modificar el Precio de Costo, se efectúen cambios en éste, en los Precios de Venta Sugeridos como así también en los Precios de Lista',
             showCancelButton: true,
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -289,13 +303,36 @@
             }
         });       
     }
-
+    function existenciaInicial() 
+    {          
+        Swal.fire({
+            icon: 'question',
+            title: '¿El Stock Actual que ingresaste es Existencia Inicial?',
+            text: 'Debes estar seguro porque esta acción se hará por única vez para este Producto. Si decides que NO, lo podrás hacer en otro momento',
+            showDenyButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Si',
+            showCancelButton: true,
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) { 
+                window.livewire.emit('existenciaInicial', 'si');
+            }
+        });       
+    }
     function validarProducto()
     {
         if($('#nombre').val() != '') window.livewire.emit('validarProducto');
     }  
     function guardar()
     {
+        var solo_precios_listas = 0;
+        var selected = document.getElementById("selected_id");
+        if(selected){ //si estoy modificando un producto y no cambio el costo, habilito para modificar solo los precios de listas
+            var costo_actual = $('[id="costo_actual"]').val();   //costo_en_bd
+            var costo_nuevo = $('[id="precio_costo"]').val();    //costo_nuevo
+            if(costo_actual === costo_nuevo) solo_precios_listas = 1;
+        }          
         var salsa = false, guarn = false, receta='no', stock='no';
         if(document.getElementById('salsa_si')){
             if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
@@ -305,7 +342,8 @@
         }
         if(document.getElementById('receta_si').checked) receta = 'si';
         if(document.getElementById('stock_si').checked) stock = 'si';
-        window.livewire.emit('guardar', salsa, guarn, receta, stock);
+        document.getElementById("nombre").focus();
+        window.livewire.emit('guardar', salsa, guarn, receta, stock, solo_precios_listas);
     }
     function openModalProveedor(id)
     { 
@@ -470,38 +508,27 @@
                 showConfirmButton: true
             })
 		})
-        Livewire.on('cambiarPrecioDetalle',(cantidad, cambiarPrecios)=>{
-            if(cambiarPrecios == 'solo_costos'){
-                Swal.fire({
-                    position: 'center',
-                    icon: 'info',
-                    title: '¡¡¡ATENCIÓN!!!',
-                    text: 'Existen ' + cantidad + ' facturas abiertas y/o pendientes en donde tenés cargado este producto con el precio anterior... además deberías actualizar los Precios de Listas de este Producto, ya no tenías esa Opción seleccionada anteriormente',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Actualizar los Precios de Lista del Producto y además los precios de todas las facturas...',
-                    showCancelButton: true,
-                    cancelButtonText: 'Continuar sin modificaciones...'
-                }).then((result) => {
-                    if (result.isConfirmed) { 
-                        window.livewire.emit('actualizarPreciosCargados', 'actualizar_todo');
-                    }
-                }); 
-            }else{
-                Swal.fire({
-                    position: 'center',
-                    icon: 'info',
-                    title: '¡¡¡ATENCIÓN!!!',
-                    text: 'Existen ' + cantidad + ' facturas abiertas y/o pendientes en donde tenés cargado este producto con el precio anterior...',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Actualizar los precios de todas las facturas...',
-                    showCancelButton: true,
-                    cancelButtonText: 'Continuar sin modificaciones...'
-                }).then((result) => {
-                    if (result.isConfirmed) { 
-                        window.livewire.emit('actualizarPreciosCargados', '');
-                    }
-                }); 
-            }           
+        Livewire.on('cambiarPrecioDetalle',(cantidad)=>{
+            var existe = 'Existen ';
+            var factura = ' facturas abiertas y/o pendientes ';
+            if(cantidad == 1){
+                existe = 'Existe ';
+                factura = ' factura abierta y/o pendiente ';
+            } 
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: existe + cantidad + factura + 'en donde tenés cargado este producto con el precio anterior..., ¿Qué acción deseas realizar?',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Actualizar los precios de todas las facturas...',
+                showCancelButton: true,
+                cancelButtonText: 'Continuar sin modificar las facturas...'
+            }).then((result) => {
+                if (result.isConfirmed) { 
+                    window.livewire.emit('actualizarPreciosCargados');
+                }
+            });       
 		})
         Livewire.on('abrirModal',()=>{
             $('#modal_productoProveedor').modal('show'); 

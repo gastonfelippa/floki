@@ -226,10 +226,13 @@ class CajarepartidorController extends Component
             $this->importeFactura += $i->importe;
         }
     }
-    public function verDet($id, $nomCli, $apeCli)
+    public function verDet($id)
     {
-        $this->nombreCliente = $apeCli . ' ' . $nomCli;
-        $this->verDetalle($id);
+        session(['idMesa' => 'D']);
+        session(['facturaPendiente' => $id]);
+        return redirect()->to('/facturasbar');
+        // $this->nombreCliente = $apeCli . ' ' . $nomCli;
+        // $this->verDetalle($id);
     }
     public function verDetalle($id)
     {

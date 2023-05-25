@@ -16,8 +16,11 @@
         <tbody style="font-size:12px">
             @foreach($info as $r)
             <tr> 
+               
                 <td class="text-left">{{$r->apellido}}, {{$r->nombre}}</td>
-                <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+
+                    <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
+                 
             </tr>
             @endforeach
         </tbody>

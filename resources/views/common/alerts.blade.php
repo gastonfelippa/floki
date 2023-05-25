@@ -34,7 +34,7 @@
          <script>
              toastr.options = {
             "progressBar" : true,
-            "positionClass": 'toast-top-center'
+            "positionClass": 'toast-top-right'
           }
            toastr.info("{{ @session('info') }}", "Atención!!");                               
          </script>                           

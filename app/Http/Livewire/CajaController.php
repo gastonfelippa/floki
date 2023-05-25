@@ -30,7 +30,7 @@ class CajaController extends Component
         $this->arqueoGralId = session('idArqueoGral');
         $this->estadoArqueoGral = session('estadoArqueoGral');
         session(['facturaPendiente' => null]);
-
+  
          //si ya hay un arqueo cerrado con la misma fecha
         if($this->estadoArqueoGral == 'ya existe') return view('livewire.admin.mensajes.ya_existe_arqueo');
 
@@ -236,7 +236,6 @@ class CajaController extends Component
     }
     public function StoreOrUpdate()
     { 
-      
         $this->validate([
             'caja'    => 'not_in:Elegir',
             'usuario' => 'not_in:Elegir',
@@ -290,7 +289,7 @@ class CajaController extends Component
                 }
             }
 
-            if($this->edit == 0) {                  //nueva Caja     
+            if($this->edit == 0) {                  //nueva Caja  
                 if($this->arqueoGralId == -1){      //nuevo Arqueo Gral.
                     $idArqueoGral = ArqueoGral::create([
                         'estado'      => '1',

@@ -17,17 +17,19 @@ use DB;
 class FacturasACobrarController extends Component
 {
     
-    public $comercioId, $modDelivery, $salon, $action='1', $nombreCliente, $infoDetalle, $selected_id = null;
+    public $salon, $action='1', $nombreCliente, $infoDetalle, $selected_id = null;
     public $producto, $productos, $cantidadEdit, $productoEdit, $precioEdit;
     public $editFacturaId ='', $comentario = '', $caja_abierta, $importeFactura;
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $facturaId, $clienteId, $total_factura, $esConsFinal;
+    public $comercioId, $modDelivery, $modComandas; 
 
     public function render()
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
         $this->modDelivery = session('modDelivery');
+        $this->modComandas = session('modComandas');
         session(['facturaPendiente' => null]); 
         
         //averiguo el id del Cons Final
@@ -67,20 +69,28 @@ class FacturasACobrarController extends Component
                 $this->importeFactura += $i->importe;
             }
         }
-        // if($this->modDelivery == '1'){
-        //     $info = Factura::select('facturas.*', DB::RAW("'' as descripcion"))
-        //         ->where('facturas.comercio_id', $this->comercioId)
-        //         ->where('facturas.estado','like','pendiente')
-        //         ->where('facturas.user_id', auth()->user()->id)
-        //         ->orderBy('id', 'asc')->get();
-        //     foreach($info as $i)
-        //     {
-        //         if($i->mesa_id != null){
-        //             $mesa = Mesa::find($i->mesa_id);
-        //             $i->descripcion = $mesa->descripcion;
-        //         }
-        //     }
-        // }else{
+        if($this->modDelivery == '1'){
+            $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
+                ->join('users as u','u.id','facturas.repartidor_id')
+                ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
+                        'u.apellido as apeRep')
+                ->where('facturas.estado','like','pendiente')
+                ->where('facturas.repartidor_id', $this->salon[0]->id)
+                ->where('facturas.comercio_id', $this->comercioId)
+                ->orderBy('facturas.id', 'asc')->get(); 
+            // $info = Factura::select('facturas.*', DB::RAW("'' as descripcion"))
+            //     ->where('facturas.comercio_id', $this->comercioId)
+            //     ->where('facturas.estado','like','pendiente')
+            //     ->where('facturas.user_id', auth()->user()->id)
+            //     ->orderBy('id', 'asc')->get();
+            // foreach($info as $i)
+            // {
+            //     if($i->mesa_id != null){
+            //         $mesa = Mesa::find($i->mesa_id);
+            //         $i->descripcion = $mesa->descripcion;
+            //     }
+            // }
+        }else{
             $info = Factura::join('clientes as c','c.id','facturas.cliente_id')
                 ->join('users as u','u.id','facturas.repartidor_id')
                 ->select('facturas.*', 'c.nombre as nomCli', 'c.apellido as apeCli', 'u.name as nomRep',
@@ -92,7 +102,7 @@ class FacturasACobrarController extends Component
                 ->where('facturas.estado','like','pendiente')
                 ->where('facturas.user_id', auth()->user()->id)
                 ->orderBy('facturas.id', 'asc')->get(); 
-       //}
+        }
         return view('livewire.facturasacobrar.component', [
             'info' => $info
         ]);
@@ -119,14 +129,12 @@ class FacturasACobrarController extends Component
 	{
         $this->action = $action;
     }
-    public function verDet($id, $nomCli, $apeCli)
+    public function verDet($id)
     {
-        // $idMesa = Factura::where('id', $id)
-        //     ->select('mesa_id')->get();
-    
         session(['idMesa' => 'D']);
         session(['facturaPendiente' => $id]);
-        return redirect()->to('/facturasbar');
+        if($this->modComandas == "1") return redirect()->to('/facturasbar');
+        else return redirect()->to('/facturas');
     }
     public function editDel($id)
     {

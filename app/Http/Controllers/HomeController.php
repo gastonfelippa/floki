@@ -70,32 +70,38 @@ class HomeController extends Controller
             //inicializa la variable de session idArqueoGral correspondiente al idComercio anterior
             $idArqueoGral = ArqueoGral::where('estado', '1')
                 ->where('comercio_id', $this->comercioId)->get();
-            if($idArqueoGral->count()){ //si existe algún arqueo abierto, capturamos la fecha de creación
+            if($idArqueoGral->count() > 0){ //si existe algún arqueo abierto, capturamos la fecha de creación
                 session(['idArqueoGral' => $idArqueoGral[0]->id]); //capturamos su id solo para usarlo en el arqueo gral
+            //BUSCO LA FECHA DE CREACIÓN DEL ARQUEO GENERAL
                 $date = Carbon::parse($idArqueoGral[0]->created_at);
-                //obtenemos solo la fecha actual y le agregamos la hora para que sea el final del día
-                $hoy = Carbon::now();
+            //BUSCO LA FECHA ACTUAL Y LE AGREGO LA HORA PARA QUE SEA EL FINAL DEL DIA 
+            //PARA LUEGO COMPARARLA CON LA FECHA DEL ARQUEO
+                $hoy = Carbon::now();          
                 $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d');
                 $hoy = $hoy_solo_fecha . ' 23:59:59';
-                //comparamos las dos fecha/hora
+            //COMPARO LAS DOS FECHA/HORA
                 $diff = $date->diffInDays($hoy);
                 $hora_actual = Carbon::now()->format('H:i');
-                //si estamos en el mismo día 'o' es el día siguiente 
-                //y 'no' es más tarde que la hora de apertura del comercio
 
-                if($diff == 0 || $diff <= $this->periodoArqueo && $hora_actual < '23:59:59' 
-                    || $diff <= $this->periodoArqueo && $hora_actual <= $horaApertura->hora_apertura){
-                    session(['estadoArqueoGral' => 'activo']); 
-                }else{    //sino, debemos hacer el arqueo 'si o si', e igualamos la variable a cero
-                    session(['estadoArqueoGral' => 'pendiente']);
-                }     
+            //SI ESTAMOS EN EL MISMO DÍA >> ACTIVO 
+            //SI LA DIFERENCIA EN DÍAS ES MENOR QUE EL PERÍODO DE ARQUEO >> ACTIVO
+            //SI LA DIFERENCIA EN DÍAS IGUAL AL PERÍODO DE ARQUEO 'Y'
+            //NO ES MAS TARDE QUE LA HORA DE APERTURA DEL COMERCIO >> ACTIVO, SINO >> PENDIENTE
+            //SI LA DIFERENCIA EN DÍAS ES MAYOR QUE EL PERÍODO DE ARQUEO >> PENDIENTE
+
+                if($diff == 0) session(['estadoArqueoGral' => 'activo']);
+                elseif($diff < $this->periodoArqueo) session(['estadoArqueoGral' => 'activo']); 
+                elseif($diff == $this->periodoArqueo){
+                    if($hora_actual <= $horaApertura->hora_apertura) session(['estadoArqueoGral' => 'activo']);
+                    else session(['estadoArqueoGral' => 'pendiente']);
+                }elseif($diff > $this->periodoArqueo) session(['estadoArqueoGral' => 'pendiente']);
             }else{
                 session(['idArqueoGral' => -1]);
                 session(['estadoArqueoGral' => 'no existe']); 
                     //si no existe ningún arqueo abierto para este comercio, 
-                    //igualamos la variable a 'no_existe', para indicar que hay iniciar 
+                    //igualamos la variable a 'no_existe', para indicar que debemos iniciar 
                     //el arqueo al inicializar alguna Caja. 
-            }               
+            }              
             $this->estadoAqueoGral = session('estadoArqueoGral');
 
             //verifica si hay un arqueo cerrado con la misma fecha que hoy,
@@ -104,7 +110,7 @@ class HomeController extends Controller
             if($this->estadoAqueoGral == 'no existe'){
                 $idArqueoGral = ArqueoGral::where('estado', '0')
                     ->where('comercio_id', $this->comercioId)->orderBy('created_at', 'desc')->get();
-                if($idArqueoGral->count()){
+                if($idArqueoGral && $idArqueoGral->count()){
                     $date = Carbon::parse($idArqueoGral[0]->created_at);
                     $hoy = Carbon::now();
                     $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d');

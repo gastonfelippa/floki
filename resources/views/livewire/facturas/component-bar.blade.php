@@ -4,37 +4,100 @@
 		<div class="widget-content-area br-4">
 			<div class="widget-one widget-h">
                 @if($delivery != 1)
-                    <div class="row justify-content-start">
-                        <div class="row col-7 ml-1">
-                            <h5 class="bg-danger p-2" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h5>
-                            <h5 id="mozo" class="bg-danger ml-1 p-2" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h5>
-                        </div>
-                        <div class="col-5">
-                            <button id="btnAgregar" type="button" onclick= "verBotones()" title="Agregar"class="btn btn-dark mr-1" enabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>                                       
-                            </button>
-                            <div id="btnGroup" class="btn-group" role="group"> 
-                                <button type="button" class="btn btn-outline-danger" title="Imprimir">
-                                    <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
+                    <div class="row">
+                        @if($entrega > 0)
+                            <div class="row col-4 ml-1">
+                                <div>
+                                    <h6 class="bg-danger p-2" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h6>
+                                </div>
+                                <div>
+                                        <!-- <span class="badge bg-dark p-2">Mozo: {{$mozoDesc}}</span></p> -->
+                                    <h6 id="mozo" class="bg-danger p-2" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h6>
+                                </div>
+                            </div>                        
+                            <div class="row col-4">
+                                <div>
+                                    <span class="badge bg-dark text-right" style="width:140px;">Total: $ {{number_format($total,2,',','.')}}</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-dark text-right" style="width:140px;">Entrega: $ {{number_format($entrega,2,',','.')}}</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-danger text-right" style="width:140px;">Saldo: $ {{number_format($saldo,2,',','.')}}</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <button id="btnAgregar" type="button" onclick= "verBotones()" title="Agregar"class="btn btn-dark mr-1" enabled>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>                                       
                                 </button>
-                                <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                                    wire:click="doAction(2)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
-                                </button>
-                                <!-- <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                                    onclick="Cobrar({{$delivery}},{{$clienteId}})">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
-                                </button> -->
-                                <button type="button" class="btn btn-outline-danger" title="Anular"
-                                    onclick="AnularFactura({{$factura_id}})">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
-                                </button>
-                                <button type="button" class="btn btn-dark" title="Salir"
-                                    onclick="Salir()">Salir
-                                </button>
+                                <div id="btnGroup" class="btn-group" role="group"> 
+                                    <button type="button" class="btn btn-outline-danger" title="Imprimir">
+                                        <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" title="Cobrar"
+                                        wire:click="doAction(2)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" title="Anular"
+                                        onclick="AnularFactura({{$factura_id}})">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
+                                    </button>
+                                    <button type="button" class="btn btn-dark" title="Salir"
+                                        onclick="Salir()">Salir
+                                    </button>
+                                </div> 
+                            </div>
+                        @else
+                            <div class="row col-8">
+                                <div class="col-5">
+                                <h6 class="bg-danger p-1" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h6>
+                                </div>
+                                <div class="col-7">                                    
+                                    <h6 class="bg-danger p-1" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h6> 
+                                </div>
                             </div>  
-                        </div>
+                            <div class="col-4">
+                                <button id="btnAgregar" type="button" onclick= "verBotones()" title="Agregar"class="btn btn-dark mr-1" enabled>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>                                       
+                                </button>
+                                <div id="btnGroup" class="btn-group" role="group">                                     
+                                    @if($total > 0)
+                                        <button type="button" class="btn btn-outline-danger" title="Imprimir">
+                                            <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" title="Cobrar"
+                                            wire:click="doAction(2)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" title="Anular"
+                                            onclick="AnularFactura({{$factura_id}})">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-outline-danger" title="Imprimir" disabled>
+                                            <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" title="Cobrar" disabled
+                                            wire:click="doAction(2)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" title="Anular" disabled
+                                            onclick="AnularFactura({{$factura_id}})">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
+                                        </button>
+                                    @endif
+                                    <button type="button" class="btn btn-dark" title="Salir"
+                                        onclick="Salir()">Salir
+                                    </button>
+                                </div>                               
+                            </div>
+                            <div class="ml-3">
+                                <span class="badge bg-dark">Mozo: {{$mozoDesc}}</span></p>
+                            </div>                            
+                        @endif       
                     </div>
                     @if($camarero)
                     <div class="row">
@@ -45,24 +108,10 @@
                         <div class="col-md-9 text-right">
                             <div class="btn-group mb-2" role="group" aria-label="Basic mixed styles example">            
                             @if($total != 0)
-                                @if($delivery == 1)
-                                    <button type="button" onclick="openModal({{$factura_id}})"
-                                        class="btn btn-dark" enabled>
-                                        Mod Cli/Rep                                         
-                                    </button>
-                                    <button type="button" onclick="dejar_pendiente()"
-                                        class="btn btn-warning" enabled>
-                                        Dejar Pendiente
-                                    </button>
-                                @endif 
                                 <button type="button" wire:click="doAction(2)" 
                                     class="btn btn-primary" enabled>
                                     Cobrar   
                                 </button>
-                                <!-- <button type="button" onclick="Cobrar({{$delivery}},{{$clienteId}})" 
-                                    class="btn btn-primary" enabled>
-                                    Cobrar   
-                                </button> -->
                                 <button type="button" class="btn btn-outline-success" enabled>
                                 <!-- <a id="link">
                                 Imprimir</a> -->
@@ -78,7 +127,7 @@
                         </div>
                     </div>
                     @endif
-                @else                
+                @else       <!-- SI ES DELIVERY -->
                     @if($total == 0)   <!-- si es delivery y es inicio de factura -->
                         <div class="row mt-2">
                             <div class="col-6">
@@ -121,24 +170,34 @@
                                 @endif
                             </div>
                         </div>                
-                    @endif  
-                    <div class="btn-group col-4 offset-4" role="group"> 
-                        <button type="button" class="btn btn-outline-danger" title="Imprimir" enabled>
-                            <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
-                        </button>
-                        <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                            wire:click="doAction(2)" enabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
-                        </button>
-                        <!-- <button type="button" class="btn btn-outline-danger" title="Cobrar"
-                            onclick="Cobrar({{$delivery}},{{$clienteId}})" enabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
-                        </button> -->
-                        <button type="button" class="btn btn-outline-danger" title="Anular"
-                            onclick="AnularFactura({{$factura_id}})" enabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
-                        </button>
+                    @endif 
+                    <div class="row">
+                        <div class="col-4 ml-2 mt-1">                             
+                            <!-- <span class="badge bg-dark text-right" style="width:140px;">Total: $ {{number_format($total,2,',','.')}}</span> -->
+                            <h6 class="bg-danger p-2" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h6> 
+                        </div>                        
+                        <div class="btn-group btn-sm col-7" role="group"> 
+                            <button type="button" class="btn btn-outline-danger" title="Modificar Cliente/Repartidor" enabled 
+                                onclick="openModal({{$factura_id}})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Imprimir" enabled>
+                                <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Cobrar"
+                                wire:click="doAction(2)" enabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16"><path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/></svg>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Anular"
+                                onclick="AnularFactura({{$factura_id}})" enabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/></svg>
+                            </button>
+                            <button type="button" class="btn btn-dark" title="Dejar Pendiente" enabled 
+                                onclick="dejar_pendiente()">
+                                Salir
+                            </button>                               
+                        </div>
                     </div>         
                 @endif
 
@@ -147,7 +206,7 @@
                 @if($delivery != 1)
                     <ul class="nav nav-tabs mt-1" id="myTab" role="tablist">
                         <li class="nav-item">
-                            @if($info->count())
+                            @if($info)
                                 <a class="nav-link {{$tab == 'factura' ? 'active' : ''}}" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true"><b>Factura</b></a>
                             @else
                                 <a class="nav-link {{$tab == 'factura' ? 'active' : ''}}" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Factura</a>
@@ -221,9 +280,30 @@
                                     </tbody>
                                 </table>                   
                             </div>
-                            <div class="row mt-1 mr-1 justify-content-end">
-                                <h5 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h5> 
-                            </div>
+
+                           
+                           <!--     <div>
+                                    <span class="badge bg-dark text-right" style="width:140px;">Total: $ {{number_format($total,2,',','.')}}</span>
+
+                                </div>
+                                <div>
+                                    <span class="badge bg-dark text-right" style="width:140px;">Entrega: $ {{number_format($entrega,2,',','.')}}</span>
+
+                                </div>
+                                <div>
+                                    <span class="badge bg-danger text-right" style="width:140px;">Saldo: $ {{number_format($saldo,2,',','.')}}</span>
+
+                                </div> -->
+                                <!-- <div class="col-4">                                    
+                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h6> 
+                                </div>
+                                <div class="col-4">                                    
+                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Entrega: $ {{number_format($entrega,2,',','.')}}</h6> 
+                                </div>
+                                <div class="col-4">                                    
+                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Saldo: $ {{number_format($saldo,2,',','.')}}</h6> 
+                                </div> -->
+                            <!-- </div> -->
                 @if($delivery != 1)
                         </div>
                         <div class="tab-pane fade show {{$tab == 'comanda' ? 'active' : ''}}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
@@ -293,7 +373,7 @@
     <div id="botones" class="col-md-12 col-lg-6 layout-spacing">
         <div class="widget-content-area">
             <div class="widget-one widget-h">
-                <div class="row btnRubro justify-content-center mt-1">
+                <div class="row btnRubro mt-1">
                     <div class="col-4">
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -302,12 +382,14 @@
                             <input id="search" type="text" wire:model="search" class="form-control form-control-sm" placeholder="Buscar.." aria-label="notification" aria-describedby="basic-addon1" autocomplete="off">
                         </div>
                     </div>
+                    <div class="col-8">
                     @foreach($rubros as $r)                    
                         <button wire:click.prevent="buscarCategoria({{$r->id}})" type="button" class="btn btn-outline-danger mr-1">{{$r->descripcion}}</button>
                     @endforeach
                     <button id="btnVolver" type="button" onclick= "verBotones()" class="btn btn-dark ml-1" enabled>
                         Volver                                         
                     </button>  
+                    </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-sm-12 col-lg-4">
@@ -346,6 +428,7 @@
                 <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
                 <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">
                 <input type="hidden" id="ultima_factura" wire:model="ultima_factura">
+                <input type="hidden" id="permisos" wire:model="permisos">
                 <input type="hidden" id="inicio_factura" value="{{$inicio_factura}}">  
                 <input type="hidden" id="tiene_comentario" value="{{$comentario_comanda}}">  
                 <input type="hidden" id="idFact" value="{{$factura_id}}">  
@@ -367,6 +450,7 @@
     @include('livewire.facturas.modalNroCompPago') 
     @include('livewire.facturas.modalCheques')  
     @include('livewire.facturas.modalBancos')  
+    @include('livewire.facturas.modalClientes')  
 	@endif        
 </div>
 
@@ -561,35 +645,10 @@
             closeOnConfirm: false
             },
             function() {
-                window.livewire.emit('eliminarItemComanda', id, cantidad, controlar_stock)    
-                //toastr.success('info', 'Registro eliminado con éxito')
+                window.livewire.emit('eliminarItemComanda', id, cantidad, controlar_stock)   
                 swal.close()   
             })
     }
-    // function Cobrar(delivery, idCli)
-    // {
-    //     Swal.fire({
-    //         title: 'Elige una opción...',
-    //         showDenyButton: true,
-    //         showCancelButton: true,
-    //         cancelButtonText: `Cancelar`,
-    //         confirmButtonText: `Contado`,
-    //         denyButtonText: `Cuenta Corriente`,
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             window.livewire.emit('elegirFormaDePago');
-    //         } else if (result.isDenied) {
-    //             if(delivery == 0) {
-    //                 modalCtacte()
-    //             }else {
-    //                 var data = JSON.stringify({
-    //                     'cliente_id' : idCli
-    //                 });
-    //                 window.livewire.emit('factura_ctacte', data)
-    //             }
-    //         }
-    //     })
-    // }
     function verCom()
     {
         var x = document.getElementById("home-tab2");
@@ -611,21 +670,36 @@
             }
         })
     }
-    // function factura_contado()
-    // { 
-    //     if($('[id="formaDePago"]').val() != 1 && $('[id="nroCompPago"]').val() == ''){ 
-    //         Swal.fire({
-    //             position: 'center',
-    //             icon: 'warning',
-    //             title: 'Faltan datos, se cobrará como efectivo!!',
-    //             showConfirmButton: false,
-    //             timer: 1500
-    //         })
-    //         $('[id="formaDePago"]').val(1)
-    //     }else{
-    //         window.livewire.emit('factura_contado')
-    //     }    
-    // }
+    function eliminarEntrega(id)
+    {
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Eliminar la Entrega, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('eliminarEntrega', id, comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire(
+					'Cancelado',
+					'Tu registro está a salvo :)',
+					'error'
+				)
+            }
+		})
+    }
     function AnularFactura(id)
     {
         Swal.fire({
@@ -688,26 +762,8 @@
         $('#facturaId').hide()
         $('#cliente').val('Elegir')
         $('#empleado').val('Elegir')
-        $('#modal').modal({backdrop: 'static', keyboard: false})  //hace que desaparezca al hacer click fuera del modal
+        $('#modal').modal({backdrop: 'static', keyboard: false})  //hace que no desaparezca al hacer click fuera del modal
 	}
-	// function save()
-    // {     
-    //     if($('#cliente option:selected').val() == 'Elegir') {
-    //         toastr.error('Elige una opción válida para el Cliente')
-    //         return;
-    //     }
-    //     if($('#empleado option:selected').val() == 'Elegir') {
-    //         toastr.error('Elige una opción válida para el Repartidor')
-    //         return;
-    //     }
-    //     var data = JSON.stringify({
-    //         'factura_id'   : $('#facturaId').val(),
-    //         'cliente_id'   : $('#cliente option:selected').val(),
-    //         'empleado_id'  : $('#empleado option:selected').val()
-    //     });
-    //     $('#modal').modal('hide')
-    //     window.livewire.emit('modCliRep', data)
-    // }
     function save()
     {
         if($('#lista').val() != 3){     
@@ -829,6 +885,7 @@
                     showConfirmButton: false,
                     timer: 1500
                 });
+                $('#modalCli').modal('show');
                 $('[id="formaDePago"]').val(1);
             }
 		}else{
@@ -844,12 +901,9 @@
         var nroCompPago = $('[id="nroCompPago"]').val();
         var importe     = $('[id="importe"]').val();
         var saldo       = $('[id="saldo"]').val();
-        
-        if(importe > saldo){
-            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
-            resetear();
-        } 
-		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago,importe);
+     
+
+		window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago,importe,saldo);
 	}
 	function guardarDatosCheque()
     {
@@ -887,30 +941,18 @@
     }
     function cerrar()
     {
-        window.location.href="{{ url('pedidos') }}";
+        window.location.href="{{ url('reservas-estado-mesas') }}";
     }
-    // function mostrarInput()
-    // {		
-	// 	$('[id="nroCompPago"]').val('');
-	// 	$('[id="num"]').val('');
-	// 	if($('[id="formaDePago"]').val() == '2' || $('[id="formaDePago"]').val() == '3'
-	// 			|| $('[id="formaDePago"]').val() == '4' || $('[id="formaDePago"]').val() == '5') {
-	// 		$('#modalNroComprobanteDePago').modal('show');
-	// 	}else{
-	// 		guardarDatosPago();
-	// 	}
-	// }
-	// function guardarDatosPago()
-    // {
-	// 	$('[id="num"]').val($('[id="nroCompPago"]').val())
-    //     if($('[id="num"]').val() != ''){
-    //         var formaDePago = $('[id="formaDePago"]').val();
-	// 	    var nroCompPago = $('[id="nroCompPago"]').val();
-    //     }else{
-    //         $('[id="formaDePago"]').val(1)           
-    //     }		
-	// 	window.livewire.emit('enviarDatosPago',formaDePago,nroCompPago);
-	// }
+    function agregarCliente()
+    {
+        window.location.href="{{ url('clientes') }}";
+    }
+    function saveCliente()
+    {
+        var clienteId = $('[id="cliente"]').val();
+        $('#modalCli').modal('hide');
+        window.livewire.emit('guardarCliente', clienteId);
+    }
     function openModalComandas()
     {
         if($('#tiene_salsa').val() == 1) $('#divSalsas').show();
@@ -977,7 +1019,6 @@
     {
         var cantidad = $('#cantidad').val();
         var texto_comanda = $('#texto_comanda').val();
-        console.log(texto_comanda,cantidad);
         $('#modalSalsas').modal('hide')
         window.livewire.emit('StoreOrUpdate', cantidad, texto_comanda);
     } 
@@ -1029,10 +1070,9 @@
             timer: 3000
         })
     }
-    $(window).on("beforeunload", function() {    //ejecuta código antes de salir
-        if($('[id="delivery"]').val() == 1){
-
-        window.livewire.emit('salir'); 
+    $(window).on("beforeunload", function() {    //ejecuta código antes de salir...
+        if($('[id="delivery"]').val() == 1){     //si es delivery me aseguro de que
+            window.livewire.emit('salir');       //la factura quede como pendiente
         }
     });
     /////código para prolongar la session
@@ -1060,20 +1100,37 @@
     // });
     
     window.onload = function() {
-        if($('#forzar_arqueo').val() == 1){		
-            swal({
-                title: 'Caja inhabilitada!',
-                text: 'Existe un Arqueo General pendiente de cierre...',
+        if($('#permisos').val() == 0){	
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'No tienes permisos para abrir esta factura...',
                 type: 'warning',
                 confirmButtonColor: '#3085d6',
                 confirmButtonText: 'Volver',
                 closeOnConfirm: false
-            },
-            function() {  
-                window.location.href="{{ url('notify') }}";
-                swal.close()
-		    })
-        }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href="{{ url('reservas-estado-mesas') }}";
+                    swal.close();
+                }  
+            })               
+		}else{
+            if($('#forzar_arqueo').val() == 1){		
+                swal({
+                    title: 'Existe un Arqueo General pendiente de cierre!',
+                    text: 'Para seguir facturando primero debes finalizar todas las facturas que tengas abiertas...',
+                    type: 'warning',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Volver',
+                    closeOnConfirm: false
+                },
+                function() {  
+                    window.location.href="{{ url('reservas-estado-mesas') }}";
+                    swal.close()
+                })
+            }
+        }        
         if($('#caja_abierta').val() == 0){
             swal({
                 title: 'Caja inhabilitada!',
@@ -1097,11 +1154,11 @@
                 icon: 'success',
                 title: 'Factura Cobrada!!',
                 showConfirmButton: false,
-                timer: 1500
+                timer: 2500
             })
             if($('#ultima_factura').val() == 1){
                 window.location.href = "{{ url('notify') }}";
-            }else window.location.href = "{{ url('abrir-mesa') }}";
+            }else window.location.href = "{{ url('reservas-estado-mesas') }}";
 		})          
         Livewire.on('facturaCtaCte',()=>{
             Swal.fire({
@@ -1113,7 +1170,17 @@
             })
             if($('#ultima_factura').val() == 1){
                 window.location.href="{{ url('notify') }}";
+            }else{
+                window.location.href="{{ url('reservas-estado-mesas') }}";
             }
+		})
+        Livewire.on('primeroEnviarACtaCte',()=>{
+            Swal.fire('Cancelado','Primero se debe enviar la factura a Cuenta Corriente y luego se podrá hacer un pago a cuenta de la misma...','info');
+            resetear();
+		})
+        Livewire.on('importeMayorQueSaldo',()=>{
+            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
+            resetear();
 		})
         Livewire.on('modal_comanda',()=>{
             openModalComandas();
@@ -1152,14 +1219,25 @@
                 }
             })
 		})
+        Livewire.on('entregaAnulada',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Registro anulado exitosamente...',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            resetear();
+		})
         Livewire.on('registroAgregado',(accion)=>{
             Swal.fire({
                 position: 'center',
                 icon: 'success',
                 title: 'Registro ' + accion + ' exitosamente...',
                 showConfirmButton: false,
-                timer: 1500
-            })
+                timer: 1000
+            })            
+            limitarCaracteres("#mozo", 15);
 		})
         Livewire.on('stock_no_disponible',(stock, producto)=>{
             var texto = 'Solo restan ';
@@ -1188,6 +1266,10 @@
             }else if(stock == 1){
                 texto = 'Solo resta ';
                 unidades = ' unidad';  
+            }else if(stock < 1){
+                texto = 'Tienes stock negativo';
+                stock = '';
+                unidades = '';  
             } 
             Swal.fire({
                 position: 'center',
@@ -1209,8 +1291,8 @@
             Swal.fire({
                 position: 'center',
                 icon: 'info',
-                title: 'Debe agregar un detalle para la receta de '+ producto,
-                text: 'O simplemente indicar que no tiene receta...',
+                title: 'Debe agregar un detalle a la receta de '+ producto + ' para poder descontar su stock.',
+                text: 'O simplemente indicar que no tiene receta, o que no se controla stock para este producto desde la pestaña ABM ->> PRODUCTOS...',
                 showConfirmButton: true
             })
 		})
@@ -1239,12 +1321,18 @@
                 title: 'El cobro a cuenta fue registrado!!',
                 showConfirmButton: false,
                 timer: 2000
-            });            
+            }); 
+            limitarCaracteres("#mozo", 15);          
             resetear();
         })
-        Livewire.on('importeMayorQueSaldo',()=>{
-            Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
-            return;
-        })
+        Livewire.on('cliente_agregado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'Cliente agregado exitosamente!!',
+                showConfirmButton: false,
+                timer: 1500
+            })
+		})
     } 
 </script>

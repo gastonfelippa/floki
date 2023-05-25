@@ -93,7 +93,7 @@
 							<tr>
 								<th class="text-left">CLIENTE</th>
 								<th class="text-center">IMPORTE</th>
-								<th class="text-center">CAJA/FACTURA</th>
+								<th class="text-center">CAJA/FACTURADORA</th>
 								<th class="text-center">ACCIONES</th>
 							</tr>
 						</thead>
@@ -108,11 +108,11 @@
                                         @can('HabilitarCaja_index')
                                         <li>
                                             <a href="javascript:void(0);" 
-                                                wire:click="verDet('{{$r->id}}','{{$r->nomCli}}','{{$r->apeCli}}')" 
+                                                wire:click="verDet({{$r->id}})" 
                                                 data-toggle="tooltip" data-placement="top" title="Editar">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
                                         </li>
-                                        <li>
+                                        <!-- <li>
                                             <a href="javascript:void(0);"          		
         	                                    onclick="AnularFactura('{{$r->id}}')"
         	                                    data-toggle="tooltip" data-placement="top" title="Anular">
@@ -123,10 +123,10 @@
                                                 onclick="Cobrar('{{$r->id}}',{{$r->cliente_id}})"
         	                                    data-toggle="tooltip" data-placement="top" title="Cobrar">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign text-dark"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></a>
-                                        </li>
+                                        </li> -->
                                         @endcan                              
                                         <li>
-                                            <a href="{{ url('pdfFactDel',array($r->id))}}"          		
+                                            <a href="{{ url('pdfFactDel',array($r->id))}}" target="_blank"          		
         	                                    data-toggle="tooltip" data-placement="top" title="Imprimir">
                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity text-warning"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></a> 
                                         </li>
@@ -135,7 +135,7 @@
                                             <a href="javascript:void(0);" 
                                                 onclick="openModalComentario({{$r->id}},'{{$r->comentario}}',1)"        		
         	                                    data-toggle="tooltip" data-placement="top" title="Con Comentario">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-circle text-danger"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-chat-text text-danger" viewBox="0 0 16 16"><path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"/><path d="M4 5.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8zm0 2.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5z"/></svg></a>
                                             @else
                                             <a href="javascript:void(0);" 
                                                 onclick="openModalComentario({{$r->id}},'{{$r->comentario}}',0)"        		

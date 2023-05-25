@@ -69,7 +69,7 @@ class ClienteController extends Component
                 ->where('nombre', 'not like', 'FINAL')
                 ->orderBy('apellido', 'asc')
                 ->select('clientes.*', 'loc.descripcion as localidad', DB::RAW("'' as tieneViandasCargadas",
-                    DB::RAW("'' as esConsFinal")))->get();
+                    DB::RAW("'' as esConsFinal"), DB::RAW("'' as tipo")))->get();
         } 
         foreach ($info as $i){
             $i->esConsFinal = 0;           
@@ -77,6 +77,8 @@ class ClienteController extends Component
             if($tieneViandasCargadas->count()) $i->tieneViandasCargadas = 1;
             else $i->tieneViandasCargadas = 0;
             if($i->localidad == '.') $i->esConsFinal = 1;
+            if($i->consignatario == '1') $i->tipo = 'Consignatario';
+            else $i->tipo = 'Cliente';
         }
 
         return view('livewire.clientes.component', [
@@ -428,8 +430,8 @@ class ClienteController extends Component
             
         DB::begintransaction();                
         try{
-            $existe = Vianda::find($this->selected_id);
-            if($existe != null){
+            $existe = Vianda::where('cliente_id', $this->selected_id)->first();
+            if($existe){
                 $existe->update([
                     'cliente_id'    => $this->selected_id, 
                     'producto_id'   => $this->producto,

@@ -25,7 +25,6 @@
                     @else <button onclick="openModal(2,0,0,0,0)" type="button" class="btn btn-danger btn-block">Nuevo</button>
                     @endif
                     </div>
-                  
                 </div>  			
                 <div class="table-responsive scroll">
 					<table class="table table-hover table-checkable table-sm">

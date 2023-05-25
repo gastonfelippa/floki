@@ -57,10 +57,10 @@
                         <tbody>
                             @foreach($info as $r)
                             <tr>
-                                <td class="text-center">{{number_format($r->cantidad,2)}}</td>
+                                <td class="text-center">{{number_format($r->cantidad,3,',','.')}}</td>
                                 <td class="text-left">{{$r->producto}}</td>
                                 <td class="text-right">{{$r->precio}}</td>
-                                <td class="text-right">{{number_format($r->importe,2)}}</td>
+                                <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
                                 <td class="text-center">
                                     <ul class="table-controls">
                                         <li>
@@ -515,6 +515,27 @@
                 showConfirmButton: true
             })
 		}) 
-  
+        Livewire.on('cambiarPrecioDetalle',(cantidad, accion)=>{
+            var existe = 'Existen ';
+            var factura = ' facturas abiertas y/o pendientes ';
+            if(cantidad == 1){
+                existe = 'Existe ';
+                factura = ' factura abierta y/o pendiente ';
+            } 
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: existe + cantidad + factura + 'en donde tenés cargado este producto con el precio anterior..., ¿Qué acción deseas realizar?',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Actualizar los precios de todas las facturas...',
+                showCancelButton: true,
+                cancelButtonText: 'Continuar sin modificar las facturas...'
+            }).then((result) => {
+                if (result.isConfirmed) { 
+                    window.livewire.emit('actualizarPreciosCargados', accion);
+                }
+            });       
+		})
     } 
 </script>

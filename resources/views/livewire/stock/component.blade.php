@@ -77,7 +77,7 @@
                                 @foreach($info as $r)
                                 <tr>                    
                                     <td>{{$r->descripcion}}</td>
-                                    <td class="text-center">{{$r->stock_local}}</td>
+                                    <td class="text-center">{{number_format($r->stock_local,3,',','.')}}</td>
                                     @if($modConsignaciones == '1')
                                         <td class="text-center">
                                             <ul class="table-controls">
@@ -140,7 +140,21 @@
                         </table>
                     </div>
                     @can('Productos_create')
-                    <h5><b>Total Stock:</b> $ {{number_format($valorTotalStock,2,',','.')}}</h5>
+                    @if($modConsignaciones == "1")
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="mt-1"><b>Stock Local:</b> $ {{number_format($valorTotalStockLocal,2,',','.')}}</h6>
+                        </div>
+                        <div class="col-12">
+                            <h6 class="mt-1"><b>Stock En Consignación:</b> $ {{number_format($valorTotalStockConsignacion,2,',','.')}}</h6>
+                        </div>
+                        <div class="col-12">
+                            <h5><b>Total Stock:</b> $ {{number_format($valorTotalStock,2,',','.')}}</h5>  
+                        </div>
+                    </div>
+                    @else
+                        <h5><b>Total Stock:</b> $ {{number_format($valorTotalStock,2,',','.')}}</h5>
+                    @endif
                     @endcan
                 @include('livewire.stock.modal')
                 @include('livewire.stock.modalHistorial')
@@ -167,7 +181,7 @@
                                 @foreach($infoCli as $r)
                                 <tr>  
                                     @if($r->cantidad > 0)                   
-                                        <td class="text-center">{{$r->cantidad}}</td>
+                                        <td class="text-center">{{number_format($r->cantidad,3,',','.')}}</td>
                                         <td class="text-left">{{$r->articuloDesc}}</td>
                                         @can('Productos_create')
                                         <td class="text-right">{{number_format($r->precio_venta,2,',','.')}}</td>
@@ -179,8 +193,8 @@
                             </tbody>
                         </table>
                     </div>
-                    @can('Productos_create')
-                    <h5><b>Total Stock:</b> $ {{number_format($valorTotalStockConsignacion,2,',','.')}}</h5>
+                    @can('Productos_create')                  
+                        <h5><b>Total Stock:</b> $ {{number_format($valorTotalStockPorConsignatario,2,',','.')}}</h5>                 
                     @endcan
                 @endif
             </div>

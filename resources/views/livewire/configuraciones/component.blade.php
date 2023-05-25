@@ -52,20 +52,20 @@
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="inlineRadioOptions12" id="inlineRadio12" value="2" wire:model="opcion_de_guardado_compra">
-                    <label class="form-check-label" for="inlineRadio12">Deseo modificar tanto los Precios de Costo como así también los de Venta Sugeridos y los de Lista</label>
+                    <label class="form-check-label" for="inlineRadio12">Deseo modificar los Precios de Costo y de Venta Sugeridos como así también los Precios de Lista</label>
                 </div>
             </div> 
         </div> 
         <div class="row"> 
             <div class="col-12 layout-spacing">
-                <h6>Opciones de Guardado al Grabar/Modificar un Producto</h6>
+                <h6>Opciones de Guardado al Modificar un Producto</h6>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="inlineRadioOptions13" id="inlineRadio14" value="1" wire:model="opcion_de_guardado_producto">
                     <label class="form-check-label" for="inlineRadio14">Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="inlineRadioOptions13" id="inlineRadio15" value="2" wire:model="opcion_de_guardado_producto">
-                    <label class="form-check-label" for="inlineRadio15">Deseo modificar tanto los Precios de Costo como así también los de Venta Sugeridos y los de Lista</label>
+                    <label class="form-check-label" for="inlineRadio15">Deseo modificar los Precios de Costo y de Venta Sugeridos como así también los Precios de Lista</label>
                 </div>
             </div> 
         </div>

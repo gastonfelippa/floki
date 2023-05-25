@@ -4,23 +4,24 @@
 <div>
 	<h5 class="text-center">Resumen de Cuenta Corriente</h5>
 	<div><span class="text-left" style="font-weight: bold;font-size:14px;">Cliente: {{$info[0]->apellido}} {{$info[0]->nombre}}</span></div>
+	<div><span class="text-left" style="font-size:14px;">Domicilio: {{$info[0]->calle}} {{$info[0]->numero}} - {{$info[0]->localidad}}</span></div>
 	<span style="font-size:12px;">Fecha: {{\Carbon\Carbon::now()->format('d-m-Y')}}</span><br>
 		
 	@if($importeEntrega > 0)
 	<div class="row">
 		<div class="col-12 text-left" style="font-size:12px;">		
-			<span>Facturas a cobrar.......$ {{number_format($totalCli,2,',','.')}}</span>
+			<span>Facturas en cuenta corriente......$ {{number_format($totalCli,2,',','.')}}</span>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-12 text-left" style="font-size:12px;">		
-			<span>Entregas a cuenta......$ - {{number_format($importeEntrega,2,',','.')}}</span>
+			<span>Pagos a cuenta...........................$ ({{number_format($importeEntrega,2,',','.')}})</span>
 		</div>
 	</div>
 	@endif
 	<div class="row">
 		<div class="col-12 text-left" style="font-weight: bold;font-size:14px;">	
-			<span>Saldo..........................$ {{number_format($saldo,2,',','.')}}</span>
+			<span>Saldo...................................$ {{number_format($saldo,2,',','.')}}</span>
 		</div>
 	</div>
     <div class="table-responsive mt-2">

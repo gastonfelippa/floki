@@ -25,15 +25,7 @@
                     </select>		
                 </div>                                             
             </div>
-            <div class="row">  
-                <!-- <div class="col-12 col-md-4 layout-spacing">
-                    <label >Tipo</label>
-                    <select wire:model="tipo" class="form-control text-left">
-                        <option value="Ambos">Ambos</option>
-                        <option value="Venta">Art. Venta</option>
-                        <option value="Compra">Art. Compra</option>
-                    </select>
-                </div> -->
+            <div class="row"> 
                 <div class="col-12 col-md-6 layout-spacing">
                     <div class="input-group">
                         @if($modComandas == "1")

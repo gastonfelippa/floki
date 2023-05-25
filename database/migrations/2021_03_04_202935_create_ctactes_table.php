@@ -25,6 +25,8 @@ class CreateCtactesTable extends Migration
             $table->unsignedBigInteger('recibo_id')->nullable();
             $table->foreign('recibo_id')->references('id')->on('recibos');
 
+            $table->enum('estado', ['0', '1']); //'0' cancelado, '1' cta-cte
+
             $table->timestamps();
         });
     }

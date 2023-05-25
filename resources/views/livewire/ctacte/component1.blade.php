@@ -93,9 +93,9 @@
 					<table onclick="ver_id()" id="tabla" class="table table-hover table-checkable table-sm">
 						<thead>
 							<tr>
-							@if($clienteId == '')
-							<th></th> 
-							@endif
+								@if($clienteId == '')
+									<th></th> 
+								@endif
 								@if($search != '')
 									@if($clienteId != '')
 										@if($verHistorial == 0)
@@ -123,22 +123,19 @@
 								@if($clienteId == '')
 									<td>{{$r->cliente_id}}</td>
 								@endif
-								@if($search != '')
-									@if($clienteId != '')
-										@if($verHistorial == 0)
+								@if($search != '' && $clienteId != '')
+									@if($verHistorial == 0)
 										<td class="text-left">
 											<input onclick="calcularTotal()"  id="{{$r->factura_id}}" value="{{$r->importe}}" class="name" name="checks" type="checkbox" checked>                                                                         
 										</td>
-										@endif
+									@endif
 									<td class="text-center" style=" width: 150px;">{{\Carbon\Carbon::parse(strtotime($r->fecha))->format('d-m-Y')}}</td>
-										@if($r->importe_factura == 1)
-											<td class="text-center">FAC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}}</td>
-										@elseif( $r->importe_factura == 2)
-											<td class="text-center" style="font-weight: bold;">FAC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}} (resto $ {{number_format($r->resto,2,',','.')}})</td>
-										@else
-											<td class="text-center">REC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}}</td>
-										@endif
-							
+									@if($r->importe_factura == 1)
+										<td class="text-center">FAC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}}</td>
+									@elseif( $r->importe_factura == 2)
+										<td class="text-center" style="font-weight: bold;">FAC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}} (resto $ {{number_format($r->resto,2,',','.')}})</td>
+									@else
+										<td class="text-center">REC-{{str_pad($r->numero_fac, 6, '0', STR_PAD_LEFT)}}</td>
 									@endif
 								@endif
 								@if($search == '' || $clienteId == '')
@@ -165,7 +162,7 @@
 												<a href="{{url('pdfFactDel',array($r->factura_id))}}" target="_blank" title="Ver Factura">
 												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye text-success"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>    
 											@else
-											<a href="{{url('pdfRecibos',array($r->recibo_id))}}" target="_blank" title="Ver Recibo">
+												<a href="{{url('pdfRecibos',array($r->recibo_id))}}" target="_blank" title="Ver Recibo">
 												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye text-success"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>  											
 											@endif
 											</li>										

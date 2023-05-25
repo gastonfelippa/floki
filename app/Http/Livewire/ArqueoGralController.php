@@ -104,8 +104,9 @@ class ArqueoGralController extends Component
             $i->sumaVentas = $infoV;
         }
         foreach ($listaVentas as $i){
-            $infoC = Recibo::where('arqueo_id', $i->id)
-            ->sum('importe');
+            $infoC = Recibo::join('det_metodo_pagos as det', 'det.recibo_id', 'recibos.id')
+                ->where('recibos.arqueo_id', $i->id)
+                ->sum('det.importe');
             $i->sumaCobros = $infoC;
         }
         foreach ($listaVentas as $i){
@@ -166,31 +167,32 @@ class ArqueoGralController extends Component
     {   
         //suma de todas las cajas iniciales del día
         $this->cajaInicial = CajaInicial::join('caja_usuarios as cu', 'cu.id', 'caja_inicials.caja_user_id')
-                ->join('cajas as c', 'c.id', 'cu.caja_id')
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->sum('importe');
+            ->join('cajas as c', 'c.id', 'cu.caja_id')
+            ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+            ->sum('importe');
         //suma de todas las ventas de contado del día
         $this->ventas = Factura::join('caja_usuarios as cu', 'cu.id', 'facturas.arqueo_id')
-                ->join('arqueo_grals as ag', 'ag.id', 'cu.arqueo_gral_id')
-                ->where('facturas.comercio_id', $this->comercioId)
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('facturas.estado', 'contado')
-                ->where('facturas.estado_pago', '1')
-                ->sum('importe');
+            ->join('arqueo_grals as ag', 'ag.id', 'cu.arqueo_gral_id')
+            ->where('facturas.comercio_id', $this->comercioId)
+            ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+            ->where('facturas.estado', 'contado')
+            ->where('facturas.estado_pago', '1')
+            ->sum('importe');
         //suma de los recibos de pago total más las entregas del día
         $this->cobrosCtaCte = Recibo::join('caja_usuarios as cu', 'cu.id', 'recibos.arqueo_id')
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->sum('importe');
+            ->join('det_metodo_pagos as det', 'det.recibo_id', 'recibos.id')
+            ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+            ->sum('det.importe');
         //suma de otros ingresos del día
         $this->otrosIngresos = MovimientoDeCaja::join('caja_usuarios as cu', 'cu.id', 'movimiento_de_cajas.arqueo_id')
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('movimiento_de_cajas.ingreso_id', '<>', null)
-                ->sum('importe');
+            ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+            ->where('movimiento_de_cajas.ingreso_id', '<>', null)
+            ->sum('importe');
         //suma los egresos del día
         $this->egresos = MovimientoDeCaja::join('caja_usuarios as cu', 'cu.id', 'movimiento_de_cajas.arqueo_id')
-                ->where('cu.arqueo_gral_id', $this->arqueoGralId)
-                ->where('movimiento_de_cajas.egreso_id', '<>', null)
-                ->sum('importe');
+            ->where('cu.arqueo_gral_id', $this->arqueoGralId)
+            ->where('movimiento_de_cajas.egreso_id', '<>', null)
+            ->sum('importe');
         //suma las diferencias de caja del día
         $this->cajaFinalUsuarios = CajaUsuario::where('arqueo_gral_id', $this->arqueoGralId)->sum('diferencia');
    // dd($this->cajaFinalUsuarios);

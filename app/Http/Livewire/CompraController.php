@@ -8,7 +8,9 @@ use App\Models\Categoria;
 use App\Models\Comercio;
 use App\Models\Compra;
 use App\Models\Detcompra;
+use App\Models\Detfactura;
 use App\Models\DetReceta;
+use App\Models\Factura;
 use App\Models\Historico;
 use App\Models\Producto;
 use App\Models\ProductoProveedor;
@@ -34,7 +36,7 @@ class CompraController extends Component
     public $precio_venta_l1, $precio_venta_l2, $precio_venta_sug_l1, $precio_venta_sug_l2;
 	public $calcular_precio_de_venta, $redondear_precio_de_venta, $costo_actual;
     public $costo_historico, $venta_sug_l1_historico, $venta_sug_l2_historico, $venta_l1_historico, $venta_l2_historico;
-
+    public $detalleProductoCargado, $productoFinalId;
 
 	public function render()
 	{       
@@ -51,8 +53,8 @@ class CompraController extends Component
 		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
 		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
         if(!$this->cambiar_precios){
-            if($record->opcion_de_guardado == '0') $this->cambiar_precios = 'no';
-            elseif($record->opcion_de_guardado == '1') $this->cambiar_precios = 'solo_costos';
+            if($record->opcion_de_guardado_compra == '0') $this->cambiar_precios = 'no';
+            elseif($record->opcion_de_guardado_compra == '1') $this->cambiar_precios = 'solo_costos';
             else $this->cambiar_precios = 'cambiar_todo';
         }
 	
@@ -133,15 +135,16 @@ class CompraController extends Component
         ]);
     }    
     protected $listeners = [
-        'buscarProducto'           => 'buscarProducto',
-        'buscarPorCodigo'          => 'buscarPorCodigo',
-        'buscarDomicilio'          => 'buscarDomicilio',
-        'CrearModificarEncabezado' => 'CrearModificarEncabezado',
-        'opcionCambiarPrecios'     => 'opcionCambiarPrecios',
-        'elegirFormaDePago'        => 'elegirFormaDePago',
-        'factura_contado'          => 'factura_contado',
-        'anularFactura'            => 'anularFactura',
-        'deleteRow'                => 'destroy'         
+        'buscarProducto'            => 'buscarProducto',
+        'buscarPorCodigo'           => 'buscarPorCodigo',
+        'buscarDomicilio'           => 'buscarDomicilio',
+        'CrearModificarEncabezado'  => 'CrearModificarEncabezado',
+        'opcionCambiarPrecios'      => 'opcionCambiarPrecios',
+        'actualizarPreciosCargados' => 'actualizarPreciosCargados',
+        'elegirFormaDePago'         => 'elegirFormaDePago',
+        'factura_contado'           => 'factura_contado',
+        'anularFactura'             => 'anularFactura',
+        'deleteRow'                 => 'destroy'         
     ];
     public function buscarPorCodigo() 
     {
@@ -258,6 +261,8 @@ class CompraController extends Component
     }
     public function StoreOrUpdate($id)
     {
+        $this->productoFinalId = $id;    //lo uso para actualizar las facturas abiertas o pendientes
+                                         //que contengan a este producto en sus detalles
         $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio);
  
         DB::begintransaction();                         //iniciar transacción para grabar
@@ -406,7 +411,7 @@ class CompraController extends Component
                 //ACTUALIZO LOS ARTICULOS CON RECETA QUE CONTENGAN ESTE PRODUCTO COMO MATERIA PRIMA.
                 //PARA ELLO DEBO CALCULAR EL TOTAL DE LA RECETA TENIENDO ESPECIAL ATENCIÓN AL VALOR DE LA
                 //MATERIA PRIMA QUE ESTAMOS CARGANDO PARA UTILIZARLO EN DICHO CÁLCULO
-                    $record = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
+                $record = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
                     ->where('det_recetas.producto_id', $id)
                     ->where('det_recetas.comercio_id', $this->comercioId)
                     ->select('det_recetas.receta_id')->get();
@@ -423,7 +428,7 @@ class CompraController extends Component
                                 else $total_costo_receta += $j->cantidad * $j->precio_costo; 
                             }
                         }
-                        //RECUPERO DATOS DEL PRODUCTO DE LA RECETA 
+                        //RECUPERO DATOS DEL PRODUCTO FINAL DE LA RECETA 
                         $data_producto_receta = Receta::join('productos as p', 'p.id', 'recetas.producto_id')
                             ->join('categorias as c', 'c.id', 'p.categoria_id')
                             ->where('recetas.id', $i->receta_id)                      
@@ -451,7 +456,7 @@ class CompraController extends Component
                             $this->precio_venta_l1 = round($this->precio_venta_l1);
                             $this->precio_venta_l2 = round($this->precio_venta_l2);
                         }
-                        //modifico los datos del producto de la receta
+                        //modifico los datos del PRODUCTO FINAL de la receta
                         $record = Producto::find($data_producto_receta[0]->id);
                         if($this->cambiar_precios == 'solo_costos'){   //modifica precios sugeridos  
                             $record->update([
@@ -470,6 +475,16 @@ class CompraController extends Component
                         }                         
                     }
                 }
+                //VERIFICO LOS DETALLES DE FACTURA ABIERTA O PENDIENTE QUE CONTENGAN AL PRODUCTO
+				//QUE ESTAMOS MODIFICANDO PARA LUEGO PREGUNTAR SI LOS QUIEREN MODIFICAR O NO
+				$this->detalleProductoCargado = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+                    ->where('facturas.estado', 'abierta')
+                    ->where('facturas.comercio_id', $this->comercioId)
+                    ->where('df.producto_id', $id)
+                    ->orWhere('facturas.estado', 'pendiente')
+                    ->where('facturas.comercio_id', $this->comercioId)
+                    ->where('df.producto_id', $id)
+                    ->select('df.id', 'df.precio')->get();
             }           
             DB::commit();
             if($this->selected_id > 0){		
@@ -481,8 +496,48 @@ class CompraController extends Component
             DB::rollback(); 
             session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }     
-        $this->resetInput(); 
+        if($this->detalleProductoCargado && $this->detalleProductoCargado->count()){
+			$this->emit('cambiarPrecioDetalle', $this->detalleProductoCargado->count(), 'agregar');
+		}else{
+			$this->resetInput();
+			return;
+		}
     }
+    public function actualizarPreciosCargados($accion)
+	{
+		//ACTUALIZO LOS IMPORTES QUE FIGUREN EN LOS DETALLE DE FACTURA ABIERTA O PENDIENTE
+		//EN DONDE CONTENGAN AL PRODUCTO QUE ESTAMOS MODIFICANDO
+		DB::begintransaction();
+        try{
+			$detalle = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+				->where('facturas.estado', 'abierta')
+				->where('facturas.comercio_id', $this->comercioId)
+				->where('df.producto_id', $this->productoFinalId)
+				->orWhere('facturas.estado', 'pendiente')
+				->where('facturas.comercio_id', $this->comercioId)
+				->where('df.producto_id', $this->productoFinalId)
+				->select('facturas.mesa_id', 'df.id', 'df.precio')->get();
+			if($detalle->count()){
+				foreach ($detalle as $i) {
+					$grabar = Detfactura::find($i->id);
+                    if($accion == 'agregar'){
+                        if($i->mesa_id) $grabar->update(['precio' => $this->precio_venta_l1]);
+					    else $grabar->update(['precio' => $this->precio_venta_l2]);
+                    }else{
+                        if($i->mesa_id) $grabar->update(['precio' => $this->venta_l1_historico]);
+					    else $grabar->update(['precio' => $this->venta_l2_historico]);
+                    }					
+				}
+			}
+			session()->flash('msg-ok', 'Facturas actualizadas exitosamente!!!'); 
+			DB::commit();               
+		}catch (\Exception $e){
+			DB::rollback();
+			session()->flash('msg-error', '¡¡¡ATENCIÓN!!! Las Facturas no fueron actualizadas...');
+		}
+		$this->resetInput();
+		return;
+	}
     public function opcionCambiarPrecios($cambiar_precios)
     {
         $this->cambiar_precios = $cambiar_precios;
@@ -631,7 +686,7 @@ class CompraController extends Component
     }
     public function destroy($id, $esProducto) //eliminar / delete / remove
     {
-        if($id) {
+        if($id){
             DB::begintransaction();                        
             try{     
                 $record = Detcompra::find($id);
@@ -640,10 +695,19 @@ class CompraController extends Component
                 $precio = $record->precio;
                 $importe_a_descontar = $cantidad * $precio;
                 $record->delete(); 
-                $this->totalAgrabar = $this->total - $importe_a_descontar;
 
+                $this->totalAgrabar = $this->total - $importe_a_descontar;
                 $record = Compra::find($this->factura_id);  //actualizamos el encabezado
                 $record->update(['importe' => $this->totalAgrabar]); 
+
+                $this->productoFinalId = $productoId;  //TOMO ESTE DATO PARA ACTUALIZAR LAS FACTURAS ABIERTAS
+
+                //ACTUALIZO STOCK
+                $record = Stock::where('producto_id', $productoId)->first();   
+                $stockAnterior = $record['stock_actual'];
+                $stockNuevo = $stockAnterior - $cantidad;  
+                $record->update(['stock_actual' => $stockNuevo]);
+
         
                 //BUSCO LOS PRECIOS ANTES DE LA CARGA DEL ITEM
                 $historico = Historico::where('producto_id', $productoId)
@@ -655,7 +719,7 @@ class CompraController extends Component
                 $this->venta_l2_historico     = $historico[0]->precio_venta_l2;
 
                 //ACTUALIZO EL PRECIO DE COMPRA Y/O VENTA DEL PRODUCTO COMPRADO... O NO
-                if($this->cambiar_precios <> 'no'){ 
+                if($this->cambiar_precios <> 'no'){       
                     $record = Producto::find($productoId);
                     if($this->cambiar_precios == 'solo_costos'){        //modifica precios sugeridos  
                         $record->update([
@@ -721,7 +785,7 @@ class CompraController extends Component
                                 $this->venta_l1_historico     = round($this->venta_l1_historico);
                                 $this->venta_l2_historico     = round($this->venta_l2_historico);
                             }
-                            //MODIFICO LOS DATOS DEL PRODUCTO DE LA RECETA
+                            //MODIFICO LOS DATOS DEL PRODUCTO FINAL DE LA RECETA
                             $record = Producto::find($data_producto_receta[0]->id);
                             if($this->cambiar_precios == 'solo_costos'){   //modifica precios sugeridos  
                                 $record->update([
@@ -740,14 +804,31 @@ class CompraController extends Component
                             }                         
                         }
                     }
+                    if($this->cambiar_precios == 'cambiar_todo'){                        
+                        //VERIFICO LOS DETALLES DE FACTURA ABIERTA O PENDIENTE QUE CONTENGAN AL PRODUCTO
+                        //QUE ESTAMOS MODIFICANDO PARA LUEGO PREGUNTAR SI LOS QUIEREN MODIFICAR O NO
+                        $this->detalleProductoCargado = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+                            ->where('facturas.estado', 'abierta')
+                            ->where('facturas.comercio_id', $this->comercioId)
+                            ->where('df.producto_id', $this->productoFinalId)
+                            ->orWhere('facturas.estado', 'pendiente')
+                            ->where('facturas.comercio_id', $this->comercioId)
+                            ->where('df.producto_id', $this->productoFinalId)
+                            ->select('df.id', 'df.precio')->get();
+                    }
                 }
                 DB::commit();
                 session()->flash('message', 'Registro Eliminado'); 
-            }catch (\Exception $e){
+            }catch (Exception $e){
                 DB::rollback(); 
                 session()->flash('message', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
             }     
-            $this->resetInput(); 
+            if($this->detalleProductoCargado && $this->detalleProductoCargado->count()){
+                $this->emit('cambiarPrecioDetalle', $this->detalleProductoCargado->count(), '');
+            }else{
+                $this->resetInput();
+                return;
+            } 
         }
     }
 }

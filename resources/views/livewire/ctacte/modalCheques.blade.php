@@ -45,7 +45,11 @@
                         <div class="row">                          
                             <div class="form-group col-6">
                                 <label >Importe</label>
-                                <input id="importeCheque" type="text" class="form-control" autocomplete="off">
+                                @if($entrega == 0)
+                                    <input id="importeCheque" type="text" class="form-control" autocomplete="off" disabled>
+                                @else
+                                    <input id="importeCheque" type="text" class="form-control" autocomplete="off">
+                                @endif
                             </div>                       
                             <div class="form-group col-6">
                                 <label >CUIT Titular</label>
@@ -62,3 +66,9 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript"> 
+    $(document).ready(function () {
+        $('#importeCheque').val(Number.parseFloat($('#saldoFactura').val()).toFixed(2));
+    });
+</script>

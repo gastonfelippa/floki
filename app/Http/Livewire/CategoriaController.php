@@ -114,15 +114,13 @@ class CategoriaController extends Component
         $this->validate(['rubro' => 'not_in:Elegir']);
         if ($this->calcular_precio_de_venta == 0){   //calcula el precio de venta sumando 
             $this->validate([                        //el margen de ganancia al costo del producto
-                'descripcion' => 'required',
-                'margen_1'    => 'integer',
-                'margen_2'    => 'integer'
+                'descripcion' => 'required'
             ]);
         }else{                                      //calcula el precio de venta obteniendo 
             $this->validate([                       //el margen de ganancia sobre el mismo
                 'descripcion' => 'required',
-                'margen_1'    => 'integer|min:1|max: 99',
-                'margen_2'    => 'integer|min:1|max: 99'
+                'margen_1'    => 'min:1|max: 99',
+                'margen_2'    => 'min:1|max: 99'
             ]);
         }
         

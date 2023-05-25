@@ -56,13 +56,14 @@ class SocioController extends Component
             ->where('r.alias', 'Cobrador')
             ->where('r.comercio_id', $this->comercioId)
             ->select('users.id', 'users.name', 'users.apellido')->get();
- 
+
         // //capturo el id del repartidor Salón 
-        // $this->salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
-        //     ->where('users.name', '...')
-        //     ->where('users.apellido', 'Salón')
-        //     ->where('uc.comercio_id', $this->comercioId)
-        //     ->select('users.id')->get();
+        // $salon = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+        //    ->where('users.name', '...')
+        //    ->where('users.apellido', 'Salón')
+        //    ->where('uc.comercio_id', $this->comercioId)
+        //    ->select('users.id')->get();
+        // $this->localId = $salon[0]->id;
 
         if(strlen($this->search) > 0){
             $info = Socio::join('localidades as loc', 'loc.id', 'socios.localidad_id')

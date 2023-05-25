@@ -16,11 +16,11 @@ class CreateDetMetodoPagosTable extends Migration
         Schema::create('det_metodo_pagos', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('recibo_id');
-            $table->foreign('recibo_id')->references('id')->on('recibos')->nullable();
+            $table->unsignedBigInteger('recibo_id')->nullable();
+            $table->foreign('recibo_id')->references('id')->on('recibos');
 
-            $table->unsignedBigInteger('factura_id');
-            $table->foreign('factura_id')->references('id')->on('facturas')->nullable();
+            $table->unsignedBigInteger('factura_id')->nullable();
+            $table->foreign('factura_id')->references('id')->on('facturas');
                             //efectivo,tarj débito,tarj crédito,transferencia,cheque,cta cte
             $table->enum('medio_de_pago', ['1','2','3','4','5','6'])->nullable(); 
             $table->string('num_comp_pago')->nullable();

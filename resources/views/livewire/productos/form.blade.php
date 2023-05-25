@@ -1,16 +1,16 @@
 <div class="col-12 layout-spacing"> 
     <div class="widget-content-area ">
         <div class="widget-one">
-            @include('common.alerts')  <!--  validación de campos -->
-            @include('common.messages') 
-            <h5><b>@if($selected_id ==0) Nuevo Producto  @else Editar Producto @endif </b></h5>            
+            @include('common.alerts')   
+            @include('common.messages') <!-- validación de campos -->
+            <h5><b>@if($selected_id == null) Nuevo Producto  @else Editar Producto @endif </b></h5>            
             @if($selected_id > 0)
                 @if($cambiar_precios == 'solo_costos')
-                    <p><b>(Al Modificar SOLO SE ACTUALIZARÁN el Precio de Costo y los Precios Sugeridos)</b>
+                    <p><b>(Al Modificar el COSTO del Producto SOLO SE ACTUALIZARÁN éste y los Precios de Venta Sugeridos)</b>
                 @else
-                    <p><b>(Al Modificar SE ACTUALIZARÁN TODOS LOS PRECIOS... el de Costo, los Sugeridos y los de Lista)</b>
+                    <p><b>(Al Modificar el Costo del Producto SE ACTUALIZARÁN TODOS LOS PRECIOS... el de Costo, los Sugeridos y los de Lista)</b>
                 @endif
-                <span class="badge bg-danger" onClick="opcionCambiarPrecios()">Cambiar Opción de Guardado</span></p>                
+                <!-- <span class="badge bg-danger" onClick="opcionCambiarPrecios()">Cambiar Opción de Guardado</span></p>                 -->
             @endif
             <form class="mb-3"> 
                 <div class="row mt-3">
@@ -51,7 +51,7 @@
                     @if($tiene_receta == 'si')
                     <div class="form-group col-md-2 col-sm-12">
                         <label >Precio/Costo</label>
-                        <input wire:model.lazy="precio_costo" onblur="precioBajo()" type="text" class="form-control" disabled>
+                        <input wire:model.lazy="precio_costo" type="text" class="form-control" disabled>
                     </div>
                     @else
                     <div class="form-group col-md-2 col-sm-12">
@@ -59,8 +59,6 @@
                         <input id="precio_costo" wire:model.lazy="precio_costo" onblur="precioBajo()" type="text" class="form-control">
                     </div>
                     @endif
-                    <input type="hidden" id="costo_actual" wire:model="costo_actual">
-                    <input type="hidden" id="tipo" wire:model="tipo">
                     @if($tipo <> 'Art. Compra')
                     <div class="form-group col-md-3 col-sm-12">
                         @if($modDelivery == "1")
@@ -100,8 +98,15 @@
                 <!-- <hr/> -->
                 @if($tiene_sp == null)
                 <div class="row">  
-                    <div class="form-group col-md-2 col-sm-12">
-                        <label >Stock Actual</label>
+                    <div class="form-group col-md-3 col-sm-12">
+                        <div class="row">
+                            <div class="col-5">
+                                <label >Stock Actual</label>
+                            </div>
+                            <div class="col-7">
+                                <span class="badge bg-danger" onClick="existenciaInicial()">Existencia inicial</span></p>
+                            </div>
+                        </div>                        
                         <input wire:model.lazy="stock_actual" type="text" class="form-control">
                     </div>
                     <div class="form-group col-md-2 col-sm-12">
@@ -213,7 +218,7 @@
             </form>
             <div class="row ">
                 <div class="col-12 mb-2">
-                    <button type="button" wire:click="doAction(1)" onclick="setfocus('nombre')"  class="btn btn-dark mr-1">
+                    <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">
                         <i class="mbri-left"></i> Cancelar
                     </button>
                     <button type="button" id="btnGuardar"
@@ -238,6 +243,9 @@
                 </div>            
             </div>
         </div>
+        <input type="hidden" id="selected_id" wire:model="selected_id">
+        <input type="hidden" id="costo_actual" wire:model="costo_actual">
+        <input type="hidden" id="tipo" wire:model="tipo">
     </div>
 </div>
 

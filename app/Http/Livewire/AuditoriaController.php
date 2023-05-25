@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Auditoria;
+use App\Models\Producto;
 use DB;
 
 class AuditoriaController extends Component
@@ -28,7 +29,7 @@ class AuditoriaController extends Component
                 ->orderby('auditorias.created_at','desc')->select('auditorias.*', 'u.name as nomUser', 'u.apellido as apeUser', 
                 DB::RAW("'' as item"))->get();
         }
-    
+        //dd($info);
         foreach($info as $i){
             switch ($i->tabla) {
                 case 'Egresos':                               
@@ -62,7 +63,7 @@ class AuditoriaController extends Component
                 case 'Facturas':                               
                     $info2 = Auditoria::join('facturas as f', 'f.id', 'auditorias.item_deleted_id')
                         ->where('auditorias.id', $i->id)->select('f.numero')->get();
-                    $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT);                   
+                    $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT); 
                     break;  
                 case 'Compras':                               
                     $info2 = Auditoria::join('compras as c', 'c.id', 'auditorias.item_deleted_id')
@@ -89,7 +90,7 @@ class AuditoriaController extends Component
                         ->where('auditorias.id', $i->id)->select('sp.descripcion')->get();
                     $i->item = $info2[0]->descripcion;
                     break; 
-                case 'Detalle de Facturas': 
+                case 'Detalle/Facturas': 
                     $es_producto = Auditoria::join('detFacturas as df', 'df.id', 'auditorias.item_deleted_id')
                     ->where('auditorias.id',$i->id)->select('df.producto_id')->get();
                     if($es_producto[0]->producto_id){
@@ -153,6 +154,28 @@ class AuditoriaController extends Component
                     $i->item = $info2[0]->descripcion . ' - ' . $info2[0]->sucursal . ' N° ' . 
                                 $info2[0]->numero . ' $ ' . $info2[0]->importe;
                     break;
+                case 'Entregas/Facturas':                               
+                    $info2 = Auditoria::join('det_metodo_pagos as det', 'det.id', 'auditorias.item_deleted_id')
+                        ->join('facturas as f', 'f.id', 'det.factura_id')
+                        ->join('mesas as m', 'm.id', 'f.mesa_id')
+                        ->where('auditorias.id', $i->id)->select('f.numero', 'det.importe', 'm.descripcion', 'det.medio_de_pago')->get();
+                    $metodoDePago = '';
+                        if($info2[0]->medio_de_pago == 1) $metodoDePago = 'Efectivo'; 
+                    elseif($info2[0]->medio_de_pago == 2) $metodoDePago = 'Tarjeta Débito';
+                    elseif($info2[0]->medio_de_pago == 3) $metodoDePago = 'Tarjeta Crédito';
+                    elseif($info2[0]->medio_de_pago == 4) $metodoDePago = 'Transferencia';
+                    elseif($info2[0]->medio_de_pago == 5) $metodoDePago = 'Cheque';
+                    elseif($info2[0]->medio_de_pago == 6) $metodoDePago = 'Cuenta Corriente';
+                        $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT) . ' Mesa N° ' . $info2[0]->descripcion . ' ' . $metodoDePago . ' $ ' . $info2[0]->importe;                   
+                    break; 
+                case 'Detalle/Recetas':                               
+                    $info2 = Auditoria::join('det_recetas as det', 'det.id', 'auditorias.item_deleted_id')
+                        ->join('recetas as r', 'r.id', 'det.receta_id')
+                        ->join('productos as p', 'p.id', 'r.producto_id')
+                        ->where('auditorias.id', $i->id)->select('p.descripcion', 'det.cantidad', 'det.unidad_de_medida', 'det.producto_id')->get();
+                    $infoProductoFinal = Producto::find($info2[0]->producto_id);
+                    $i->item = $info2[0]->cantidad . ' ' . $info2[0]->unidad_de_medida . ' ' . $infoProductoFinal->descripcion . ' Del Producto Final ' . $info2[0]->descripcion; 
+                    break; 
                 default:
             } 
         }

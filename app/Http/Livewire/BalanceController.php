@@ -50,27 +50,38 @@ class BalanceController extends Component
             $info = Producto::join('categorias as c', 'c.id', 'productos.categoria_id')
                 ->where('productos.comercio_id', $this->comercioId)
                 ->where('productos.tipo', 'not like', 'Art. Compra')
-                ->select('productos.id', 'productos.descripcion', 'productos.precio_costo', 'productos.precio_venta_sug_l1',
-                    'productos.precio_venta_l1', 'c.margen_1', DB::RAW("0 as margen_actual"),
-                    DB::RAW("0 as diferencia_margen"))->orderBy('productos.descripcion')->get();
+                ->select('productos.id', 'productos.descripcion', 'productos.precio_costo', 
+                    'productos.precio_venta_sug_l1', 'productos.precio_venta_sug_l2',
+                    'productos.precio_venta_l1',  'productos.precio_venta_l2',
+                    'c.margen_1', 'c.margen_2',DB::RAW("0 as margen_actual_l1"),DB::RAW("0 as margen_actual_l2"),
+                    DB::RAW("0 as diferencia_margen_1"), DB::RAW("0 as diferencia_margen_2"))->orderBy('productos.descripcion')->get();
             if($info){
-                $margen_actual = 0;
+                $margen_actual_l1 = 0;
+                $margen_actual_l2 = 0;
                 foreach ($info as $i) {
-                    if($i->precio_costo > 0) $margen_actual = 1 - ($i->precio_costo / $i->precio_venta_l1);
-                    else $margen_actual = 0;
-                    $i->margen_actual = $margen_actual * 100;
-                    $i->margen_actual = round($i->margen_actual, 0);
-                    if($i->margen_actual >= $i->margen_1) $i->diferencia_margen = '>=';
-                    else $i->diferencia_margen = '<';
+                    if($i->precio_costo > 0) $margen_actual_l1 = 1 - ($i->precio_costo / $i->precio_venta_l1);
+                    else $margen_actual_l1 = 0;
+                    $i->margen_actual_l1 = $margen_actual_l1 * 100;
+                    $i->margen_actual_l1 = round($i->margen_actual_l1, 2);
+                    if($i->margen_actual_l1 >= $i->margen_1) $i->diferencia_margen_1 = '>=';
+                    else $i->diferencia_margen_1 = '<';
+
+                    if($i->precio_costo > 0) $margen_actual_l2 = 1 - ($i->precio_costo / $i->precio_venta_l2);
+                    else $margen_actual_l2 = 0;
+                    $i->margen_actual_l2 = $margen_actual_l2 * 100;
+                    $i->margen_actual_l2 = round($i->margen_actual_l2, 2);
+                    if($i->margen_actual_l2 >= $i->margen_2) $i->diferencia_margen_2 = '>=';
+                    else $i->diferencia_margen_2 = '<';
                 }
-            } 
+            }  
         }elseif($this->selector == '2'){    //por categoría
             $info = Producto::join('categorias as c', 'c.id', 'productos.categoria_id')
                 ->where('productos.comercio_id', $this->comercioId)
                 ->where('productos.tipo', 'not like', 'Art. Compra')
-                ->groupBy('productos.categoria_id', 'c.descripcion', 'c.margen_1')
-                ->select('productos.categoria_id', 'c.descripcion', 'c.margen_1',
-                    DB::RAW("0 as diferencia_margen"), DB::RAW("0 as promedio_por_categoria"))
+                ->groupBy('productos.categoria_id', 'c.descripcion', 'c.margen_1', 'c.margen_2')
+                ->select('productos.categoria_id', 'c.descripcion', 'c.margen_1', 'c.margen_2',
+                    DB::RAW("0 as diferencia_margen_1"), DB::RAW("0 as diferencia_margen_2"),
+                    DB::RAW("0 as promedio_por_categoria"))
                 ->orderBy('c.descripcion')->get();
             if($info){
                 $margen_real = 0;
@@ -79,19 +90,31 @@ class BalanceController extends Component
                         ->where('productos.comercio_id', $this->comercioId)
                         ->where('productos.tipo', 'not like', 'Art. Compra')
                         ->select('productos.precio_costo', 'productos.precio_venta_l1', 
-                            'productos.categoria_id')->get();
-                    $cantidad = $data->count();
-                    $margen_total = 0;
+                            'productos.precio_venta_l2', 'productos.categoria_id')->get();                     
+                    $cantidadDeItems = $data->count();
+                    $margen_total_l1 = 0;
+                    $margen_total_l2 = 0;
                     foreach ($data as $j) {
-                        if($j->precio_costo > 0) $margen_actual = 1 - ($j->precio_costo / $j->precio_venta_l1);
-                        else $margen_actual = 0;
-                        $margen_actual = $margen_actual * 100;
-                        $margen_total += $margen_actual;
+                        if($j->precio_costo > 0){
+                            $margen_actual_l1 = 1 - ($j->precio_costo / $j->precio_venta_l1);
+                            $margen_actual_l2 = 1 - ($j->precio_costo / $j->precio_venta_l2);
+                        }else {
+                            $margen_actual_l1 = 0;
+                            $margen_actual_l2 = 0;
+                        } 
+                        $margen_actual_l1 = $margen_actual_l1 * 100;
+                        $margen_total_l1 += $margen_actual_l1;
+                        $margen_actual_l2 = $margen_actual_l2 * 100;
+                        $margen_total_l2 += $margen_actual_l2;
                     }
-                    $i->promedio_por_categoria = $margen_total / $data->count(); 
-                    $i->promedio_por_categoria = round($i->promedio_por_categoria, 0);                       
-                    if($i->promedio_por_categoria >= $i->margen_1) $i->diferencia_margen = '>=';
-                    else $i->diferencia_margen = '<';                   
+                    $i->promedio_por_categoria_l1 = $margen_total_l1 / $cantidadDeItems; 
+                    $i->promedio_por_categoria_l1 = round($i->promedio_por_categoria_l1, 2);                       
+                    if($i->promedio_por_categoria_l1 >= $i->margen_1) $i->diferencia_margen_1 = '>=';
+                    else $i->diferencia_margen_1 = '<';                   
+                    $i->promedio_por_categoria_l2 = $margen_total_l2 / $cantidadDeItems; 
+                    $i->promedio_por_categoria_l2 = round($i->promedio_por_categoria_l2, 2);                       
+                    if($i->promedio_por_categoria_l2 >= $i->margen_2) $i->diferencia_margen_2 = '>=';
+                    else $i->diferencia_margen_2 = '<';                   
                 }
             }
         }else{                             //por rubro
@@ -134,13 +157,16 @@ class BalanceController extends Component
                 # code...
             }
         }
+        // return view('livewire.balance.margen_de_contribucion', [
+        //     'info' => $info
+        // ]);
         return view('livewire.balance.component', [
             'info' => $info
         ]);
     }
     public function doAction($action)
     {
-        $this->action = $action;
+       $this->action = $action;
     }
     protected $listeners = [
         'actualizarPrecioLista' => 'actualizarPrecioLista'
@@ -184,10 +210,12 @@ class BalanceController extends Component
                 $i->stock_en_consignacion = $total_c;
             }else{
                 $stock = Stock::where('producto_id', $i->id)->first();
-                $i->stock_local = $stock->stock_actual;
+                if($stock) $i->stock_local = $stock->stock_actual;
+                else $i->stock_local = 0;
                
                 $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                $i->stock_en_consignacion = $stock_en_consig;
+                if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                else $i->stock_en_consignacion = 0;
             } 
             $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
             $i->subtotal = $i->stock_total * $i->precio_costo;

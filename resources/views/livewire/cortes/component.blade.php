@@ -14,8 +14,7 @@
                     <input wire:model.lazy="fecha" type="text" class="form-control flatpickr flatpickr-input active"
                     placeholder="{{\Carbon\Carbon::now()->format('d-m-Y')}}">
                 </div>
-            </div> -->
-            
+            </div> -->            
             <div class="col-sm-12 col md-3 col-lg-3">
                 <div class="form-group">
                     <select wire:model="user" class="form-control">
@@ -29,14 +28,13 @@
             <div class="col-sm-12 col-md-6 col-lg-6">
                 @if($user > 0)
                     @if($factPendiente == 1)
-                    <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Abiertas...</button>
+                        <button onclick="cerrarCaja(1,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Abiertas...</button>
                     @elseif($factPendiente == 2)
-                    <button onclick="cerrarCaja(2,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes...</button>
-                    
+                        <button onclick="cerrarCaja(2,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas Pendientes...</button>                    
                     @elseif($compraPendiente == 1)
-                    <button onclick="cerrarCaja(3,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas de Compras Abiertas...</button>
+                        <button onclick="cerrarCaja(3,{{$repartidor}})" class="btn btn-danger btn-block mb-2">Existen Facturas de Compras Abiertas...</button>
                     @else
-                    <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mb-2">Cerrar Caja</button>
+                        <button onclick="cerrarCaja(0,{{$repartidor}})" class="btn btn-dark btn-block mb-2">Cerrar Caja</button>
                     @endif
               
                 @endif
@@ -176,7 +174,7 @@
     function cerrarCaja(factPendiente,repartidor)
     {
         if(factPendiente == 1){
-            window.location = "{{url('facturas')}}";
+            window.location = "{{url('reservas-estado-mesas')}}";
         }else if(factPendiente == 2){    
             if(repartidor == true)
             window.location = "{{url('cajarepartidor')}}";

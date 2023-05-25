@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 // use Livewire\Component;
+use App\Models\Banco;
+use App\Models\Cheque;
 use App\Models\Cliente;
 use App\Models\Comercio;
 use App\Models\Ctacte;
@@ -12,10 +14,12 @@ use App\Models\CtaCteClub;
 use App\Models\Debito;
 use App\Models\DebitoGenerado;
 use App\Models\Detfactura;
+use App\Models\DetMetodoPago;
 use App\Models\Detpedido;
 use App\Models\DetRemito;
 use App\Models\Factura;
 use App\Models\Localidad;
+use App\Models\Mesa;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\Subproducto;
@@ -30,7 +34,7 @@ use DB;
 
 class PdfController extends Controller
 {
-    public $comercioId, $entrega = 0, $suma;
+    public $comercioId, $modComandas, $entrega = 0, $suma;
 
     public function PDFCuotaSocio()
     {
@@ -137,28 +141,76 @@ class PdfController extends Controller
     }
     public function PDFRecibos($id) 
     {
-        $info = ReciboFactura::leftjoin('facturas as f','f.id','recibo_facturas.factura_id')
-            ->join('recibos as r','r.id','recibo_facturas.recibo_id')
+        $fecha_recibo = Recibo::find($id);
+        //$fecha_recibo = $fecha_recibo->created_at;
+        //dd($fecha_recibo);
+        //busco todas las facturas que fueron pagadas por este recibo que tiene el id = $id
+        $info_factura = ReciboFactura::join('facturas as f','f.id','recibo_facturas.factura_id')
+            ->join('recibos as r','r.id', 'recibo_facturas.recibo_id')
+            ->join('det_metodo_pagos as det','det.recibo_id', 'recibo_facturas.recibo_id')
             ->join('clientes as c','c.id','f.cliente_id')
             ->join('localidades as l','l.id','c.localidad_id')
             ->where('recibo_facturas.recibo_id', $id)
-            ->select('r.numero as nro_recibo', 'r.importe as total', 'r.entrega', 
-                     'recibo_facturas.created_at as fecha_recibo', 'f.created_at as fecha', 
-                     'f.numero as num_factura', 'f.importe', 'c.nombre', 'c.apellido',
-                     'c.calle', 'c.numero', 'l.descripcion')
-            ->orderBy('f.created_at', 'asc')->get(); 
-        foreach($info as $i){
-            $info->fecha = $i->fecha;            
-            $info->num_factura =  $i->num_factura;          
-            $info->importe =  $i->importe;  
-        };
+            ->select('r.numero as nro_recibo', 'r.entrega', 'r.created_at as fecha_recibo', 
+                    'f.id as factura_id', 'f.created_at as fecha_fac', 'f.numero as num_factura', 
+                    'f.importe as importe_fac', 'c.nombre', 'c.apellido', 'c.calle', 'c.numero', 
+                    'l.descripcion', 'det.importe')->get();                    
+        $total = 0;
+        foreach($info_factura as $i){
+            $total += $i->importe_fac;     //calculo el total de comprobantes cancelados
+        }
+        $total_comprobantes = $total;
+        
+        //capturo el id de la factura que cancela este recibo para luego ver si tiene algún pago a cuenta
+        $factura_id = $info_factura[0]->factura_id;
 
-        $valor = $info[0]->total;
+        //busco los datos de pago que corresponden a este/estos recibo/s
+        $info_recibo = ReciboFactura::where('factura_id', $factura_id)->select('recibo_id', DB::RAW("'' as fecha_rec"), 
+            DB::RAW("'' as medio_de_pago"), DB::RAW("0 as importe_rec"))->get();
+        //si hay más de un pago a cuenta, muestro el total de pagos a cuenta
+        $mas_de_un_pago_a_cuenta = 0;    
+        if($info_recibo->count() > 1) $mas_de_un_pago_a_cuenta = 1;
+
+        $total_pagos = 0;
+        foreach($info_recibo as $i){
+            $recibo = DetMetodoPago::where('recibo_id', $i->recibo_id)
+                ->select('created_at', 'medio_de_pago', 'num_comp_pago', 'importe')->get();
+            $i->fecha_rec       = $recibo[0]->created_at;             
+            $i->importe_rec     = $recibo[0]->importe; 
+          
+            $total_pagos += $i->importe_rec;      //calculo el total de pagos a cuenta
+            //creo el detalle del medio de pago
+            switch ($recibo[0]->medio_de_pago) {
+                case '1':
+                    $i->medio_de_pago = 'Efectivo';
+                    break;
+                case '2':
+                    $i->medio_de_pago = 'Tarj. de Débito - Comprobante N°: ' . $recibo[0]->num_comp_pago;
+                    break;
+                case '3':
+                    $i->medio_de_pago = 'Tarj. de Crédito - Comprobante N°: ' . $recibo[0]->num_comp_pago;
+                    break;
+                case '4':
+                    $i->medio_de_pago = 'Transferencia Bancaria - Comprobante N°: ' . $recibo[0]->num_comp_pago;
+                    break;
+                case '5':
+                    $cheque = Cheque::join('bancos as b', 'b.id', 'cheques.banco_id')
+                        ->where('cheques.numero', $i->num_comp_pago)
+                        ->select('b.descripcion', 'b.sucursal')->get();
+                    $i->medio_de_pago = 'Cheque Banco ' . $cheque[0]->descripcion . '/' . $cheque[0]->sucursal . 
+                        ' - N° ' . $recibo[0]->num_comp_pago;
+                    break;
+                default:
+            }            
+        }
+        $total_pagos_a_cuenta = $total_pagos;
+        //paso el total del recibo de números a letras
+        $total_recibo = $info_factura[0]->importe;
         $desc_moneda = 'pesos'; 
         $sep = 'con';
         $desc_decimal = 'centavos';
 
-        $arr = explode(".", $valor);
+        $arr = explode(".", $total_recibo);
         $entero = $arr[0];
         if (isset($arr[1])) {
             $decimos = strlen($arr[1]) == 1 ? $arr[1] . '0' : $arr[1];
@@ -172,13 +224,16 @@ class PdfController extends Controller
         }
         $numeroEnLetra = $num_word;
 
-        $pdf = PDF::loadView('livewire.pdf.pdfRecibos', compact('info','numeroEnLetra'));
-        return $pdf->stream('facturas.pdf');
+        $pdf = PDF::loadView('livewire.pdf.pdfRecibos', 
+                            compact('info_factura', 'info_recibo', 'numeroEnLetra', 'total_comprobantes', 
+                                    'total_recibo', 'total_pagos_a_cuenta', 'mas_de_un_pago_a_cuenta'));
+        return $pdf->stream('recibos.pdf');
     }
     public function PDFFactDel($id) 
     {
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
+        $this->modComandas = session('modComandas');
 
         $leyenda_factura = Comercio::select('leyenda_factura', 'imp_por_hoja', 'imp_duplicado')
             ->where('id', $this->comercioId)->get();
@@ -219,10 +274,25 @@ class PdfController extends Controller
 
         $cliente = false;
         $repartidor = false;
-        $info = Factura::select('numero','importe','cliente_id','repartidor_id','created_at', 
-                    DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"),DB::RAW("'' as calleCli"),
-                    DB::RAW("'' as numCli"),DB::RAW("'' as localidad"))
-                    ->where('id',$id)->get();
+        $mozo = '';
+        $mesa = '';
+        if($this->modComandas){
+            $info = Factura::select('numero','importe','cliente_id','repartidor_id','created_at', 
+                'mesa_id', 'mozo_id', DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"),
+                DB::RAW("'' as calleCli"), DB::RAW("'' as numCli"),DB::RAW("'' as localidad"))
+                ->where('id',$id)->get();
+            if($info[0]->mesa_id){
+                $mozo = $info[0]->mozo_id;
+                $mesaId = Mesa::find($info[0]->mesa_id)->select('descripcion')->first();  
+                $mesa = $mesaId->descripcion; 
+            }               
+        }else{
+            $info = Factura::select('numero','importe','cliente_id','repartidor_id','created_at', 
+                DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"),
+                DB::RAW("'' as calleCli"), DB::RAW("'' as numCli"),DB::RAW("'' as localidad"))
+                ->where('id',$id)->get();
+        }       
+                
         foreach ($info as $i)
         {
             if($i->cliente_id){
@@ -233,14 +303,15 @@ class PdfController extends Controller
                 $i->numCli    = $cli->numero;
                 $loc          = Localidad::find($cli->localidad_id);
                 $i->localidad = $loc->descripcion;
-                $cliente      = true;
+                $cliente      = true;  
             }
             if($i->repartidor_id){
                 $repartidor = true;
             }
         }
         $pdf = PDF::loadView('livewire.pdf.pdfFactDel', compact([
-            'infoDetalle','info','cliente','repartidor','leyendaFactura', 'impPorHoja' ,'impDuplicado']));
+            'infoDetalle','info','cliente','repartidor','leyendaFactura', 
+            'impPorHoja' ,'impDuplicado', 'mesa', 'mozo']));
         return $pdf->stream('fact.pdf');
     }
     public function PDFRemito($id) 
@@ -337,21 +408,21 @@ class PdfController extends Controller
     }
     public function PDFListadoCtaCte()
     {
-        //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
-
+        //busco los clientes con saldo > 0 
         $info = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
             ->where('c.comercio_id', $this->comercioId)
             ->where('c.saldo', '1')
             ->select('cta_cte.cliente_id', 'c.nombre', 'c.apellido', DB::RAW("'' as importe"))
             ->groupBy('cta_cte.cliente_id', 'c.nombre', 'c.apellido')
             ->orderBy('c.apellido')->orderBy('c.nombre')->get();
-        $suma=0;
+        $suma = 0;
         foreach($info as $i) {
             $sumaDebitos=0;
             $sumaRecibos=0;
-            //verifico si el registro es una factura o es un recibo
-            $registroCtaCte = Ctacte::where('cta_cte.cliente_id', $i->cliente_id)->get();
+                //busco facturas impagas y recibos a cuenta de cada cliente en ctacte
+            $registroCtaCte = Ctacte::where('cta_cte.cliente_id', $i->cliente_id)
+                ->where('estado', '1')->get();
             foreach($registroCtaCte as $r) {   
                 if($r->factura_id != null) {    //si es factura las voy sumando
                     $importe = Factura::where('id', $r->factura_id)
@@ -360,26 +431,31 @@ class PdfController extends Controller
                         ->orWhere('id', $r->factura_id)
                         ->where('estado', 'ctacte')
                         ->where('estado_pago', '2')
-                        ->select('importe')->get();
+                        ->select('numero', 'importe')->get();
                     foreach($importe as $imp){
-                           $sumaDebitos += $imp->importe; //calculo el total de las facturas de cada cliente
+                        $sumaDebitos += $imp->importe; //calculo el total de las facturas de cada cliente
                     }
-                }else { 
-                    if($sumaDebitos != 0){
-                        $importe = Recibo::where('id', $r->recibo_id)   //busco todos los recibos
-                            ->where('entrega', 1)
-                            ->select('importe')->get();
-                        foreach($importe as $imp){
+                }else {                         //busco todos los recibos
+                    $importe = Recibo::join('det_metodo_pagos as det', 'det.recibo_id', 'recibos.id')
+                        ->where('recibos.id', $r->recibo_id)
+                        ->where('recibos.entrega', '1')
+                        ->select('recibos.id', 'det.importe')->get();
+                    foreach($importe as $imp){
+                        $verEstadoPagoFactura = ReciboFactura::join('facturas as f','f.id','recibo_facturas.factura_id')
+                            ->where('recibo_facturas.recibo_id',$imp->id)
+                            ->where('f.estado_pago','2')->get('recibo_facturas.id');
+                        if($verEstadoPagoFactura->count() > 0){
                             $sumaRecibos += $imp->importe; //calculo el total de recibos de cada cliente
                         }
-                    }                        
+                    }
                 }
             }
+            //dd($sumaDebitos, $sumaRecibos);
             // calculo el total para cada cliente
             $i->importe = $sumaDebitos - $sumaRecibos;
-            // solo calculo el importe del total gral si se están mostrando todos los clientes
+            // calculo el importe del total gral
             $suma += $i->importe;
-        }  
+        }
         $pdf = PDF::loadView('livewire.pdf.pdfListadoCtaCte', compact('info','suma'));
         return $pdf->stream();  
     }
@@ -436,6 +512,7 @@ class PdfController extends Controller
         $importeEntrega =0;
         $info = Ctacte::join('clientes as c', 'c.id', 'cta_cte.cliente_id')
             ->join('facturas as f', 'f.id', 'cta_cte.factura_id')
+            ->join('localidades as l', 'l.id', 'c.localidad_id')
             ->where('cta_cte.cliente_id', $cliId)
             ->where('f.estado', 'ctacte')
             ->where('f.estado_pago', '0')
@@ -443,17 +520,19 @@ class PdfController extends Controller
             ->where('f.estado', 'ctacte')
             ->where('f.estado_pago', '2')
             ->select('cta_cte.factura_id', 'cta_cte.recibo_id', 'cta_cte.cliente_id', 
-                    'c.nombre', 'c.apellido', DB::RAW("'' as fecha"), DB::RAW("'' as numero") , DB::RAW("'' as importe"), 
+                    'c.nombre', 'c.apellido', 'c.calle', 'c.numero', 'l.descripcion as localidad',
+                    DB::RAW("'' as fecha"), DB::RAW("'' as numero") , DB::RAW("'' as importe"), 
                     DB::RAW("'' as importe_factura"), DB::RAW("'' as resto"))
             ->orderBy('cta_cte.created_at')->get();
 
         $infoEntrega = Ctacte::join('recibos as r', 'r.id', 'cta_cte.recibo_id')
+            ->join('det_metodo_pagos as det', 'det.recibo_id', 'cta_cte.recibo_id')
             ->where('cta_cte.cliente_id', $cliId)
             ->where('r.entrega', '1')
-            ->select('r.id','r.importe')->get();
+            ->select('r.id','det.importe')->get();
         foreach($infoEntrega as $i){
             $verEstadoPagoFactura = ReciboFactura::join('facturas as f','f.id','recibo_facturas.factura_id')
-                ->where('recibo_facturas.recibo_id',$i->id)
+                ->where('recibo_facturas.recibo_id', $i->id)
                 ->where('f.estado_pago','2')->get();
             if($verEstadoPagoFactura->count() > 0)
             $importeEntrega += $i->importe; 
@@ -482,8 +561,9 @@ class PdfController extends Controller
             if($importe[0]->estado_pago == 2){
                 $entregas = 0;
                 $pagos = ReciboFactura::join('recibos as r', 'r.id', 'recibo_facturas.recibo_id')
+                    ->join('det_metodo_pagos as det', 'det.recibo_id', 'recibo_facturas.recibo_id')
                     ->where('recibo_facturas.factura_id', $i->factura_id)
-                    ->select('r.importe')->get();
+                    ->select('det.importe')->get();
                 foreach($pagos as $p){
                     $entregas += $p->importe;
                 }

@@ -38,7 +38,7 @@ class FacturaController extends Component
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $estadoAqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $contador_filas, $imp_por_hoja, $imp_duplicado, $lista = '1';
-    public $comercioId, $modConsignaciones, $modDelivery, $facturaPendiente, $comercioTipo;
+    public $comercioId, $modComandas, $modConsignaciones, $modDelivery, $facturaPendiente, $comercioTipo;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no';
 	
 	public function render()
@@ -48,6 +48,7 @@ class FacturaController extends Component
         //busca el comercio que está en sesión
         $this->comercioId = session('idComercio');
         $this->modConsignaciones = session('modConsignaciones');
+        $this->modComandas = session('modComandas');
         $this->modDelivery = session('modDelivery');
         $this->facturaPendiente = session('facturaPendiente');
         $this->comercioTipo = session('tipoComercio');
@@ -65,14 +66,14 @@ class FacturaController extends Component
         }
 
         //busco el estado del Arqueo Gral
-        $this->estadoAqueoGral = session('estadoArqueoGral');
+        $this->estadoAqueoGral = session('estadoArqueoGral');  
         if($this->estadoAqueoGral == 'pendiente'){
             //busco si hay alguna factura abierta para la Caja del usuario logueado
             $record = Factura::where('estado', 'abierta')
                 ->where('comercio_id', $this->comercioId)
-                ->where('user_id', auth()->user()->id);
+                ->where('user_id', auth()->user()->id)->get();
             //si hay alguna, la dejo terminar, pero al finalizar vuelvo al home   
-            if($record->count()) $this->ultima_factura = 1;  
+            if($record) $this->ultima_factura = 1;  
             else $this->forzar_arqueo = 1;
         }
 
@@ -134,7 +135,7 @@ class FacturaController extends Component
                 else $this->precio = $dProducto->precio_venta_l1; 
             }else $this->precio = '';
         }
-        
+    
         if($this->facturaPendiente){   //si se trata de una factura pendiente, la mostramos
              $encabezado = Factura::find($this->facturaPendiente);
             //verifico si es delivery para recuperar los datos de Cli/Rep
@@ -169,13 +170,31 @@ class FacturaController extends Component
                     ->where('facturas.comercio_id', $this->comercioId)
                     ->select('facturas.*', 'facturas.numero as nroFact')->get();
                     //verifico si es delivery para recuperar los datos de Cli/Rep
-                if($encabezado->count() > 0 && $encabezado[0]->cliente_id <> null){  
+                if($encabezado->count() > 0 && $encabezado[0]->repartidor_id <> null){ 
                     $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
                         ->join('users as u','u.id','facturas.repartidor_id')
                         ->where('facturas.estado','like','abierta')
                         ->where('facturas.comercio_id', $this->comercioId)
                         ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
                         'c.numero', 'c.localidad_id', 'u.name as nomRep', 'u.apellido as apeRep', DB::RAW("'' as localidad"))->get();
+                    $loc = Localidad::find($encabezado[0]->localidad_id);
+                    $encabezado[0]->localidad = $loc->descripcion;
+                    $this->numFactura = $encabezado[0]->nroFact;
+                    $this->clienteId = $encabezado[0]->cliente_id;
+                    $this->factura_id = $encabezado[0]->id;
+                    $this->inicio_factura = false;
+                    $this->delivery = 1;
+                    $this->lista = $encabezado[0]->lista;
+                    $this->estado_entrega = $encabezado[0]->estado_entrega;
+                    $this->dirCliente = $encabezado[0]->calle . ' ' . $encabezado[0]->numero . ' - ' . $encabezado[0]->localidad;
+                    $this->verSaldo($encabezado[0]->cliente_id);
+                    $this->mostrar_datos = 0;
+                }elseif($encabezado->count() > 0 && $encabezado[0]->cliente_id <> null){ 
+                    $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
+                        ->where('facturas.estado','like','abierta')
+                        ->where('facturas.comercio_id', $this->comercioId)
+                        ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
+                        'c.numero', 'c.localidad_id', DB::RAW("'' as localidad"))->get();
                     $loc = Localidad::find($encabezado[0]->localidad_id);
                     $encabezado[0]->localidad = $loc->descripcion;
                     $this->numFactura = $encabezado[0]->nroFact;
@@ -205,7 +224,7 @@ class FacturaController extends Component
                     $this->delivery = 0;
                 }
             }
-        }
+        }  
         $info = Detfactura::select('*')->where('comercio_id', $this->comercioId)->get();
         if($info->count()){ 
             $info = Detfactura::join('facturas as r','r.id','detfacturas.factura_id')
@@ -357,7 +376,8 @@ class FacturaController extends Component
         'StoreOrUpdate'     => 'StoreOrUpdate',
         'ocultar_sp'        => 'ocultar_sp',
         'agregarBanco'      => 'agregarBanco',
-        'enviarDatosCheque' => 'agregarCheque'
+        'enviarDatosCheque' => 'agregarCheque',
+        'guardarCliente'    =>'guardarCliente'
         // 'elegirFormaDePago' => 'elegirFormaDePago',
     ];
     public function ocultar_sp()
@@ -485,16 +505,6 @@ class FacturaController extends Component
     }
     public function StoreOrUpdateButton($articuloId)
     {
-        // dd($this->producto);
-        // if($articuloId == 0 && $this->es_producto == 1){
-        //     $this->validate([
-        //         'producto' => 'not_in:Elegir|required',
-        //         'cantidad' => 'required|numeric|min:0|not_in:0']);
-        // }elseif($articuloId == 0 && $this->es_producto == 0){
-        //     $this->validate([
-        //         'subproducto' => 'not_in:Elegir|required',
-        //         'cantidad'    => 'required|numeric|min:0|not_in:0']);            
-        // } 
         if($articuloId != 0){                  //si cargo desde los botones
             if($this->es_producto == 1){        //si cargué un producto, verifico si tiene subproductos
                 $this->tiene_sp = Subproducto::where('producto_id', $articuloId)->get();
@@ -760,7 +770,7 @@ class FacturaController extends Component
                         $stockAnterior = $record['stock_actual'];
                         $stockNuevo = $stockAnterior - $this->cantidad;  
                         $record->update(['stock_actual' => $stockNuevo]);   
-                    }else{                          //stock condignatario
+                    }else{                          //stock consignatario
                         $this->cantidad = -1 * abs($this->cantidad);  //invierte el signo 
                         if($this->es_producto == 1){             //modifico stock en consignación
                             $existe = StockEnConsignacion::select('id')  
@@ -898,7 +908,8 @@ class FacturaController extends Component
             return;
         }else{
             $this->f_de_pago = $formaDePago;
-            $this->nro_comp_pago = $nroCompPago;
+            if($nroCompPago <> '') $this->nro_comp_pago = $nroCompPago;
+            else $this->nro_comp_pago = null;            
             $this->importeCompPago = $importe;
 
             DB::begintransaction();                        
@@ -912,8 +923,8 @@ class FacturaController extends Component
                     'comercio_id'   => $this->comercioId
                 ]);
                 if($terminarFactura == 1){    //si se cancela la factura
-                    $recorde = Factura::find($this->factura_id);
-                    $recorde->update([
+                    $factura = Factura::find($this->factura_id);
+                    $factura->update([
                         'estado'        => 'contado',      //indica el estado de la factura
                         'estado_pago'   => '1',            //0 ctacte, 1 pagado, 2 entrega
                         'importe'       => $this->total,
@@ -932,29 +943,6 @@ class FacturaController extends Component
             else $this->resetMediosDePago();
         }
     }
-    // public function cobrar_factura()
-    // {
-    //     DB::begintransaction();                        
-    //     try{
-    //         $record = Factura::find($this->factura_id);
-    //         $record->update([
-    //             'estado'        => 'contado',
-    //             'estado_pago'   => '1',
-    //             'importe'       => $this->total,
-    //             'forma_de_pago' => $this->f_de_pago,
-    //             'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
-    //             'mercadopago'   => $this->mercadopago,
-    //             'comentario'    => $this->comentarioPago
-    //         ]);
-    //         DB::commit();
-    //         $this->emit('facturaCobrada');
-    //     }catch (Exception $e){
-    //         DB::rollback();
-    //         session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-    //     }  
-    //     session(['facturaPendiente' => null]);             
-    //     $this->resetInputTodos();
-    // }
     public function factura_ctacte()
     {
         DB::begintransaction();                        
@@ -968,10 +956,12 @@ class FacturaController extends Component
             ]);
             Ctacte::create([
                 'cliente_id' => $this->clienteId,
-                'factura_id' => $this->factura_id
+                'factura_id' => $this->factura_id,
+                'estado'     => '1'
             ]);
             $record = Cliente::find($this->clienteId); //marca que el cliente tiene un saldo en ctacte
             $record->update(['saldo' => '1']);
+
             DB::commit();               
             $this->emit('facturaCtaCte');
         }catch (Exception $e){
@@ -998,6 +988,15 @@ class FacturaController extends Component
         }  
         session(['facturaPendiente' => null]); 
         $this->resetInputTodos();
+    }
+    public function guardarCliente($clienteId)
+    {
+        if($clienteId){
+            $this->clienteId = $clienteId;
+            $record = Factura::find($this->factura_id);
+            $record->update(['cliente_id'=> $clienteId]);
+            $this->emit('cliente_agregado');
+        }        
     }
     public function modCliRep($data)
     {       

@@ -17,7 +17,8 @@ class StockController extends Component
     public $selected_id, $search = '', $placeHolderSearch = "Buscar por 'Código' o por 'Descripción'";
     public $action = 1, $stock, $stockHistorial, $producto_id=null, $producto=null, $cliente_id=null;
     public $nombreCliente, $cliente = 'Elegir', $clientes, $infoCli;
-    public $title = "Stock", $valorTotalStock = 0, $valorTotalStockConsignacion = 0;
+    public $title = "Stock", $valorTotalStock = 0, $valorTotalStockPorConsignatario = 0;
+    public $valorTotalStockLocal = 0, $valorTotalStockConsignacion = 0;
     public $info_sp, $mostrar_subproducto = 0;
     public $comercioId, $modConsignaciones, $comercioTipo;
 
@@ -68,10 +69,12 @@ class StockController extends Component
                 }else{
                     $this->mostrar_subproducto = 0;
                     $stock = Stock::where('producto_id', $i->id)->first();
-                    $i->stock_local = $stock->stock_actual;
+                    if($stock) $i->stock_local = $stock->stock_actual;
+                    else $i->stock_local = 0;
                     
                     $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                    $i->stock_en_consignacion = $stock_en_consig;
+                    if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                    else $i->stock_en_consignacion = 0;  
 
                     $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
                     $i->subtotal = $i->stock_total * $i->precio_costo;
@@ -81,7 +84,9 @@ class StockController extends Component
             }
 		}elseif($this->action == 1){   //stock local
             $this->mostrar_subproducto = 0;
-            $this->valorTotalStock = 0;
+            $this->valorTotalStock = 0;            
+            $this->valorTotalStockLocal = 0;
+            $this->valorTotalStockConsignacion = 0;
             $info = Producto::select('productos.*', DB::RAW("0 as stock_local"), DB::RAW("'' as stock_en_consignacion"),
                 DB::RAW("'' as stock_total"), DB::RAW("0 as subtotal"))
                 ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();            
@@ -101,11 +106,19 @@ class StockController extends Component
                     $i->stock_en_consignacion = $total_c;
                 }else{
                     $stock = Stock::where('producto_id', $i->id)->first();
-                    $i->stock_local = $stock->stock_actual;
+                    if($stock) $i->stock_local = $stock->stock_actual;
+                    else $i->stock_local = 0;
                    
                     $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                    $i->stock_en_consignacion = $stock_en_consig;
+                    if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                    else $i->stock_en_consignacion = 0;
                 } 
+                $totalLocal = $i->stock_local * $i->precio_costo;
+                $this->valorTotalStockLocal += $totalLocal;                                    
+
+                $totalConsignacion = $i->stock_en_consignacion * $i->precio_costo;
+                $this->valorTotalStockConsignacion += $totalConsignacion;
+
                 $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
                 $i->subtotal = $i->stock_total * $i->precio_costo;
                 $this->valorTotalStock += $i->subtotal;
@@ -124,7 +137,7 @@ class StockController extends Component
         ]);
     }
     public function stockPorCliente($id){
-        $this->valorTotalStockConsignacion = 0;
+        $this->valorTotalStockPorConsignatario = 0;
         $this->infoCli = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
             ->where('stock_en_consignacion.cliente_id', $id)
             ->select('stock_en_consignacion.producto_id', 'stock_en_consignacion.subproducto_id', DB::RAW("'' as articuloId"), DB::RAW("'' as articuloCodigo"), 
@@ -171,7 +184,7 @@ class StockController extends Component
             }
             $i->cantidad = $stock_en_consig_cantidad;
             $i->subtotal = $i->cantidad * $i->precio_venta;
-            $this->valorTotalStockConsignacion += $i->subtotal;
+            $this->valorTotalStockPorConsignatario += $i->subtotal;
         }
         $this->producto_id=null;    
         $this->subproducto_id=null;    

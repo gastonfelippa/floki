@@ -69,18 +69,18 @@ class ProveedorController extends Component
    
     private function resetInput()
     {
-        $this->nombre_empresa = '';
-        $this->tel_empresa = '';
-        $this->condIvaId = 'Elegir';
-        $this->cuit = '';
-        $this->calle = '';
-        $this->numero = '';
-        $this->localidad = 'Elegir';
-        $this->nombre_contacto = '';
+        $this->nombre_empresa    = '';
+        $this->tel_empresa       = '';
+        $this->condIvaId         = 'Elegir';
+        $this->cuit              = '';
+        $this->calle             = '';
+        $this->numero            = '';
+        $this->localidad         = 'Elegir';
+        $this->nombre_contacto   = '';
         $this->apellido_contacto = '';
-        $this->tel_contacto = '';
-        $this->selected_id = null;   
-        $this->search = '';
+        $this->tel_contacto      = '';
+        $this->selected_id       = null;   
+        $this->search            = '';
     }   
    
     public function edit($id)
@@ -140,7 +140,7 @@ class ProveedorController extends Component
     }
    
     public function StoreOrUpdate()
-    {         
+    {        
         $this->validate([
 			'localidad' => 'not_in:Elegir',
 			'condIvaId' => 'not_in:Elegir'

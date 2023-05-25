@@ -23,7 +23,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use DB;
 
-
 class CortesController extends Component
 {
     
@@ -58,6 +57,7 @@ class CortesController extends Component
             ->join('users as u', 'u.id', 'model_has_roles.model_id')
             ->where('r.alias', 'Administrador')
             ->where('r.comercio_id', $this->comercioId)->select('u.id')->get();
+        
         if($usuadrioAdmin[0]->id <> auth()->user()->id){
             //si no es el Admin, verifico si el usuario logueado es quien inició el Arqueo Gral, en caso de existir...
             //si es ese usuario, habilito para que vea todas las cajas
@@ -114,7 +114,8 @@ class CortesController extends Component
             ->where('users.name', '...')
             ->where('users.apellido', 'Salón')
             ->where('uc.comercio_id', $this->comercioId)
-            ->select('users.id')->get();    
+            ->select('users.id')->get(); 
+
         $factPendiente = Factura::where('estado', 'pendiente')
             ->where('repartidor_id', $salon[0]->id)
             ->where('user_id', $this->user)
@@ -122,6 +123,7 @@ class CortesController extends Component
             ->where('user_id', $this->user)
             ->orWhere('repartidor_id', $this->user)
             ->where('estado', 'pendiente', 'repartidor_id')->get();
+
         if($factPendiente->count()){     //si hay facturas pendientes, cambio el valor de factPendiente a 1
             if($factPendiente[0]->estado == 'abierta') $this->factPendiente = 1;
             else $this->factPendiente = 2; //si hay facturas pendientes, cambio el valor de factPendiente a 2
@@ -134,7 +136,7 @@ class CortesController extends Component
             ->where('user_id', $this->user)->get();
         if($compraPendiente->count()){     //si hay facturas pendientes, cambio el valor de factPendiente a 1
             if($compraPendiente[0]->estado == 'abierta') $this->compraPendiente = 1;
-        }else $this->factPendiente = 0;  
+        }else $this->compraPendiente = 0;  
 
     ///////////////////////////////////////
         $cajaI = new Collection();
@@ -143,8 +145,25 @@ class CortesController extends Component
             ->where('cu.id', $this->nro_arqueo)
             ->select('caja_inicials.tipo', 'caja_inicials.created_at', 'caja_inicials.importe',
               DB::RAW("0 as importeEfvo"), DB::RAW("0 as importeCheque"))->get();
+
+
+
+
+
+
+
         $this->infoCI = 0;   ///falta calcular
         $this->cajaCheques = 0;   ///falta calcular
+
+
+
+
+
+
+
+
+
+
         if($infoCI){
             foreach ($infoCI as $i) {
                 if($i->tipo == '1') $this->infoCI = $this->infoCI + $i->importe;
@@ -162,48 +181,36 @@ class CortesController extends Component
         $cajaI->offsetSet('total',number_format($cajaTotal, 2, ',', '.'));
     ///////////////////////////////
 
+        $this->ventaEfvo = 0;
+        $this->ventaTDebito = 0;
+        $this->ventaTCredito = 0;
+        $this->ventaTransferencia = 0;
+        $this->ventaCheque = 0;
+
         $ingresosPorVentas = new Collection();
-      
-        $infoIngresosPorVentas = DetMetodoPago::select('medio_de_pago', 'importe')
-            ->where('comercio_id', $this->comercioId)
-            ->where('arqueo_id', $this->nro_arqueo)
-            ->whereNotNull('factura_id')->get();
+  
+        $infoIngresosPorVentas = DetMetodoPago::join('facturas as f', 'f.id', 'det_metodo_pagos.factura_id')
+            ->where('f.comercio_id', $this->comercioId)
+            ->where('f.arqueo_id', $this->nro_arqueo)
+            ->where('f.estado', 'contado')
+            ->whereNotNull('det_metodo_pagos.factura_id')
+            ->select('det_metodo_pagos.medio_de_pago', 'det_metodo_pagos.importe')->get();           
         foreach ($infoIngresosPorVentas as $i) {
             switch ($i->medio_de_pago) {
                 case '1':
-                    $this->ventaEfvo = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('factura_id')->sum('importe');
+                    $this->ventaEfvo += $i->importe;
                     break;
                 case '2':
-                    $this->ventaTDebito = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('factura_id')->sum('importe');
+                    $this->ventaTDebito += $i->importe;
                     break;
                 case '3':
-                    $this->ventaTCredito = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('factura_id')->sum('importe');
+                    $this->ventaTCredito += $i->importe;
                     break;
                 case '4':
-                    $this->ventaTransferencia = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('factura_id')->sum('importe');
+                    $this->ventaTransferencia += $i->importe;
                     break;
                 case '5':
-                    $this->ventaCheque = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('factura_id')->sum('importe');
+                    $this->ventaCheque += $i->importe;
                     break;
                 default:
                     break;
@@ -219,49 +226,37 @@ class CortesController extends Component
         $ingresosPorVentas->offsetSet('transferencia',number_format($this->ventaTransferencia, 2, ',', '.'));
         $ingresosPorVentas->offsetSet('cheque',number_format($this->ventaCheque, 2, ',', '.'));
         $ingresosPorVentas->offsetSet('total',number_format($ventaTotal, 2, ',', '.'));
-    ///////////////////////    
+    /////////////////////// 
+
+        $this->cobroEfvo = 0;   
+        $this->cobroTDebito = 0;   
+        $this->cobroTCredito = 0;   
+        $this->cobroTransferencia = 0;   
+        $this->cobroCheque = 0;  
+
         $cobros = new Collection();
      
-        $infoCobros = DetMetodoPago::select('medio_de_pago', 'importe')
-            ->where('comercio_id', $this->comercioId)
-            ->where('arqueo_id', $this->nro_arqueo)
-            ->whereNotNull('recibo_id')->get();
+        $infoCobros = DetMetodoPago::join('recibos as r', 'r.id', 'det_metodo_pagos.recibo_id')
+            ->where('r.comercio_id', $this->comercioId)
+            ->where('r.arqueo_id', $this->nro_arqueo)
+            ->whereNotNull('det_metodo_pagos.recibo_id')
+            ->select('det_metodo_pagos.medio_de_pago', 'det_metodo_pagos.importe')->get();
         foreach ($infoCobros as $i) {
             switch ($i->medio_de_pago) {
                 case '1':
-                    $this->cobroEfvo = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('recibo_id')->sum('importe');
+                    $this->cobroEfvo += $i->importe;
                     break;
                 case '2':
-                    $this->cobroTDebito = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('recibo_id')->sum('importe');
+                    $this->cobroTDebito += $i->importe;
                     break;
                 case '3':
-                    $this->cobroTCredito = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('recibo_id')->sum('importe');
+                    $this->cobroTCredito += $i->importe;
                     break;
                 case '4':
-                    $this->cobroTransferencia = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('recibo_id')->sum('importe');
+                    $this->cobroTransferencia += $i->importe;
                     break;
                 case '5':
-                    $this->cobroCheque = DetMetodoPago::select('importe')
-                        ->where('comercio_id', $this->comercioId)
-                        ->where('arqueo_id', $this->nro_arqueo)
-                        ->where('medio_de_pago', $i->medio_de_pago)
-                        ->whereNotNull('recibo_id')->sum('importe');
+                    $this->cobroCheque += $i->importe;
                     break;
                 default:
                     break;
@@ -458,7 +453,8 @@ class CortesController extends Component
             ->where('facturas.estado', 'contado')
             ->where('det.medio_de_pago', '5')
             ->sum('facturas.importe');
-        $this->cobrosCtaCte = Recibo::where('recibos.arqueo_id', $this->nro_arqueo)->sum('importe');
+        $this->cobrosCtaCte = Recibo::join('det_metodo_pagos as det', 'det.recibo_id', 'recibos.id')
+            ->where('recibos.arqueo_id', $this->nro_arqueo)->sum('det.importe');
         $this->otrosIngresos = MovimientoDeCaja::join('otro_ingresos as g', 'g.id', 'movimiento_de_cajas.ingreso_id')
             ->join('caja_usuarios as cu', 'cu.id', 'movimiento_de_cajas.arqueo_id')
             ->where('cu.estado', '1')

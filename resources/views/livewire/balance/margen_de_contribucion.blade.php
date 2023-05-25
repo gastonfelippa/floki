@@ -9,8 +9,9 @@
     				</div> 
 						
 					<div class="col-3 text-right">
-                        <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">
-                            Volver
+						<!-- <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1"> -->
+						<button type="button" class="btn btn-dark mr-1">
+							<a style="color: white" href="{{ url('/home') }}">Volver</a>                          
                         </button>
                     </div> 
     			</div>
@@ -34,6 +35,44 @@
 							<thead>
 								<tr>
 									<th class="text-left">DESCRIPCIÓN</th>
+									<th class="text-center">MARGEN DESEADO LISTA 1</th>							
+									<th class="text-center">MARGEN ACTUAL LISTA 1</th>							
+									<th class="text-center">MARGEN DESEADO LISTA 2</th>							
+									<th class="text-center">MARGEN ACTUAL LISTA 2</th>	
+									<th class="text-center">ACCIONES</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach($info as $r)
+								<tr>
+									<td>{{$r->descripcion}}</td>
+									<td class="text-center">{{$r->margen_1}} %</td>
+									@if($r->diferencia_margen_1 == '>=')
+									<td class="text-center" style="background-color: green;color:white;">{{$r->margen_actual_l1}} %</td>
+									@else
+									<td class="text-center" style="background-color: red;color:white;">{{$r->margen_actual_l1}} %</td>
+									@endif
+									<td class="text-center">{{$r->margen_2}} %</td>
+									@if($r->diferencia_margen_2 == '>=')
+									<td class="text-center" style="background-color: green;color:white;">{{$r->margen_actual_l2}} %</td>
+									@else
+									<td class="text-center" style="background-color: red;color:white;">{{$r->margen_actual_l2}} %</td>
+									@endif
+									<td class="text-center">
+										<ul class="table-controls">
+											<li>
+												<a href="javascript:void(0);" 
+												onClick="openModal({{$r->id}},'{{$r->descripcion}}',{{$r->precio_venta_sug_l1}},{{$r->precio_venta_l1}})" 
+												data-toggle="tooltip" data-placement="top" title="Editar Precio de Lista Actual"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 text-success"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></a>
+											</li>
+										</ul>									
+									</td>
+								</tr>
+								@endforeach
+							</tbody>
+							<!-- <thead>
+								<tr>
+									<th class="text-left">DESCRIPCIÓN</th>
 									<th class="text-center">MARGEN DESEADO</th>							
 									<th class="text-center">PRECIO DE COSTO</th>
 									<th class="text-center">PRECIO DE LISTA SUGERIDO</th>
@@ -51,9 +90,9 @@
 									<td class="text-center">{{number_format($r->precio_venta_sug_l1,2,',','.')}}</td>
 									<td class="text-center">{{number_format($r->precio_venta_l1,2,',','.')}}</td>
 									@if($r->diferencia_margen == '>=')
-									<td class="text-center" style="background-color: green;color:white;">{{$r->margen_actual}} %</td>
+									<td class="text-center" style="background-color: green;color:white;">{{$r->margen_actual_1}} %</td>
 									@else
-									<td class="text-center" style="background-color: red;color:white;">{{$r->margen_actual}} %</td>
+									<td class="text-center" style="background-color: red;color:white;">{{$r->margen_actual_1}} %</td>
 									@endif
 									<td class="text-center">
 										<ul class="table-controls">
@@ -66,15 +105,17 @@
 									</td>
 								</tr>
 								@endforeach
-							</tbody>
+							</tbody> -->
 						</table>
 						@elseif($selector == '2')
 						<table class="table table-hover table-checkable table-sm">
 							<thead>
 								<tr>
 									<th class="text-left">DESCRIPCIÓN</th>
-									<th class="text-center" style="width:250px;">MARGEN DESEADO</th>									
-									<th class="text-center" style="width:250px;">MARGEN ACTUAL</th>
+									<th class="text-center">MARGEN DESEADO LISTA 1</th>							
+									<th class="text-center">MARGEN ACTUAL LISTA 1</th>							
+									<th class="text-center">MARGEN DESEADO LISTA 2</th>							
+									<th class="text-center">MARGEN ACTUAL LISTA 2</th>	
 								</tr>
 							</thead>
 							<tbody>
@@ -82,10 +123,16 @@
 								<tr>
 									<td>{{$r->descripcion}}</td>									
 									<td class="text-center">{{$r->margen_1}} %</td>								
-									@if($r->diferencia_margen == '>=')
-									<td class="text-center" style="background-color: green;color:white;">{{$r->promedio_por_categoria}} %</td>
+									@if($r->diferencia_margen_1 == '>=')
+									<td class="text-center" style="background-color: green;color:white;">{{$r->promedio_por_categoria_l1}} %</td>
 									@else
-									<td class="text-center" style="background-color: red;color:white;">{{$r->promedio_por_categoria}} %</td>
+									<td class="text-center" style="background-color: red;color:white;">{{$r->promedio_por_categoria_l1}} %</td>
+									@endif
+									<td class="text-center">{{$r->margen_2}} %</td>	
+									@if($r->diferencia_margen_2 == '>=')
+									<td class="text-center" style="background-color: green;color:white;">{{$r->promedio_por_categoria_l2}} %</td>
+									@else
+									<td class="text-center" style="background-color: red;color:white;">{{$r->promedio_por_categoria_l2}} %</td>
 									@endif
 								</tr>
 								@endforeach

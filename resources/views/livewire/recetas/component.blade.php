@@ -138,12 +138,18 @@
 
 
 <style type="text/css" scoped>
-.scroll{
-    position: relative;
-    height: 170px;
-    margin-top: .3rem;
-    overflow: auto;
-}
+    .scroll{
+        position: relative;
+        height: 170px;
+        margin-top: .3rem;
+        overflow: auto;
+    }
+    thead tr th {     /* fija la cabecera de la tabla */
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
 </style>
 
 <script type="text/javascript">
@@ -151,12 +157,12 @@
         if($('[id="preguntarPorPrecio"]').val() == 'si'){
             Swal.fire({
                 icon: 'question',
-                title: 'Elige una opción...',
+                title: 'Elige una opción para ACTUALIZAR el PRODUCTO FINAL...',
                 showDenyButton: true,
                 confirmButtonColor: '#3085d6',
                 denyButtonColor: '#d33',
-                confirmButtonText: 'Deseo que solo se modifiquen los Precios de Venta Sugeridos',
-                denyButtonText: 'Deseo modificar tanto los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
+                confirmButtonText: 'Deseo que solo se modifiquen el Precio de Costo y los Precios de Venta Sugeridos',
+                denyButtonText: 'Deseo modificar el Precio de Costo, los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
                 closeOnConfirm: false
             }).then((result) => {
                 if (result.isConfirmed) {  
@@ -165,8 +171,7 @@
                     window.livewire.emit('calcular_precio_venta', 'cambiar_todo', 'agregar', null, null);
                 }
             }); 
-        }else window.livewire.emit('calcular_precio_venta', null, 'agregar', null, null);
-     
+        }else window.livewire.emit('calcular_precio_venta', null, 'agregar', null, null);     
     }
     function Confirm(id)
     {
@@ -174,12 +179,12 @@
         if($('#preguntarPorPrecio').val() == 'si'){
             Swal.fire({
                 icon: 'question',
-                title: 'Elige una opción...',
+                title: 'Elige una opción para ACTUALIZAR el PRODUCTO FINAL...',
                 showDenyButton: true,
                 confirmButtonColor: '#3085d6',
                 denyButtonColor: '#d33',
-                confirmButtonText: 'Deseo que solo se modifiquen los Precios de Venta Sugeridos',
-                denyButtonText: 'Deseo modificar tanto los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
+                confirmButtonText: 'Deseo que solo se modifiquen el Precio de Costo y los Precios de Venta Sugeridos',
+                denyButtonText: 'Deseo modificar el Precio de Costo, los Precios de Venta Sugeridos como así también los Precios de Venta de Lista',
                 closeOnConfirm: false
             }).then((result) => {
                 if (result.isConfirmed) {  
@@ -240,6 +245,28 @@
         $(document).ready(function() {
             document.getElementById("cantidad").focus();
         });
+        Livewire.on('cambiarPrecioDetalle',(cantidad)=>{
+            var existe = 'Existen ';
+            var factura = ' facturas abiertas y/o pendientes ';
+            if(cantidad == 1){
+                existe = 'Existe ';
+                factura = ' factura abierta y/o pendiente ';
+            } 
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: existe + cantidad + factura + 'en donde tenés cargado este producto con el precio anterior..., ¿Qué acción deseas realizar?',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Actualizar los precios de todas las facturas...',
+                showCancelButton: true,
+                cancelButtonText: 'Continuar sin modificar las facturas...'
+            }).then((result) => {
+                if (result.isConfirmed) { 
+                    window.livewire.emit('actualizarPreciosCargados');
+                }
+            });       
+		})
     }
    
     function setfocus($id) {

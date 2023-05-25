@@ -37,6 +37,7 @@ class ConfiguracionController extends Component
     }
     public function StoreOrUpdate()
     {
+        if(!$this->periodo_arqueo || $this->periodo_arqueo == 0) $this->periodo_arqueo = '';
         $this->validate([
             'periodo_arqueo' => 'required'
         ]);  
