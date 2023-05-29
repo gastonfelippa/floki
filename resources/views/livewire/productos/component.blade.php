@@ -75,7 +75,7 @@
                                     <td class="text-center">{{number_format($r->precio_venta_l1,2,',','.')}}</td>                               
                                     <td class="text-center">{{number_format($r->precio_venta_l2,2,',','.')}}</td>                               
                                     <td class="text-center">{{$r->estado}}</td>
-                                    <td class="text-center">{{$r->stock_actual}}</td>
+                                    <td class="text-center">{{number_format($r->stock_actual,3,',','.')}}</td>
                                     @can('Productos_create')
                                     <td>{{$r->categoria}}</td>
                                     @endcan
