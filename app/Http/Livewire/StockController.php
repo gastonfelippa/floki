@@ -101,10 +101,12 @@ class StockController extends Component
                     $i->stock_en_consignacion = $total_c;
                 }else{
                     $stock = Stock::where('producto_id', $i->id)->first();
-                    $i->stock_local = $stock->stock_actual;
+                    if($stock) $i->stock_local = $stock->stock_actual;
+                    else $i->stock_local = 0;
                    
                     $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                    $i->stock_en_consignacion = $stock_en_consig;
+                    if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                    else $i->stock_en_consignacion = 0;
                 } 
                 $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
                 $i->subtotal = $i->stock_total * $i->precio_costo;

@@ -110,7 +110,7 @@ class ProductoController extends Component
 				}
 			}else{
 				$stock = Stock::where('producto_id', $i->id)->first();
-				$i->stock_actual = $stock->stock_actual;
+				if($stock) $i->stock_actual = $stock->stock_actual;
 			}
 		
 			$proveedor = ProductoProveedor::where('producto_id', $i->id)
