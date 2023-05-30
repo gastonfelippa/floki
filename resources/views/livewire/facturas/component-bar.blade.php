@@ -46,6 +46,9 @@
                                     <button type="button" class="btn btn-dark" title="Salir"
                                         onclick="Salir()">Salir
                                     </button>
+                                    <button type="button" class="btn btn-dark" title="Salir"
+                                        onclick="Salir()">Salir
+                                    </button>
                                 </div> 
                             </div>
                         @else
