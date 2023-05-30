@@ -16,7 +16,7 @@ use App\Models\Localidad;
 use Carbon\Carbon;
 use DB;
 
-class CtacteController extends Component
+class CtacteControllerde extends Component
 {
     //public properties
 	public $cliente = 'Elegir', $importeCobrado, $comentario, $suma = 0, $sumaFacturas = 0, $sumaRecibos = 0;           
