@@ -47,7 +47,7 @@ class FacturaBarController extends Component
     public $salsas, $guarniciones, $salsa = 0, $guarnicion = 0, $texto_base = null, $texto_base_subproducto = null, $comentario_comanda='null';
     public $comanda_id = null, $inicio_comanda, $sector_comanda, $texto_comanda, $cantidad_comanda;
     public $unir_comandas = 'no', $estadoComanda, $tab = 'factura', $infoComandaEnEspera;
-    public $modDelivery, $modComandas, $mesaId, $mozoId, $mesaDesc, $mozoDesc, $permisos = 1;
+    public $modDelivery, $modComandas, $modConsignaciones, $mesaId, $mozoId, $mesaDesc, $mozoDesc, $permisos = 1;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no', $tiene_receta = false;
     public $camarero = null, $categoria_id, $rubro_id, $search, $permitirCargaSinStock = 'no';
     public $info = [], $infoMediosDePago = [];
@@ -60,6 +60,7 @@ class FacturaBarController extends Component
         $this->comercioId = session('idComercio');
         $this->modDelivery = session('modDelivery');
         $this->modComandas = session('modComandas');
+        $this->modConsignaciones = session('modConsignaciones');
         $this->facturaPendiente = session('facturaPendiente');
 
         //vemos si tenemos una caja habilitada con nuestro user_id
@@ -105,6 +106,8 @@ class FacturaBarController extends Component
                 
             }
         }  
+        if(strlen($this->mozoDesc) > 15) $this->mozoDesc = substr($this->mozoDesc,0,9) . " ...";
+     
         //BUSCO EL ESTADO DEL ARQUEO GENERAL
         $this->estadoArqueoGral = session('estadoArqueoGral');
 

@@ -280,30 +280,6 @@
                                     </tbody>
                                 </table>                   
                             </div>
-
-                           
-                           <!--     <div>
-                                    <span class="badge bg-dark text-right" style="width:140px;">Total: $ {{number_format($total,2,',','.')}}</span>
-
-                                </div>
-                                <div>
-                                    <span class="badge bg-dark text-right" style="width:140px;">Entrega: $ {{number_format($entrega,2,',','.')}}</span>
-
-                                </div>
-                                <div>
-                                    <span class="badge bg-danger text-right" style="width:140px;">Saldo: $ {{number_format($saldo,2,',','.')}}</span>
-
-                                </div> -->
-                                <!-- <div class="col-4">                                    
-                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Total: $ {{number_format($total,2,',','.')}}</h6> 
-                                </div>
-                                <div class="col-4">                                    
-                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Entrega: $ {{number_format($entrega,2,',','.')}}</h6> 
-                                </div>
-                                <div class="col-4">                                    
-                                    <h6 class="bg-danger ml-1 p-2" style="border-radius: 5px;">Saldo: $ {{number_format($saldo,2,',','.')}}</h6> 
-                                </div> -->
-                            <!-- </div> -->
                 @if($delivery != 1)
                         </div>
                         <div class="tab-pane fade show {{$tab == 'comanda' ? 'active' : ''}}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
@@ -438,7 +414,7 @@
                 <input type="hidden" id="modDelivery" wire:model="modDelivery">  
                 <input type="hidden" id="lista" wire:model="lista">  
                 <input type="hidden" id="importeTotal" value="{{$total}}">  
-                <input type="hidden" id="comercioTipo" wire:model="comercioTipo">  
+                <input type="hidden" id="comercioTipo" wire:model="comercioTipo"> 
             </div> 
         </div> 
     </div>
@@ -564,17 +540,6 @@
     {
         window.location.href="{{ url('reservas-estado-mesas') }}";
     }
-    function limitarCaracteres(elemento, max_chars)
-    {
-	    limite_text = $(elemento).text();
-	    if (limite_text.length > max_chars){
-            limite = limite_text.substr(0, max_chars)+" ...";
-            $(elemento).text(limite);
-        }
-	}
-	$(function(){
-	    limitarCaracteres("#mozo", 15);
-	});
  	function Confirm(id, idProducto, idSubproducto, cantidad, comanda)
     {
         let me = this
@@ -739,23 +704,23 @@
     {
         window.livewire.emit('dejar_pendiente')
     }
-    function modalCtacte()
-    {
-        $('#cliente2').val('Elegir')
-        $('#modalCtacte').modal('show')
-	}
-	function saveCtacte()
-    {     
-        if($('#cliente2 option:selected').val() == 'Elegir') {
-            toastr.error('Elige una opción válida para el Cliente')
-            return;
-        }
-        var data = JSON.stringify({
-            'cliente_id'   : $('#cliente2 option:selected').val()
-        });
-        $('#modalCtacte').modal('hide')
-        window.livewire.emit('factura_ctacte', data)
-    } 
+    // function modalCtacte()
+    // {
+    //     $('#cliente2').val('Elegir')
+    //     $('#modalCtacte').modal('show')
+	// }
+	// function saveCtacte()
+    // {     
+    //     if($('#cliente2 option:selected').val() == 'Elegir') {
+    //         toastr.error('Elige una opción válida para el Cliente')
+    //         return;
+    //     }
+    //     var data = JSON.stringify({
+    //         'cliente_id'   : $('#cliente2 option:selected').val()
+    //     });
+    //     $('#modalCtacte').modal('hide')
+    //     window.livewire.emit('factura_ctacte', data)
+    // } 
     function openModal(id)
     {
         $('#facturaId').val(id)
@@ -886,7 +851,7 @@
                     timer: 1500
                 });
                 $('#modalCli').modal('show');
-                $('[id="formaDePago"]').val(1);
+                //$('[id="formaDePago"]').val(1);
             }
 		}else{
 			guardarDatosPago();
@@ -949,7 +914,7 @@
     }
     function saveCliente()
     {
-        var clienteId = $('[id="cliente"]').val();
+        var clienteId = $('[id="cli"]').val();
         $('#modalCli').modal('hide');
         window.livewire.emit('guardarCliente', clienteId);
     }
@@ -1237,7 +1202,6 @@
                 showConfirmButton: false,
                 timer: 1000
             })            
-            limitarCaracteres("#mozo", 15);
 		})
         Livewire.on('stock_no_disponible',(stock, producto)=>{
             var texto = 'Solo restan ';
@@ -1321,8 +1285,7 @@
                 title: 'El cobro a cuenta fue registrado!!',
                 showConfirmButton: false,
                 timer: 2000
-            }); 
-            limitarCaracteres("#mozo", 15);          
+            });          
             resetear();
         })
         Livewire.on('cliente_agregado',()=>{

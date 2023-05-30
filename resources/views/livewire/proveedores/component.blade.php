@@ -129,8 +129,7 @@
 
         $('#modalAddIva').modal('hide')
         window.livewire.emit('createIvaFromModal', data)
-    }    
-    
+    } 
     window.onload = function() {
         document.getElementById("search").focus();
     }
