@@ -39,7 +39,7 @@ class CreateFacturasTable extends Migration
             $table->foreign('mozo_id')->references('id')->on('users');
 
             $table->string('comentario',100)->nullable();
-            $table->tinyint('impresion',1)->default(0);
+            $table->boolean('impresion')->default(0);
 
             $table->unsignedBigInteger('arqueo_id');  //nro. de arqueo o Id de la caja de quien cobra la factura
             $table->foreign('arqueo_id')->references('id')->on('caja_usuarios');
