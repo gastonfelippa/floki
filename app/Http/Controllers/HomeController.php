@@ -129,7 +129,7 @@ class HomeController extends Controller
             $estado = UsuarioComercioPlanes::select('*')
                 ->where('comercio_id', $this->comercioId)
                 ->orderBy('id', 'desc')->first();
-            
+
             if($estado->estado_plan == 'finalizado' && $estado->plan_id == 1)
             {
                 return view('livewire.admin.mensajes.prueba_finalizada');
@@ -165,6 +165,6 @@ class HomeController extends Controller
     }
     public function notificado()
     {
-        if ($this->comercioTipo == 12) return view('home-club'); else return view('notify');
+        if ($this->comercioTipo == 12) return view('home-club'); else return view('home');
     }
 }

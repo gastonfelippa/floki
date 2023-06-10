@@ -7,44 +7,79 @@ use App\Models\Mesa;
 use App\Models\Reserva;
 use App\Models\Sector;
 use App\Models\User;
+use Carbon\Carbon;
 use DB;
 
 class ReservasEstadoMesasController extends Component
 {
-    public $comercioId, $estadoMesa = "1", $info, $sectores, $reservas, $selected_id = 0, $search;
-    public $action = 1, $tab="Interior", $factura_id = 7, $recuperar_registro = 0;
-    public $nombre, $apellido = null, $telefono = null, $cantidad, $mesa = 'Elegir', $comentario = null;
-    public $hora = null, $mesa_anterior = '', $mesaId;
-
+    public $comercioId, $sectores, $mesas, $mozos, $reservas, $estadoMesa = "1", $selected_id = 0;
+    public $search, $search_table, $action = 1, $tab="Interior", $recuperar_registro = 0;
+    public $nombre, $apellido, $telefono, $cantidad, $mesa, $comentario, $fecha, $horario = "Elegir";
+    public $mesa_anterior = '', $mesaId, $mesaDescripcion;
+ 
     public function render()
     {
         $this->comercioId = session('idComercio');
         session(['idMesa' => null]);
+
+        $this->asignarReserva = session('asignarReserva');
+        if($this->asignarReserva) $this->Edit($this->asignarReserva);
+
+        $hoy = Carbon::now();  
+        $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d'); 
        
         $this->sectores = Sector::all()->where('comercio_id', $this->comercioId);
         $this->mesas = Mesa::where('comercio_id', $this->comercioId)
-            ->where('estado', 'Disponible')->get();
+            ->where('estado', 'Disponible')
+            ->orWhere('id', $this->mesa)->get();
 
-        $mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
+        $this->mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('uc.comercio_id', $this->comercioId)->select('users.*')->orderBy('apellido')->get();
 
         if(strlen($this->search) > 0){
-            $this->reservas = Reserva::join('mesas as m', 'm.id', 'reservas.mesa_id')
-                ->select('reservas.*', 'm.descripcion as mesa')
-                ->where('reservas.nombre', 'like', '%' .  $this->search . '%')
+            $this->search_table = null;
+            $this->reservas = Reserva::where('nombre', 'like', '%' .  $this->search . '%')
+                ->where('comercio_id', $this->comercioId)
+                ->where('fecha', $hoy_solo_fecha)
+                ->orWhere('apellido', 'like', '%' .  $this->search . '%')
+                ->where('comercio_id', $this->comercioId)
+                ->where('fecha', $hoy_solo_fecha)
+                ->orWhere('reservas.estado', 'like', '%' .  $this->search . '%')
                 ->where('reservas.comercio_id', $this->comercioId)
-                ->orWhere('reservas.apellido', 'like', '%' .  $this->search . '%')
-                ->where('reservas.comercio_id', $this->comercioId)
-                ->orWhere('m.descripcion', 'like', $this->search)
-                ->where('m.comercio_id', $this->comercioId)->get();
+                ->where('fecha', $hoy_solo_fecha)
+                ->select('*', DB::RAW("'' as mesaDesc"))->orderBy('apellido')->get();
         }else{
-            $this->reservas = Reserva::join('mesas as m', 'm.id', 'reservas.mesa_id')
-            ->select('reservas.*', 'm.descripcion as mesa')->where('reservas.comercio_id', $this->comercioId)->get();
+            $this->reservas = Reserva::where('comercio_id', $this->comercioId)
+                ->where('fecha', $hoy_solo_fecha)
+                ->select('*', DB::RAW("'' as mesaDesc"))->orderBy('apellido')->get();
+        }
+        if(strlen($this->search_table) > 0){
+            $this->search = null;
+            if(strtolower($this->search_table) == 'sin asignar'){
+                $this->reservas = Reserva::where('mesa_id', null)
+                    ->where('comercio_id', $this->comercioId)
+                    ->where('fecha', $hoy_solo_fecha)
+                    ->select('*', DB::RAW("'' as mesaDesc"))->get();
+            }else{
+                $this->reservas = Reserva::where('mesa_id', 'like', $this->search_table)
+                ->where('comercio_id', $this->comercioId)
+                ->where('fecha', $hoy_solo_fecha)
+                ->select('*', DB::RAW("'' as mesaDesc"))->get();
+            }
+        }
+
+        foreach ($this->reservas as $i) {
+            if ($i->mesa_id) {
+                $mesa = Mesa::find($i->mesa_id);
+                $i->mesaDesc = $mesa->descripcion;
+            }else{
+                $i->mesaDesc = 'Sin asignar...';
+            }
         }
        
         switch ($this->estadoMesa) {
             case '1': //todas
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -52,7 +87,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
              case '2': //disponibles
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -60,7 +95,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
             case '3': //ocupadas
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -68,7 +103,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
             case '4': //c/factura 
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -76,7 +111,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
             case '5': //canceladas 
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -84,7 +119,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
             case '6': //reservadas
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -92,7 +127,7 @@ class ReservasEstadoMesasController extends Component
                     ->orderBy('mesas.descripcion', 'asc')->get();
                 break;
             case '7': //deshabilitadas
-                $this->info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
+                $info = Mesa::join('sectores as s', 's.id', 'mesas.sector_id')
                     ->select('mesas.*', 's.descripcion as mesa')
                     ->where('mesas.comercio_id', $this->comercioId)
                     ->where('s.descripcion', $this->tab)
@@ -101,38 +136,38 @@ class ReservasEstadoMesasController extends Component
                 break;
             default:
         }
-        return view('livewire.reservas-estado-mesas.component' , [
-            'info'     => $this->info,
-            'sectores' => $this->sectores,
-            'mesas'    => $this->mesas,
-            'reservas' => $this->reservas,
-            'mozos'    => $mozos
-        ]);
+        return view('livewire.reservas-estado-mesas.component' , ['info' => $info]);
     }
     protected $listeners = [
         'abrirMesa'        => 'abrirMesa',
         'agregaMozo'       => 'agregaMozo',
         'deshabilitarMesa' => 'deshabilitarMesa',
-        'habilitarMesa'    => 'habilitarMesa'
+        'habilitarMesa'    => 'habilitarMesa',
+        'cancelarReserva'  => 'cancelarReserva'
     ];
 
     public function doAction($action)
     {
         $this->action = $action;
+        if($this->action == 2) session(['asignarReserva' => null]);
+        if($action != 3) $this->resetInput();
     }
     public function resetInput()
     {
-        $this->nombre        = '';
+        $this->search        = null;
+        $this->nombre        = null;
         $this->apellido      = null;
         $this->telefono      = null;
-        $this->hora          = null;
+        $this->fecha         = null;
+        $this->horario       = "Elegir";
         $this->cantidad      = '';
-        $this->mesa          = 'Elegir';
+        $this->mesa          = null;
+        $this->mesa_anterior = '';
+        $this->comentario    = null;
+        $this->mesas         = null;
         $this->tab           = 'Interior';
         $this->estadoMesa    = '1';
         $this->selected_id   = 0;
-        $this->comentario    = null;
-        $this->mesa_anterior = '';
     }
     public function cambiarSector($sector)
     {
@@ -169,8 +204,12 @@ class ReservasEstadoMesasController extends Component
                 $this->mesaId = $buscar_mesa->id;
                 $mesa = $buscar_mesa->descripcion;
                 session(['idMesa' => $this->mesaId]);
-                if($buscar_mesa->estado == 'Disponible' || $buscar_mesa->estado == 'Reservada'){
+                if($buscar_mesa->estado == 'Disponible'){
                     $this->emit('agregarMozo', $mesa);
+                }elseif($buscar_mesa->estado == 'Reservada'){
+                    $cliente = Reserva::where('mesa_id', $buscar_mesa->id)->where('estado', 'Asignada')->get();
+                    $cliente = $cliente[0]->apellido . ' ' . $cliente[0]->nombre;
+                    $this->emit('abrir_mesa_reserva', $mesa, $cliente);
                 }elseif($buscar_mesa->estado == 'Deshabilitada'){
                     $this->emit('habilitar_mesa', $mesa);
                 }else{
@@ -206,21 +245,28 @@ class ReservasEstadoMesasController extends Component
         $this->apellido      = $record->apellido;
         $this->telefono      = $record->telefono;
         $this->cantidad      = $record->cantidad;
+        $this->fecha         = Carbon::parse($record->fecha)->format('d-m-Y');
+        $this->horario       = $record->horario;
         $this->comentario    = $record->comentario;
         $this->mesa          = $record->mesa_id;
         $this->mesa_anterior = $record->mesa_id;
-        
+      
         $this->doAction(3);
     }
     public function StoreOrUpdate()
     {
-        $this->validate(['mesa' => 'not_in:Elegir']);
+        $this->validate([
+            'horario' => 'not_in:Elegir'
+        ]);
            
         $this->validate([
-            'nombre' => 'required', 
-            'cantidad' => 'required'
+            'nombre'   => 'required', 
+            'cantidad' => 'required|numeric'
         ]);
-        
+
+        $estado = 'Pendiente';
+        if($this->mesa) $estado = 'Asignada'; 
+ 
         DB::begintransaction();
         try{
             if($this->selected_id > 0) {
@@ -266,29 +312,39 @@ class ReservasEstadoMesasController extends Component
                     'nombre'      => mb_strtoupper($this->nombre),            
                     'apellido'    => mb_strtoupper($this->apellido),             
                     'telefono'    => $this->telefono,
-                    'hora'        => $this->hora,
+                    'horario'     => $this->horario,
+                    'fecha'       => Carbon::parse($this->fecha)->format('Y,m,d'),
                     'cantidad'    => $this->cantidad,
                     'mesa_id'     => $this->mesa,
+                    'estado'      => $estado,
                     'comentario'  => $this->comentario,
                     'comercio_id' => $this->comercioId            
                 ]);
-                $record = Mesa::find($this->mesa);
-                $record->update(['estado' => 'Reservada']);
+                if($this->mesa){
+                    $record = Mesa::find($this->mesa);
+                    $record->update(['estado' => 'Reservada']);
+                }               
             }else {   
                 $record = Reserva::find($this->selected_id);
                 $record->update([
                     'nombre'      => mb_strtoupper($this->nombre),            
                     'apellido'    => mb_strtoupper($this->apellido),             
                     'telefono'    => $this->telefono,
-                    'hora'        => $this->hora,
+                    'horario'     => $this->horario,
+                    'fecha'       => Carbon::parse($this->fecha)->format('Y,m,d'),
                     'cantidad'    => $this->cantidad,
                     'mesa_id'     => $this->mesa,
+                    'estado'      => $estado,
                     'comentario'  => $this->comentario,
                 ]); 
-                $record = Mesa::find($this->mesa_anterior);
-                $record->update(['estado' => 'Disponible']);
-                $record = Mesa::find($this->mesa);
-                $record->update(['estado' => 'Reservada']);
+                if($this->mesa_anterior){
+                    $record = Mesa::find($this->mesa_anterior);
+                    $record->update(['estado' => 'Disponible']);
+                }
+                if($this->mesa){
+                    $record = Mesa::find($this->mesa);
+                    $record->update(['estado' => 'Reservada']);
+                }
             }             
             if($this->selected_id) session()->flash('msg-ok', 'Reserva Actualizada');    
             else session()->flash('msg-ok', 'Reserva Creada'); 
@@ -300,5 +356,30 @@ class ReservasEstadoMesasController extends Component
         }
         $this->resetInput();
         return;
+    }
+    public function cancelarReserva($comentarioCancel)
+    {
+        DB::begintransaction();
+        try{  
+            $record = Reserva::find($this->selected_id);            
+            if($record->mesa_id){
+                $mesa = Mesa::find($record->mesa_id);
+                $mesa->update(['estado' => 'Disponible']);
+            } 
+            $record->update([
+                'mesa_id'           => null,
+                'estado'            => 'Cancelada',
+                'comentario_cancel' => $comentarioCancel,
+            ]);
+            session()->flash('msg-ok', 'Reserva Cancelada'); 
+
+            DB::commit();            
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }
+        $this->resetInput();
+        return;
+
     }
 }

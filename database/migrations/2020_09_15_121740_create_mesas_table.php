@@ -16,7 +16,7 @@ class CreateMesasTable extends Migration
         Schema::create('mesas', function (Blueprint $table) {
             $table->id();
 
-            $table->string('descripcion');
+            $table->integer('descripcion');
             $table->integer('capacidad');
 
             $table->enum('estado', ['Disponible','Ocupada','Reservada','C/factura','Cancelada', 'Deshabilitada'])->default('Disponible');

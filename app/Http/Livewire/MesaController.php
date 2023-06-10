@@ -90,9 +90,9 @@ class MesaController extends Component
     public function StoreOrUpdate()
     { 
         $this->validate([
-            'sector' => 'not_in:Elegir',
-            'descripcion' => 'required',
-            'capacidad' => 'required'
+            'sector'      => 'not_in:Elegir',
+            'descripcion' => 'required|numeric',
+            'capacidad'   => 'required|numeric'
         ]);  
 
         DB::begintransaction();
@@ -135,14 +135,14 @@ class MesaController extends Component
             if($this->selected_id > 0) {
                 $mesa = Mesa::find($this->selected_id);
                 $mesa->update([
-                    'descripcion' => mb_strtoupper($this->descripcion),
+                    'descripcion' => $this->descripcion,
                     'capacidad'   => $this->capacidad,
                     'sector_id'   => $this->sector
                 ]);                
                 $this->action = 1;   
             }else {   
                 $mesa =  Mesa::create([
-                    'descripcion' => mb_strtoupper($this->descripcion),
+                    'descripcion' => $this->descripcion,
                     'capacidad'   => $this->capacidad,
                     'sector_id'   => $this->sector,
                     'comercio_id' => $this->comercioId

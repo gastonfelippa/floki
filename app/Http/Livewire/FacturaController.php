@@ -1190,4 +1190,16 @@ class FacturaController extends Component
         $this->nro_comp_pago = $nro;
         $this->importeCompPago = $importe;
     }
+    public function grabarImpresion()
+    {
+        DB::begintransaction();
+        try{
+            $factura = Factura::find($this->factura_id)->update(['impresion' => 1]);   
+            DB::commit();              
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La impresión no se grabó...');
+        }
+        return;
+    }
 }

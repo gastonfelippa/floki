@@ -12,6 +12,6 @@ class Factura extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'facturas';
     protected $fillable = ['numero', 'cliente_id', 'repartidor_id', 'user_id', 'importe', 'estado',  
-                          'estado_pago', 'estado_entrega', 'lista', 'mesa_id', 'mozo_id','comentario',
-                          'arqueo_id', 'comercio_id'];
+                          'estado_pago', 'estado_entrega', 'lista', 'mesa_id', 'mozo_id', 'impresion',
+                          'comentario', 'arqueo_id', 'comercio_id'];
 }

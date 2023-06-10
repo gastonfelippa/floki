@@ -13,6 +13,6 @@ class Reserva extends Model
     
     protected $dates = ['deleted_at'];
     protected $table = 'reservas';
-    protected $fillable = ['nombre', 'apellido', 'telefono', 'mesa_id', 'cantidad', 'hora', 
-                           'comentario', 'comercio_id'];
+    protected $fillable = ['nombre', 'apellido', 'telefono', 'mesa_id', 'cantidad', 'fecha',
+                           'horario', 'estado', 'comentario', 'comentario_cancel', 'comercio_id'];
 }

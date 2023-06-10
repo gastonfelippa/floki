@@ -22,6 +22,7 @@ use App\Models\Localidad;
 use App\Models\Mesa;
 use App\Models\Producto;
 use App\Models\Receta;
+use App\Models\Reserva;
 use App\Models\Rubro;
 use App\Models\Salsa;
 use App\Models\Stock;
@@ -41,7 +42,7 @@ class FacturaBarController extends Component
     public $grabar_encabezado = true, $modificar, $codigo, $barcode;
     public $comercioId, $arqueoGralId, $factura_id = null, $categorias = null, $articulos =null, $saldoCtaCte, $saldoACobrar;
     public $dirCliente, $apeNomCli, $apeNomRep, $clienteId;
-    public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta = 0, $estado_entrega = '0';
+    public $impresion = 0, $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta = 0, $estado_entrega = '0';
     public $f_de_pago = null, $nro_comp_pago = null, $comentarioPago = '', $mercadopago = null;
     public $estadoArqueoGral, $forzar_arqueo = 0, $ultima_factura = 0;
     public $salsas, $guarniciones, $salsa = 0, $guarnicion = 0, $texto_base = null, $texto_base_subproducto = null, $comentario_comanda='null';
@@ -76,7 +77,6 @@ class FacturaBarController extends Component
                 return view('arqueodecaja');
             }
         }
-
         $this->mesaId = session("idMesa");
         if($this->mesaId == 'd' || $this->mesaId == 'D'){  //si es delivery
             $this->delivery = 1;
@@ -87,9 +87,11 @@ class FacturaBarController extends Component
             $this->mesaDesc = $buscar_mesa->descripcion;
             if(session()->has('idMozo')){             //si es una mesa nueva
                 //$this->mozoDesc = session("idMozo");       //si queremos que muestre el id del mozo en la factura
-                $buscar_mozo = User::find(session("idMozo")); //si queremos que muestre el nombre del mozo en la factura
-                $this->mozoDesc = $buscar_mozo[0]->apellido . ' ' . $buscar_mozo[0]->name;
-                $this->mozoId = $buscar_mozo[0]->id;
+                $mozo = session('idMozo');
+                $idMozo = $mozo['lista'];
+                $buscar_mozo = User::find($idMozo); //si queremos que muestre el nombre del mozo en la factura
+                $this->mozoDesc = $buscar_mozo->apellido . ' ' . $buscar_mozo->name;
+                $this->mozoId = $buscar_mozo->id;
             }else{
                 $buscarMozo = Factura::where('comercio_id', $this->comercioId)
                     ->where('arqueo_id', $this->nro_arqueo)
@@ -387,6 +389,7 @@ class FacturaBarController extends Component
         $this->producto           = 'Elegir';
         $this->subproducto        = 'Elegir';
         $this->selected_id        = 0;
+        $this->impresion          = 0;
         $this->action             = 1;
         $this->estado_entrega     = 0;
         $this->salon              = null;
@@ -819,7 +822,7 @@ class FacturaBarController extends Component
                 
                 if($this->mesaId != null) $estadoFactura = 'pendiente';
                 else $estadoFactura = 'abierta';
-             
+          
                 if($this->inicio_factura) {
                     $factura = Factura::create([
                         'numero'         => $this->numFactura,
@@ -832,12 +835,17 @@ class FacturaBarController extends Component
                         'mozo_id'        => $this->mozoId,
                         'mesa_id'        => $this->mesaId,
                         'user_id'        => auth()->user()->id, //id de quien confecciona la factura
+                        'impresion'      => $this->impresion,
                         'comercio_id'    => $this->comercioId,
                         'arqueo_id'      => $this->nro_arqueo   //nro. de arqueo de caja de quien cobra la factura
                     ]);
                     if($this->mesaId != null){
-                        $mesa = Mesa::find($this->mesaId);
-                        $mesa->update(['estado' => 'Ocupada']);
+                        $mesa = Mesa::find($this->mesaId); 
+                        if($mesa->estado == 'Reservada'){
+                            $reserva = Reserva::where('mesa_id', $this->mesaId)->first();
+                            $reserva->update(['estado'=> 'Concretada']);   
+                        }
+                        $mesa->update(['estado' => 'Ocupada']);   
                     }
                     $this->inicio_factura = false;
                     $this->factura_id = $factura->id;
@@ -1498,5 +1506,17 @@ class FacturaBarController extends Component
             $this->f_de_pago = $tipo;
             $this->nro_comp_pago = $nro;
         }        
+    }
+    public function grabarImpresion()
+    {
+        DB::begintransaction();
+        try{
+            $factura = Factura::find($this->factura_id)->update(['impresion' => 1]);   
+            DB::commit();              
+        }catch (Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! La impresión no se grabó...');
+        }
+        return;
     }
 }

@@ -6,7 +6,7 @@
                 <div class="row mb-4">
     				<div class="col-sm-12 col-md-5 text-center">
     					<h3><b>Reservas/Estado de Mesas</b></h3>
-                        <button class="btn btn-primary mb-2" wire:click="verReservas">Reservas</button>
+                        <button class="btn btn-primary mb-2" wire:click="verReservas()">Reservas</button>
                         <button class="btn btn-primary mb-2" onclick="abrirMesa('D')">Delivery</button>
                         <button class="btn btn-primary mb-2" onclick="agregarMesa()">Agregar Mesa</button>
                     </div>
@@ -147,19 +147,6 @@
         font-weight: bold;
         font-size: 25px;
     }
-    /* .cuadrado-verde{
-        width: 65px; 
-        height: 65px; 
-        -moz-border-radius: 50%;
-        -webkit-border-radius: 50%;
-        border-radius: 50%;
-        background: #13BE05;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 25px;
-    } */
     .cuadrado-rojo {
         width: 55px; 
         height: 55px;
@@ -229,21 +216,32 @@
 
 <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
 <script  type='text/javascript'>
-    // $(document).ready(function(){
-    //     $(".home").hover(
-    //         function() {$(this).attr("src","https://images.unsplash.com/photo-1653398597364-c63c01f261cc?crop=entropy&cs=tinysrgb&fm=jpg&ixlib=rb-1.2.1&q=80&raw_url=true&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774");},
-    //         function() {$(this).attr("src","https://images.unsplash.com/photo-1653398597887-5005619e8cdc?ixlib=rb-1.2.1&raw_url=true&q=80&fm=jpg&crop=entropy&cs=tinysrgb&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774");
-    //     });
-    // });
-
-    ////ver cerrar modal
-
-
-    $("#modal").on("hidden.bs.modal", function () {
-    Console.log('Modal cerrado');
-    });
-
-    /////////
+    function cancelarReserva()
+    {
+        Swal.fire({
+    		title: 'CONFIRMAR',
+    		text: 'Antes de Cancelar la Reserva, agrega un pequeño comentario del motivo que te lleva a realizar esta acción',
+    		icon: 'warning',
+			input: 'text',
+    		showCancelButton: true,
+    		confirmButtonText: 'Aceptar',
+    		cancelButtonText: 'Cancelar',
+    		closeOnConfirm: false,
+			inputValidator: comentario => {
+				if (!comentario) return "Por favor escribe un breve comentario";
+				else return undefined;
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				if (result.value) {
+					let comentario = result.value;
+					window.livewire.emit('cancelarReserva', comentario)
+				}
+			}else if (result.dismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+            }
+		})
+    }
 
     function abrirMesa(id)
     {
@@ -274,7 +272,52 @@
             cancelButtonColor: '#d33',
             confirmButtonText: `Guardar`,
             cancelButtonText: 'Cancelar',
-            onOpen: async () =>{ 
+            didOpen: async () =>{ 
+                Swal.showLoading();
+            // Aqui cargas la informacion que necesites en tu select
+                Swal.hideLoading();
+            },
+            preConfirm: () => {
+                try{
+                    let data = {
+                        lista: document.getElementById('lista').value,
+                    };
+                    if(data.lista == '-1')
+                        throw new Error('Tienes que seleccionar  un elemento de la lista');
+                        return data;
+                    }catch(error){
+                        Swal.showValidationMessage(error);
+                    }
+                }
+        });
+
+        // si tiene value es que el usuario le dio  en el boton de confirmacion
+        // tu proceso , data tiene  la informacion que se capturo en el select
+        if(data.value){ 
+            window.livewire.emit('agregaMozo', data.value);
+        }
+    }
+    async function abrir_mesa_reserva(mesa, cliente){ 
+        let data = await Swal.fire({
+            title: '<b>Abrir Mesa </b>' + mesa,
+            html: `<p>Reservada para <b>` + cliente + `</b></p>
+            <br>                
+                <select class="form-control selectpicker show-tick" id="lista" data-style="btn-warning" data-live-search="true" >
+                    <option value="-1">Elige un Mozo</option>
+                    @foreach($mozos as $m)
+                        <option value="{{ $m->id }}">
+                            {{$m->apellido}} {{$m->name}}
+                        </option>                                        
+                    @endforeach 
+                </select>      
+            <br>`,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Guardar`,
+            cancelButtonText: 'Cancelar',
+            didOpen: async () =>{ 
                 Swal.showLoading();
             // Aqui cargas la informacion que necesites en tu select
                 Swal.hideLoading();
@@ -353,10 +396,14 @@
         $.ajax('/keepAlive');
     }
     /////
-    window.onload = function(mesa){
+    window.onload = function(){
         Livewire.on('agregarMozo',(mesa)=>{
             $('#mesa').val(mesa);
             abrir_mesa(mesa);
+        })
+        Livewire.on('abrir_mesa_reserva',(mesa, cliente)=>{
+            $('#mesa').val(mesa);
+            abrir_mesa_reserva(mesa, cliente);
         })
         Livewire.on('mesa_deshabilitada',(mesa)=>{
             Swal.fire({

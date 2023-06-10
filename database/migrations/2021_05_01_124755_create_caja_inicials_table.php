@@ -22,8 +22,8 @@ class CreateCajaInicialsTable extends Migration
             $table->decimal('importe',10,2);
             $table->enum('tipo', ['1','2'])->default('1');    //1 efectivo, 2 cheque
             
-            $table->unsignedBigInteger('cheque_id');
-            $table->foreign('cheque_id')->references('id')->on('cheques')->nullable();
+            $table->unsignedBigInteger('cheque_id')->nullable();
+            $table->foreign('cheque_id')->references('id')->on('cheques');
 
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');

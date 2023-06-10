@@ -283,9 +283,9 @@ class PdfController extends Controller
                 ->where('id',$id)->get();
             if($info[0]->mesa_id){
                 $mozo = $info[0]->mozo_id;
-                $mesaId = Mesa::find($info[0]->mesa_id)->select('descripcion')->first();  
+                $mesaId = Mesa::find($info[0]->mesa_id); 
                 $mesa = $mesaId->descripcion; 
-            }               
+            }         
         }else{
             $info = Factura::select('numero','importe','cliente_id','repartidor_id','created_at', 
                 DB::RAW("'' as nomCli"),DB::RAW("'' as apeCli"),

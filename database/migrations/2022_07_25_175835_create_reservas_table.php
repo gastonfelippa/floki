@@ -20,12 +20,15 @@ class CreateReservasTable extends Migration
             $table->string('apellido');
             $table->string('telefono',15)->nullable();
             
-            $table->unsignedBigInteger('mesa_id');
+            $table->unsignedBigInteger('mesa_id')->nullable();
             $table->foreign('mesa_id')->references('id')->on('mesas'); 
 
             $table->integer('cantidad');
-            $table->datetime('hora')->nullable();
+            $table->date('fecha');
+            $table->enum('horario', ['Desayuno','Almuerzo','Merienda','Cena']);
+            $table->enum('estado', ['Pendiente','Asignada','Concretada','Cancelada']);
             $table->string('comentario')->nullable();
+            $table->string('comentario_cancel')->nullable();
 
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');

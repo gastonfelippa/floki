@@ -1,5 +1,5 @@
 
-    <div class="col-sm-12 col-md-6 layout-spacing">      
+    <div class="col-sm-12 col-md-8 layout-spacing">      
     	<div class="widget-content-area">
     		<div class="widget-one">
     			<div class="row">
@@ -11,30 +11,39 @@
 				@include('common.recuperarRegistro')
 				@else 
 				<div class="row justify-content-between mb-3">
-					<div class="col-8 mb-1">
+					<div class="col-6 mb-1">
 						<div class="input-group">
 							<div class="input-group-prepend">
 								<span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
 							</div>
-							<input id="search" type="text" wire:model="search" class="form-control form-control-sm" placeholder="Buscar.." aria-label="notification" aria-describedby="basic-addon1" autocomplete="off">
+							<input id="search" type="text" wire:model="search" class="form-control form-control-sm" placeholder="Buscar por Nombre, Apellido o Estado..." autocomplete="off" autofocus>
+						</div>
+					</div>
+					<div class="col-4 mb-1">
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+							</div>
+							<input type="text" wire:model="search_table" class="form-control form-control-sm" placeholder="Buscar por Mesa..." autocomplete="off" autofocus>
 						</div>
 					</div>
 					@can('Clientes_create')
-					<div class="col-4 mt-1">
+					<div class="col-2 mt-1">
 						<button id="btnNuevo" type="button" wire:click="doAction(3)" class="btn btn-danger btn-block">
 							<span style="text-decoration: underline;">N</span>ueva
 						</button>
 					</div>
 					@endcan
 				</div> 		
-					<!-- @include('common.inputBuscarBtnNuevo', ['create' => 'Categorias_create']) -->
 					<div class="table-responsive scroll">
 						<table class="table table-hover table-checkable table-sm">
 							<thead>
 								<tr>
-                                    <th class="">CLIENTE</th>
+                                    <th>FECHA</th>
+                                    <th>CLIENTE</th>
                                     <th class="text-center">CANTIDAD</th>
                                     <th class="text-center">MESA</th>
+                                    <th class="text-center">ESTADO</th>
                                     @can('Clientes_edit')
                                     <th class="text-center">ACCIONES</th>
                                     @endcan
@@ -43,9 +52,11 @@
 							<tbody>
 								@foreach($reservas as $r)
 								<tr>
+									<td>{{$r->fecha}}</td>
 									<td>{{$r->apellido}} {{$r->nombre}}</td>
 									<td class="text-center">{{$r->cantidad}}</td>
-									<td class="text-center">{{$r->mesa}}</td>
+									<td class="text-center">{{$r->mesaDesc}}</td>
+									<td class="text-center">{{$r->estado}}</td>
 									<td class="text-center">
 										@include('common.actions', ['edit' => 'Categorias_edit', 'destroy' => 'Categorias_destroy'])
 									</td>
@@ -96,17 +107,8 @@
             }
 		})
     }
-    window.onkeydown = PulsarTecla;
-	function PulsarTecla(e)
-    {
-        tecla = e.keyCode;
-        if(e.altKey == 1 && tecla == 78) document.getElementById("btnNuevo").click();
-        else if(e.altKey == 1 && tecla == 71) document.getElementById("btnGuardar").click();
-        else if(tecla == 27) document.getElementById("btnCancelar").click();
-    }
 
     window.onload = function() {
-        document.getElementById("search").focus();
 		Livewire.on('eliminarRegistro',()=>{
             Swal.fire({
                 position: 'center',
@@ -127,9 +129,5 @@
                 timer: 1500
             })
 		}) 
-    }
-    function setfocus($id) {
-        document.getElementById($nombre).focus();
-    }
-
+    } 
 </script>
