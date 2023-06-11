@@ -214,12 +214,13 @@ class UsuarioController extends Component
 
     public function StoreOrUpdate()
     {
-      //genera un password random de 8 caracteres y crea una sesion con ese password
+        //genera un password random de 8 caracteres y crea una sesion con ese password
         //................descomentar cuando funcione la autenticacion en la nube..........
-       // $password = Str::random(8);
+        $password = Str::random(8);
+
         //................comentar cuando funcione la autenticacion en la nube..........
-        $password = Str::finish('123', strtolower($this->name));
-        //....................................
+        //$password = Str::finish('123', strtolower($this->name));  
+
         session(['pass_empleado' => $password]);
         session(['empleado' => 'si']);
 
@@ -294,7 +295,7 @@ class UsuarioController extends Component
                     'password'          => Hash::make($password),
                     'pass'              => $password,
                     'abonado'           => 'No',
-                    'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                    //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
                 ]);
                     
                 UsuarioComercio::create([
@@ -323,13 +324,13 @@ class UsuarioController extends Component
                     'sexo'              => $this->sexo,
                     'email'             => strtolower($this->email),
                     'abonado'           => 'No'
-                    //'username'          => $username,
+                    //'username'          => $username
                     //'email_verified_at' => Carbon::now(),    //comentar cuando funcione la autenticacion en la nube
                 ]);
             }
             DB::commit();
             //descomentar cuando funcione la autenticacion en la nube
-            //$this->sendEmail($user, $this->comercio, $this->admin);
+            $this->sendEmail($user, $this->comercio, $this->admin);
             $this->doAction(1);
             if($this->selected_id > 0) session()->flash('message', 'Usuario Actualizado');            
             else session()->flash('message', 'Usuario creado exitosamente! Verificar envío de email');       

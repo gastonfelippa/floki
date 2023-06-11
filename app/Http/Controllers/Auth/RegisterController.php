@@ -124,8 +124,8 @@ class RegisterController extends Controller
                 'email'    => strtolower($data['email']),
                 'password' => Hash::make($password),
                 'pass'     => $password,
-                'abonado'  => 'Si',
-                'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
+                'abonado'  => 'Si'
+                //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
             ]);
             $this->user=$user->id;
 
@@ -327,7 +327,7 @@ class RegisterController extends Controller
                 'comentarios'          => 'Inicio plan de prueba'
             ]);
             DB::commit();
-            //$this->sendEmail($user, $this->comercio);  //descomentar cuando funcione la autenticacion en la nube
+            $this->sendEmail($user, $this->comercio);  //descomentar cuando funcione la autenticacion en la nube
             
             return $user;
         }catch (Exception $e){

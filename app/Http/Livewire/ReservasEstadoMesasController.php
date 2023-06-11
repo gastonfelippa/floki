@@ -145,6 +145,10 @@ class ReservasEstadoMesasController extends Component
         'habilitarMesa'    => 'habilitarMesa',
         'cancelarReserva'  => 'cancelarReserva'
     ];
+    
+    protected $validationAttributes = [
+        'horario' => 'Horario de la Reserva'
+    ];
 
     public function doAction($action)
     {

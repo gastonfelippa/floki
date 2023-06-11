@@ -375,7 +375,7 @@
                     </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-sm-12 col-lg-4">
+                    <div class="col-sm-12 col-lg-4 ">
                         @if($categorias->count() > 8)
                             <div class="widget-one scrollb"> 
                                 <div class="scrollContent"> 
