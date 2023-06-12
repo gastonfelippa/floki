@@ -89,9 +89,9 @@ class RegisterController extends Controller
     {
         //genera un password random de 8 caracteres y crea una sesion con ese password
         //................descomentar cuando funcione la autenticacion en la nube..........
-       // $password = Str::random(8);
+        $password = Str::random(8);
         //................comentar cuando funcione la autenticacion en la nube..........
-        $password = Str::finish('123', strtolower($data['name']));
+        //$password = Str::finish('123', strtolower($data['name']));
         //....................................
 
         session(['pass'     => $password]);
