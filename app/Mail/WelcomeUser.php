@@ -34,8 +34,8 @@ class WelcomeUser extends Mailable
     public function build()
     {
         if($this->user->sexo == 1)
-        return $this->markdown('emails.welcome')->subject('Bienvenida a '. $this->comercio .'!');
+        return $this->markdown('emails.welcome_user')->subject('Bienvenida a '. $this->comercio .'!');
         else
-        return $this->markdown('emails.welcome')->subject('Bienvenido a '. $this->comercio .'!');
+        return $this->markdown('emails.welcome_user')->subject('Bienvenido a '. $this->comercio .'!');
     }
 }

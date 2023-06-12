@@ -339,7 +339,7 @@ class RegisterController extends Controller
     {
         $objDemo = new \stdClass();
         $objDemo->demo_one = $user->username;
-        $objDemo->demo_two = '';
+        $objDemo->demo_two = session('pass');
         $objDemo->sender = 'El equipo de FlokI';
         $objDemo->receiver = $user->name;
 
