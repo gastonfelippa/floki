@@ -12,9 +12,11 @@ use App\Models\DetMetodoPago;
 use App\Models\Factura;
 use App\Models\Recibo;
 use App\Models\ReciboFactura;
-use App\Models\Localidad;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CtacteController extends Component
 {

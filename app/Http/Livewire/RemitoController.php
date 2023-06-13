@@ -18,8 +18,10 @@ use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\StockEnConsignacion;
 use App\Models\User;
-use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class RemitoController extends Component
 {
@@ -35,6 +37,7 @@ class RemitoController extends Component
     public $comentario, $nro_arqueo, $fecha_inicio, $caja_abierta, $estado_entrega = '0';
     public $contador_filas, $imp_por_hoja, $imp_duplicado;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1;
+    public $estadoAqueoGral , $ultima_factura;
     
     public function render()
     {     

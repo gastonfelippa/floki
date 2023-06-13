@@ -11,7 +11,10 @@ use App\Models\Reserva;
 use App\Models\Stock;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CardsHomeController extends Component
 {

@@ -10,7 +10,10 @@ use App\Models\Plan;
 use App\Models\Proceso;
 use App\Models\RegistroProceso;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ProcedimientosAdminController extends Component
 {

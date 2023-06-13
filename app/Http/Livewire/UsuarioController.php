@@ -19,10 +19,10 @@ use App\Models\TipoComercio;
 use App\Models\User;
 use App\Models\UsuarioComercio;
 use Carbon\Carbon;
-use DB;
 
-use App\Events\UserRegistered;
-use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 use App\Mail\WelcomeUser;
 use Illuminate\Support\Facades\Mail;

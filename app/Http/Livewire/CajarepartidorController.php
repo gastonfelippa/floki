@@ -18,7 +18,10 @@ use App\Models\MovimientoDeCaja;
 use App\Models\Producto;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CajarepartidorController extends Component
 {
@@ -29,6 +32,7 @@ class CajarepartidorController extends Component
     public $producto="Elegir", $action = 1, $totalfactura, $nombreCliente, $nomRep, $nro_arqueo, $fecha_inicio;
     public $cantidadEdit, $productoEdit, $precioEdit, $editFacturaId = '', $importeFactura, $estado_entrega;
     public $importe, $gasto, $gastos, $totalCI, $totalCobrado, $totalGastos, $totalCF, $cajaGasto, $cantFacturas;
+    public $arqueoGralId, $estadoArqueoGral, $user, $cantidad, $precio, $totalDetalle;
 
 	public function render()
 	{

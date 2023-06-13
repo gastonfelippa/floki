@@ -15,7 +15,6 @@ use App\Models\Detcomanda;
 use App\Models\Detfactura;
 use App\Models\DetMetodoPago;
 use App\Models\DetReceta;
-use App\Models\Empleado;
 use App\Models\Factura;
 use App\Models\Guarnicion;
 use App\Models\Localidad;
@@ -29,7 +28,10 @@ use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class FacturaBarController extends Component
 {
@@ -52,6 +54,7 @@ class FacturaBarController extends Component
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no', $tiene_receta = false;
     public $camarero = null, $categoria_id, $rubro_id, $search, $permitirCargaSinStock = 'no';
     public $info = [], $infoMediosDePago = [];
+    public $lista, $importeCompPago, $nomCli;
 	
 	public function render()
     {
@@ -504,7 +507,7 @@ class FacturaBarController extends Component
          **/
         $CUIT = 20175835165; 
 
-        $afip = new Afip(array('CUIT' => $CUIT));
+        //$afip = new Afip(array('CUIT' => $CUIT));
 
         $data = array(
             'CantReg' 	=> 1,  // Cantidad de comprobantes a registrar

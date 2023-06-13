@@ -18,7 +18,10 @@ use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\TextoBaseComanda;
 use App\Models\SectorComanda;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 
 class ProductoController extends Component
@@ -35,7 +38,7 @@ class ProductoController extends Component
 	public $texto_subproducto, $search_sp, $tiene_sp = null, $descProducto;
 	public $comercioId, $comercioTipo, $modComandas, $modDelivery, $infoProductoProveedor; 
 	public $idProducto, $idProductoHistorial;
-	public $cambiar_precios, $costo_actual, $detalleProductoCargado;
+	public $cambiar_precios, $costo_actual, $detalleProductoCargado, $precio;
 	
 	public function render()
 	{
@@ -318,7 +321,7 @@ class ProductoController extends Component
 	{
 		$this->action = 3;
 	}	
-	public function edit_sp()
+	public function edit_sp($id)
 	{
 		$this->action = 3;
 		$record = Subproducto::find($id);

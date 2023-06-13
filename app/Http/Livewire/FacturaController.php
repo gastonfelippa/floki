@@ -21,7 +21,10 @@ use App\Models\StockEnConsignacion;
 use App\Models\Subproducto;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class FacturaController extends Component
 {
@@ -433,7 +436,7 @@ class FacturaController extends Component
          **/
         $CUIT = 20175835165; 
 
-        $afip = new Afip(array('CUIT' => $CUIT));
+        //$afip = new Afip(array('CUIT' => $CUIT));
 
         $data = array(
             'CantReg' 	=> 1,  // Cantidad de comprobantes a registrar

@@ -8,10 +8,12 @@ use App\Models\Banco;
 use App\Models\CajaInicial;
 use App\Models\Cheque;
 use App\Models\Cliente;
-use App\Models\Comercio;
 use App\Models\DetMetodoPago;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ChequeController extends Component
 {
@@ -264,7 +266,7 @@ class ChequeController extends Component
                         'comercio_id'      => $this->comercioId
                     ]);
                 }else {   
-                    $record = Categoria::find($this->selected_id);
+                    $record = Cheque::find($this->selected_id);
                     $record->update([
                         'cliente_id'       => $this->cliente,
                         'banco_id'         => $this->banco,

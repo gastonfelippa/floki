@@ -7,8 +7,9 @@ use App\Models\Comanda;
 use App\Models\Detcomanda;
 use App\Models\SectorComanda;
 use Carbon\Carbon;
-use DateTime;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+//use DB;
 
 class ComandaController extends Component
 {

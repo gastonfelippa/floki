@@ -11,8 +11,10 @@ use App\Models\DetReceta;
 use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\Receta;
-use DB;
-use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 
 class RecetaController extends Component

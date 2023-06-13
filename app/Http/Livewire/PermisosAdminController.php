@@ -5,10 +5,11 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Str;
 use App\Models\ModelHasRole;
 use App\Models\User;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+//use DB;
 
 class PermisosAdminController extends Component
 {

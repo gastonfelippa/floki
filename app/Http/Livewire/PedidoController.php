@@ -12,7 +12,10 @@ use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Stock;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class PedidoController extends Component
 {

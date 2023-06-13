@@ -7,7 +7,10 @@ use App\Models\CondIva;
 use App\Models\Localidad;
 use App\Models\Proveedor;
 use App\Models\Provincia;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ProveedorController extends Component
 {

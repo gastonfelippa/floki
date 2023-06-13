@@ -4,13 +4,14 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Cliente;
-use App\Models\DetRemito;
 use App\Models\Producto;
-use App\Models\Remito;
 use App\Models\Stock;
 use App\Models\StockEnConsignacion;
 use App\Models\Subproducto;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class StockController extends Component
 {
@@ -19,7 +20,7 @@ class StockController extends Component
     public $nombreCliente, $cliente = 'Elegir', $clientes, $infoCli;
     public $title = "Stock", $valorTotalStock = 0, $valorTotalStockPorConsignatario = 0;
     public $valorTotalStockLocal = 0, $valorTotalStockConsignacion = 0;
-    public $info_sp, $mostrar_subproducto = 0;
+    public $info_sp, $mostrar_subproducto = 0, $subproducto_id;
     public $comercioId, $modConsignaciones, $comercioTipo;
 
     public function render()

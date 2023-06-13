@@ -7,7 +7,10 @@ use App\Models\Auditoria;
 use App\Models\Banco;
 use App\Models\Cheque;
 use App\Models\Comercio;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class BancoController extends Component
 {

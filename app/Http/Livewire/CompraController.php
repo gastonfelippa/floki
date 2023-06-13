@@ -19,7 +19,10 @@ use App\Models\Receta;
 use App\Models\Stock;
 use App\Models\Subproducto;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CompraController extends Component
 {
@@ -37,6 +40,7 @@ class CompraController extends Component
 	public $calcular_precio_de_venta, $redondear_precio_de_venta, $costo_actual;
     public $costo_historico, $venta_sug_l1_historico, $venta_sug_l2_historico, $venta_l1_historico, $venta_l2_historico;
     public $detalleProductoCargado, $productoFinalId;
+    public $dirProveedor, $nomCli;
 
 	public function render()
 	{       
@@ -108,9 +112,9 @@ class CompraController extends Component
                 ->orderBy('det_compras.id')->get();  
             
             $this->total = 0;
-            $this->contador_filas = 0;
+            $contador_filas = 0;
             foreach ($info as $i){
-                $this->contador_filas ++;
+                $contador_filas ++;
                 $i->importe=$i->cantidad * $i->precio;
                 $this->total += $i->importe;
                 if($i->producto_id){
@@ -150,7 +154,6 @@ class CompraController extends Component
     {
         if($this->barcode != null){
             $this->mostrar_sp = 0;
-            $this->articulos = null;
             $articulos = Producto::where('codigo', $this->barcode)
                             ->where('comercio_id', $this->comercioId)->get();
             if ($articulos->count()) $this->producto = $articulos[0]->id;

@@ -1,5 +1,6 @@
 <?php
 
+//namespace App\Exceptions\Handler;
 namespace App\Http\Livewire;
 
 use Livewire\Component;
@@ -13,7 +14,10 @@ use App\Models\Socio;
 use App\Models\SocioActividad;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class SocioController extends Component
 {
@@ -24,6 +28,8 @@ class SocioController extends Component
     public $cobradores, $selected_id, $search, $action = 1, $caja_abierta; 
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
     public $comercioId, $mes, $año, $socio, $socio_id = null, $socio_actividad;
+    public $nro_arqueo, $fecha_inicio, $dni_valido;
+    
 
     public function render()
     {
@@ -333,7 +339,7 @@ class SocioController extends Component
             else session()->flash('msg-ok', 'Socio Creado'); 
 
             DB::commit();            
-        }catch (Exception $e){
+        }catch (\Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }

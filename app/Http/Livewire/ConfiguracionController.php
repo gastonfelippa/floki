@@ -4,7 +4,10 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Comercio;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ConfiguracionController extends Component
 {

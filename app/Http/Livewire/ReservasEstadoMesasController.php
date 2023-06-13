@@ -8,7 +8,10 @@ use App\Models\Reserva;
 use App\Models\Sector;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ReservasEstadoMesasController extends Component
 {
@@ -16,6 +19,7 @@ class ReservasEstadoMesasController extends Component
     public $search, $search_table, $action = 1, $tab="Interior", $recuperar_registro = 0;
     public $nombre, $apellido, $telefono, $cantidad, $mesa, $comentario, $fecha, $horario = "Elegir";
     public $mesa_anterior = '', $mesaId, $mesaDescripcion;
+    public $asignarReserva, $descripcion_soft_deleted, $id_soft_deleted;
  
     public function render()
     {

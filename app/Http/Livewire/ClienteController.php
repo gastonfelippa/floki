@@ -10,7 +10,10 @@ use App\Models\Provincia;
 use App\Models\Vianda;
 use App\Models\CajaUsuario;
 use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ClienteController extends Component
 {
@@ -24,7 +27,7 @@ class ClienteController extends Component
     public $c_viernes_m, $c_viernes_n, $c_sabado_m, $c_sabado_n, $c_domingo_m, $c_domingo_n;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
     public $comercioId, $comercioTipo, $modViandas, $modConsignaciones;
-    public $mes, $año;
+    public $mes, $año, $nro_arqueo, $fecha_inicio;
 
     public function render()
     {

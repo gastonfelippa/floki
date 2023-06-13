@@ -4,8 +4,6 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Producto;
-use App\Models\StockEnConsignacion;
-use DB;
 
 class ListaDePreciosController extends Component
 {

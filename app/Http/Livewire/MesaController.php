@@ -6,13 +6,16 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Mesa;
 use App\Models\Sector;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class MesaController extends Component
 {
     public $comercioId, $action = 1, $selected_id, $search = null;
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
-    public $descripcion, $capacidad, $sector = 'Elegir', $estado;
+    public $descripcion, $capacidad, $sector = 'Elegir', $estado, $tipo_gasto;
 
     public function render()
     {

@@ -5,7 +5,10 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\OtroDebito;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class OtroDebitoController extends Component
 {
@@ -62,7 +65,7 @@ class OtroDebitoController extends Component
     {
         DB::begintransaction();
         try{
-            Salsa::onlyTrashed()->find($id)->restore();
+            OtroDebito::onlyTrashed()->find($id)->restore();
             $audit = Auditoria::create([
                 'item_deleted_id' => $id,
                 'tabla'           => 'Otros Débitos',

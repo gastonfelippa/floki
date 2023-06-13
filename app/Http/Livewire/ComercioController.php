@@ -6,7 +6,10 @@ use Intervention\Image\Facades\Image;
 
 use Livewire\Component;
 use App\Models\Comercio;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ComercioController extends Component
 {
@@ -68,7 +71,7 @@ class ComercioController extends Component
             //carga cualquier imagen y la guarda en la carpeta public/images/logo       
             $image = $this->logo;   //decodificamos la data de la imagen en Base 64 
             $fileName = time(). '.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
-            $moved = \Image::make($image)->save('images/logo/'. $fileName);
+            $moved = Image::make($image)->save('images/logo/'. $fileName);
             if($moved)
             {
                 $this->logo = $fileName;

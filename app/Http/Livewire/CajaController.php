@@ -11,8 +11,10 @@ use App\Models\CajaInicial;
 use App\Models\CajaUsuario;
 use App\Models\Cheque;
 use App\Models\ModelHasRole;
-use App\Models\User;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CajaController extends Component
 {	
@@ -445,8 +447,7 @@ class CajaController extends Component
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
-        }     
-        $this->f_de_pago = '1'; 
+        }  
         return;  
     }
     public function chequeSeleccionado($dataId, $dataImporte, $total, $cantidad)

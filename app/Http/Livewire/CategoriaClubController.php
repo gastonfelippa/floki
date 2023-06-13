@@ -5,8 +5,11 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\CategoriaClub;
-use App\Models\Comercio;
-use DB;
+use App\Models\Socio;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class CategoriaClubController extends Component
 {
@@ -79,7 +82,7 @@ class CategoriaClubController extends Component
     {
         DB::begintransaction();
         try{
-            Categoria::onlyTrashed()->find($id)->restore();
+            CategoriaClub::onlyTrashed()->find($id)->restore();
             $audit = Auditoria::create([
                 'item_deleted_id' => $id,
                 'tabla'           => 'Categorías',
@@ -152,7 +155,7 @@ class CategoriaClubController extends Component
             if($this->selected_id > 0) {
                 $record = CategoriaClub::find($this->selected_id);
                 $record->update([
-                    'descripcion' => mb_mb_strtoupper($this->descripcion),            
+                    'descripcion' => mb_strtoupper($this->descripcion),            
                     'edad_minima' => $this->edad_minima,
                     'edad_maxima' => $this->edad_maxima,
                     'importe'     => $this->importe

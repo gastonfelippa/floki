@@ -19,8 +19,10 @@ use App\Models\OtroIngreso;
 use App\Models\Recibo;
 use App\Models\User;
 use Carbon\Carbon;
-use DB;
 
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class ArqueoGralController extends Component
 {

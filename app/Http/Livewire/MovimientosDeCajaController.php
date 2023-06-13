@@ -9,13 +9,16 @@ use App\Models\Gasto;
 use App\Models\MovimientoDeCaja;
 use App\Models\OtroIngreso;
 use App\Models\Proveedor;
-use Carbon\Carbon;
-use DB;
+
+use Illuminate\Support\Facades\DB;
+use Exception;
+//use DB;
 
 class MovimientosDeCajaController extends Component
 {
     public $proveedor='Elegir', $egreso='Elegir', $otro_ingreso='Elegir', $comentario = '';
     public $comercioId, $estado = 1, $mov_importe, $selected_id = null, $caja_abierta, $nro_arqueo;
+    public $fecha_inicio, $categoria;
 
     public function render()
     {        
