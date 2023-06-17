@@ -8,10 +8,7 @@ use App\Models\Categoria;
 use App\Models\Comercio;
 use App\Models\Producto;
 use App\Models\Rubro;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CategoriaController extends Component
 {

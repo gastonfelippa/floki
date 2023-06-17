@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Role;
 use App\Models\Comercio;
 use App\Models\Cliente;
 use App\Models\Localidad;
+use App\Models\Mesa;
 use App\Models\ModelHasRole;
 use App\Models\Modulo;
 use App\Models\Plan;
@@ -161,31 +162,55 @@ class RegisterController extends Controller
             ]); 
             
             //asigno los módulos básicos
-            if($data['tipo'] == "12"){       //si es un Club
+            if($data['tipo'] == "3" || $data['tipo'] == "8"){  //si es un bar... o rotisería
                 $modulos = Modulo::create([
-                    'modViandas'        => '0',
-                    'modComandas'       => '0',
-                    'modDelivery'       => '0',
-                    'modConsignaciones' => '0',
-                    'modClubes'         => '1',
-                    'comercio_id'       => $this->comercioId
+                    'modViandas'  => '1',
+                    'modComandas' => '1',
+                    'modDelivery' => '1',
+                    'comercio_id' => $this->comercioId
+                ]);
+            }elseif($data['tipo'] == "4" || $data['tipo'] == "5" || $data['tipo'] == "6" || $data['tipo'] == "7"){  
+                $modulos = Modulo::create([ //si es una pizzería, cervecería, heladería o cafetería
+                    'modComandas' => '1',
+                    'modDelivery' => '1',
+                    'comercio_id' => $this->comercioId
                 ]);
             }elseif($data['tipo'] == "10" || $data['tipo'] == "11"){  //si es una tienda o una consignación
                 $modulos = Modulo::create([
-                    'modViandas'        => '0',
-                    'modComandas'       => '0',
-                    'modDelivery'       => '0',
                     'modConsignaciones' => '1',
                     'comercio_id'       => $this->comercioId
                 ]);
+            }elseif($data['tipo'] == "12"){       //si es un Club
+                $modulos = Modulo::create([
+                    'modClubes'   => '1',
+                    'comercio_id' => $this->comercioId
+                ]);
             }else{
                 $modulos = Modulo::create([
-                    'modViandas'        => '1',
-                    'modComandas'       => '1',
-                    'modDelivery'       => '1',
-                    'modConsignaciones' => '0',
-                    'comercio_id'       => $this->comercioId
+                    'modDelivery' => '1',
+                    'comercio_id' => $this->comercioId
                 ]);
+            }
+            //creo los sectores para las mesas
+            $sectorMesa = Sector::create([
+                'descripcion' => 'Interior',
+                'comercio_id' => $this->comercioId
+            ]);                                   
+            $sectorMesa = Sector::create([
+                'descripcion' => 'Exterior',
+                'comercio_id' => $this->comercioId
+            ]); 
+  
+            if($data['tipo'] == "3"){  //si es un bar, cargo 5 mesas
+                for ($i=1; $i < 6; $i++) { 
+                    Mesa::create([
+                        'descripcion' => $i,
+                        'capacidad'   => 2,
+                        'estado'      => 'Disponible',
+                        'sector_id'   => '1',
+                        'comercio_id' => $this->comercioId
+                    ]);
+                }                
             }
 
             if($data['tipo'] == "12"){  //si es un club, creo el rol Cobrador
@@ -195,7 +220,7 @@ class RegisterController extends Controller
                     'comercio_id' => $this->comercioId,
                     'admite_caja' => null        
                 ]);
-            }
+            }          
 
             //creo los roles Admin, No Usuario, Encargado, Cajero y Repartidor            
             $rolAdmin = Role::create([
@@ -286,16 +311,7 @@ class RegisterController extends Controller
                 'Clientes_index',
                 'Facturas_imp','Fact_delivery_imp',
                 'CajaRepartidor_index'               
-            ]);
-            //creo los sectores para las mesas
-            $sectorMesa = Sector::create([
-                'descripcion' => 'Interior',
-                'comercio_id' => $this->comercioId
-            ]);                                   
-            $sectorMesa = Sector::create([
-                'descripcion' => 'Exterior',
-                'comercio_id' => $this->comercioId
-            ]);                                   
+            ]);                                            
                                   
             $plan = Plan::select('*')->where('id', '1')->get(); 
                                     

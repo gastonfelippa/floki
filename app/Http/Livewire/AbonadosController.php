@@ -8,10 +8,7 @@ use App\Models\Plan;
 use App\Models\UsuarioComercio;
 use App\Models\UsuarioComercioPlanes;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class AbonadosController extends Component
 {

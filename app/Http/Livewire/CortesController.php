@@ -21,10 +21,7 @@ use App\Models\OtroIngreso;
 use App\Models\Recibo;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CortesController extends Component
 {

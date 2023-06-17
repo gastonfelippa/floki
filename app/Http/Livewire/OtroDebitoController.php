@@ -5,10 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\OtroDebito;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class OtroDebitoController extends Component
 {

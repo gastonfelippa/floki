@@ -15,10 +15,7 @@ use App\Models\Vianda;
 use App\Models\ViandasContado;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class ViandasController extends Component
 {

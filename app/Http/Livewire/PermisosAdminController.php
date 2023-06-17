@@ -7,9 +7,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\ModelHasRole;
 use App\Models\User;
-
-use Illuminate\Support\Facades\DB;
-//use DB;
+use DB;
 
 class PermisosAdminController extends Component
 {

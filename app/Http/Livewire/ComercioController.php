@@ -6,10 +6,7 @@ use Intervention\Image\Facades\Image;
 
 use Livewire\Component;
 use App\Models\Comercio;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class ComercioController extends Component
 {

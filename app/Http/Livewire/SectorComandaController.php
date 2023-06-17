@@ -5,10 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\SectorComanda;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class SectorComandaController extends Component
 {

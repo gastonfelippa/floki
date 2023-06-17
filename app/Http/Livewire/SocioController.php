@@ -14,10 +14,7 @@ use App\Models\Socio;
 use App\Models\SocioActividad;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class SocioController extends Component
 {

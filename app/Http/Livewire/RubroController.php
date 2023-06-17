@@ -6,10 +6,7 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Rubro;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class RubroController extends Component
 {

@@ -9,10 +9,7 @@ use App\Models\CtaCteClub;
 use App\Models\Debito;
 use App\Models\ReciboClub;
 use App\Models\ReciboDebito;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CtaCteClubController extends Component
 {

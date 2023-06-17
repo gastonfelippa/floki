@@ -11,10 +11,7 @@ use App\Models\Producto;
 use App\Models\Stock;
 use App\Models\StockEnConsignacion;
 use App\Models\Subproducto;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class BalanceController extends Component
 {

@@ -156,8 +156,8 @@ class UserSeeder extends Seeder
             'Planes_index',  
             'Abonados_index',
             'Procedimientos_index'
-        ]);  
-        
+        ]);
+           
         Provincia::create(['descripcion' => 'Buenos Aires']);
         Provincia::create(['descripcion' => 'Catamarca']);
         Provincia::create(['descripcion' => 'Chaco']);

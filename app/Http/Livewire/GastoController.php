@@ -6,10 +6,7 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\Gasto;
 use App\Models\CategoriaGasto;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class GastoController extends Component
 {  

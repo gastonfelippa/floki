@@ -18,10 +18,7 @@ use App\Models\MovimientoDeCaja;
 use App\Models\Producto;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CajarepartidorController extends Component
 {

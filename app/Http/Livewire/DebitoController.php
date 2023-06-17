@@ -9,10 +9,7 @@ use App\Models\DebitoGenerado;
 use App\Models\DetDebito;
 use App\Models\Socio;
 use App\Models\SocioActividad;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class DebitoController extends Component
 {

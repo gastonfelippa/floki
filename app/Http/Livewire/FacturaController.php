@@ -21,10 +21,7 @@ use App\Models\StockEnConsignacion;
 use App\Models\Subproducto;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class FacturaController extends Component
 {

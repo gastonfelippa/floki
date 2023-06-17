@@ -9,10 +9,7 @@ use App\Models\Gasto;
 use App\Models\MovimientoDeCaja;
 use App\Models\OtroIngreso;
 use App\Models\Proveedor;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class MovimientosDeCajaController extends Component
 {

@@ -84,7 +84,7 @@
                             </div>
                         </div>
                         <div class=" mt-4 text-left ">
-                            <button type="submit" class="btn btn-block btn-primary">
+                            <button type="submit" id= "btn" class="btn btn-block btn-primary">
                             {{ ('REGISTRARSE') }}
                             </button>
                         </div>
@@ -107,3 +107,13 @@
     text-align: center;
     }
 </style>
+
+<script>
+    var btn = document.getElementById('btn');
+
+    function deshabilitar()
+    {
+        btn.disabled = true;
+    }
+    btn.addEventListener('onclick', deshabilitar);
+</script>

@@ -28,10 +28,7 @@ use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class FacturaBarController extends Component
 {

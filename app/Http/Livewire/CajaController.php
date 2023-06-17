@@ -11,10 +11,7 @@ use App\Models\CajaInicial;
 use App\Models\CajaUsuario;
 use App\Models\Cheque;
 use App\Models\ModelHasRole;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CajaController extends Component
 {	

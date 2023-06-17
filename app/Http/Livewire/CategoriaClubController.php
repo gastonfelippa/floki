@@ -6,10 +6,7 @@ use Livewire\Component;
 use App\Models\Auditoria;
 use App\Models\CategoriaClub;
 use App\Models\Socio;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class CategoriaClubController extends Component
 {

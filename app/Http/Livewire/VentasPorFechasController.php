@@ -12,10 +12,7 @@ use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\User;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class VentasPorFechasController extends Component
 {

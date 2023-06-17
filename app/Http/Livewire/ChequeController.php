@@ -10,10 +10,7 @@ use App\Models\Cheque;
 use App\Models\Cliente;
 use App\Models\DetMetodoPago;
 use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class ChequeController extends Component
 {

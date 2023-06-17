@@ -4,10 +4,7 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Factura;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 class VentaDiariaController extends Component
 {

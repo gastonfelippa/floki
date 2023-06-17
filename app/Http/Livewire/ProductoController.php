@@ -18,10 +18,7 @@ use App\Models\Stock;
 use App\Models\Subproducto;
 use App\Models\TextoBaseComanda;
 use App\Models\SectorComanda;
-
-use Illuminate\Support\Facades\DB;
-use Exception;
-//use DB;
+use DB;
 
 
 class ProductoController extends Component
