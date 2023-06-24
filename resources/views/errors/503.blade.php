@@ -12,7 +12,7 @@
 <article>
     <h1>Pronto estaremos de nuevo en linea!</h1>
     <div>
-        <p>Disculpe las molestias, pero estamos realizando un mantenimiento en este momento. Si lo necesita, siempre puede <a href="mailto:#">comunicarse con nosotros</a>; de lo contrario, ¡volveremos a estar en línea en breve!</p>
+        <p>Disculpe las molestias, pero estamos realizando un mantenimiento en este momento. Si lo necesita, siempre puede <a href="mailto:#">comunicarse con nosotros</a> de lo contrario, ¡volveremos a estar en línea en breve!</p>
         {{-- <p>Sorry for the inconvenience but we&rsquo;re performing some maintenance at the moment. If you need to you can always <a href="mailto:#">contact us</a>, otherwise we&rsquo;ll be back online shortly!</p> --}}
         <p>&mdash; El equipo de FlokI</p>
     </div>
