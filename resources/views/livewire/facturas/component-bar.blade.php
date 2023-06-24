@@ -32,7 +32,7 @@
                                 </button>
                                 <div id="btnGroup" class="btn-group" role="group"> 
                                     <button type="button" class="btn btn-outline-danger" title="Imprimir"
-                                        wire:click="grabarImpresion">
+                                        onclick="grabarImpresion">
                                         <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
                                     </button>
@@ -68,7 +68,7 @@
                                 <div id="btnGroup" class="btn-group" role="group">                                     
                                     @if($total > 0)
                                         <button type="button" class="btn btn-outline-danger" title="Imprimir"
-                                            wire:click="grabarImpresion">
+                                            onclick="grabarImpresion()">
                                             <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
                                         </button>
@@ -118,7 +118,7 @@
                                     Cobrar   
                                 </button>
                                 <button type="button" class="btn btn-outline-success" enabled
-                                    wire:click="grabarImpresion">
+                                    onclick="grabarImpresion()">
                                 <!-- <a id="link">
                                 Imprimir</a> -->
                                     <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
@@ -188,7 +188,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
                             </button>
                             <button type="button" class="btn btn-outline-danger" title="Imprimir" enabled
-                                wire:click="grabarImpresion">
+                                onclick="grabarImpresion()">
                                 <a href="{{url('pdfFactDel',array($factura_id))}}" target="_blank">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" color="black" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg></a>
                             </button>
@@ -543,6 +543,11 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 
 <script type="text/javascript">
+    function grabarImpresion()
+    {
+        window.livewire.emit('grabarImpresion');
+    }
+
     function Salir()
     {
         window.location.href="{{ url('reservas-estado-mesas') }}";
@@ -711,23 +716,7 @@
     {
         window.livewire.emit('dejar_pendiente')
     }
-    // function modalCtacte()
-    // {
-    //     $('#cliente2').val('Elegir')
-    //     $('#modalCtacte').modal('show')
-	// }
-	// function saveCtacte()
-    // {     
-    //     if($('#cliente2 option:selected').val() == 'Elegir') {
-    //         toastr.error('Elige una opción válida para el Cliente')
-    //         return;
-    //     }
-    //     var data = JSON.stringify({
-    //         'cliente_id'   : $('#cliente2 option:selected').val()
-    //     });
-    //     $('#modalCtacte').modal('hide')
-    //     window.livewire.emit('factura_ctacte', data)
-    // } 
+
     function openModal(id)
     {
         $('#facturaId').val(id)

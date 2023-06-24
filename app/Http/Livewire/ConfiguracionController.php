@@ -3,7 +3,9 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Models\Categoria;
 use App\Models\Comercio;
+use App\Models\Producto;
 use DB;
 
 class ConfiguracionController extends Component
@@ -54,7 +56,33 @@ class ConfiguracionController extends Component
                 'redondear_precio_de_venta'   => $this->redondear_precio_de_venta,
                 'opcion_de_guardado_compra'   => $this->opcion_de_guardado_compra,
                 'opcion_de_guardado_producto' => $this->opcion_de_guardado_producto
-            ]);   
+            ]); 
+
+            //actualizo los precios de venta sugeridos para los productos que tenga cargados con anterioridad
+            $productos = Producto::where('comercio_id', $this->comercioId)->get();
+            if($productos->count()){
+                foreach ($productos as $i) {
+                    $porcentaje = Categoria::where('id', $i->categoria_id)->select('margen_1', 'margen_2')->get();
+                    if ($this->calcular_precio_de_venta == 0){
+                        //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                        $pr_vta_sug_l1 = ($i->precio_costo * $porcentaje[0]->margen_1) / 100 + $i->precio_costo;
+                        $pr_vta_sug_l2 = ($i->precio_costo * $porcentaje[0]->margen_2) / 100 + $i->precio_costo;
+                    }else{
+                        //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                        $pr_vta_sug_l1 = $i->precio_costo * 100 / (100 - $porcentaje[0]->margen_1);
+                        $pr_vta_sug_l2 = $i->precio_costo * 100 / (100 - $porcentaje[0]->margen_2);
+                    }
+                    if ($this->redondear_precio_de_venta == 1){
+                        $pr_vta_sug_l1 = round($pr_vta_sug_l1);
+                        $pr_vta_sug_l2 = round($pr_vta_sug_l2);
+                    }
+                    $prod = Producto::find($i->id)->update([
+                        'precio_venta_sug_l1' => $pr_vta_sug_l1,
+                        'precio_venta_sug_l2' => $pr_vta_sug_l2
+                    ]);
+                }
+            }   
+
             session()->flash('msg-ok', 'Configuraciones actualizadas');  
             DB::commit();               
         }catch (Exception $e){

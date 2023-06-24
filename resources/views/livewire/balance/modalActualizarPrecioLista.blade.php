@@ -2,7 +2,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Actualizar Precio de Lista 1</h5>
+                <h5 class="modal-title">Actualizar Precios</h5>
             </div> 
             <div class="modal-body">
                 <div class="widget-content-area">
@@ -11,22 +11,27 @@
                             <div class="row">                          
                                 <div class="form-group col-12">
                                     <label >Producto</label>
-                                        <input id="producto" class="form-control" disabled>
-                                                               
+                                    <input id="producto" class="form-control" disabled>                                                               
                                 </div>
                             </div>
                             <div class="row">                          
                                 <div class="form-group col-6">
-                                    <label >Pr. de Vta. Sug. Lista 1</label>
-                                  
-                                        <input id="precio_sugerido_l1" class="form-control" disabled>
-                                                              
+                                    <label >Pr. de Vta. Sug. Lista 1</label>                                  
+                                    <input id="precio_sugerido_l1" class="form-control" disabled>                                                              
                                 </div>
                                 <div class="form-group col-6">
-                                    <label >Precio de Venta Lista 1</label>
-                                   
-                                        <input id="precio_venta_l1" class="form-control" placeholder="Ingrese el Importe" autoconplete ="off">
-                                                               
+                                    <label >Precio de Venta Lista 1</label>                                   
+                                    <input id="precio_venta_l1" class="form-control" placeholder="Ingrese el Importe" autoconplete ="off">                                                               
+                                </div>
+                            </div>
+                            <div class="row">                          
+                                <div class="form-group col-6">
+                                    <label >Pr. de Vta. Sug. Lista 2</label>                                  
+                                    <input id="precio_sugerido_l2" class="form-control" disabled>                                                              
+                                </div>
+                                <div class="form-group col-6">
+                                    <label >Precio de Venta Lista 2</label>                                   
+                                    <input id="precio_venta_l2" class="form-control" placeholder="Ingrese el Importe" autoconplete ="off">                                                               
                                 </div>
                             </div>
                         </form>

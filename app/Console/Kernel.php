@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        'App\Console\Commands\TestTask',
+        'App\Console\Commands\ResumenDiario',
     ];
 
     /**
@@ -24,7 +25,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        //$schedule->command('test:task')->everyMinute();
+
+        //todos los 24 a las 18:30 hs, sin que se superpongan
+        $schedule->command('resumen:diario')->monthlyOn(24, '18:38')->withoutOverlapping(10); 
+        //ejecuta tareas en segundo plano
+        //$schedule->command('resumen:diario')->monthlyOn(24, '18:38')->runInBackground();; 
+        
     }
 
     /**

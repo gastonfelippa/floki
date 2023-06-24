@@ -182,6 +182,47 @@
         z-index: 10;
         background-color: #ffffff;
     }
+    .margen:hover {
+        width: 85px; 
+        height: 85px;
+        cursor:pointer; cursor: hand;    
+    }
+    .verde{
+        -moz-border-radius: 3%;
+        -webkit-border-radius: 23;
+        border-radius: 3%;
+        background: rgba(8, 153, 8, 0.973);
+        color: #ffffff;
+        align-items: center;
+        font-size: 15px;
+    }
+    .verde-claro {
+        -moz-border-radius: 2%;
+        -webkit-border-radius: 2%;
+        border-radius: 2%;
+        background: rgb(74, 212, 74);
+        color: #ffffff;
+        align-items: center;
+        font-size: 15px;
+    }
+    .naranja {
+        -moz-border-radius: 2%;
+        -webkit-border-radius: 2%;
+        border-radius: 2%;
+        background: rgb(253, 167, 8);
+        color: #ffffff;
+        align-items: center;
+        font-size: 15px;
+    }
+    .rojo {
+        -moz-border-radius: 2%;
+        -webkit-border-radius: 2%;
+        border-radius: 2%;
+        background: rgb(248, 7, 7);
+        color: #ffffff;
+        align-items: center;
+        font-size: 15px;
+    }
 </style>
 
 <script type="text/javascript">
@@ -189,23 +230,30 @@
     {
         window.location.href="{{ url('home') }}";
     }
-    function openModal(id, producto, precioSugerido, precioLista)
+    function openModal(id, producto, precioSugeridoL1, precioLista1, precioSugeridoL2, precioLista2)
     {       
         $('#productoId').val(id)
         $('#producto').val(producto)
-        $('#precio_sugerido_l1').val(precioSugerido)
-        $('#precio_venta_l1').val(precioLista)
+        $('#precio_sugerido_l1').val(precioSugeridoL1)
+        $('#precio_venta_l1').val(precioLista1)
+        $('#precio_sugerido_l2').val(precioSugeridoL2)
+        $('#precio_venta_l2').val(precioLista2)
         $('#modalActualizarPrecioLista').modal('show')
 	}
     function guardarPrecio()
     {      
         if($('#precio_venta_l1').val() == '') {
-            toastr.error('Ingresa un importe para el Precio de Venta')
+            toastr.error('Ingresa un importe para el Precio de Venta de Lista 1')
+            return;
+        }
+        if($('#precio_venta_l2').val() == '') {
+            toastr.error('Ingresa un importe para el Precio de Venta de Lista 2')
             return;
         }
         var data = JSON.stringify({
             'id'     : $('#productoId').val(),
-            'precio' : $('#precio_venta_l1').val()
+            'precio_l1' : $('#precio_venta_l1').val(),
+            'precio_l2' : $('#precio_venta_l2').val()
         });
         $('#modalActualizarPrecioLista').modal('hide');
         window.livewire.emit('actualizarPrecioLista', data);

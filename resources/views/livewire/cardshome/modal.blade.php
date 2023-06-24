@@ -133,7 +133,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-dark" data-dismiss="modal"><i class="flaticon-cancel-12"></i>Volver</button>
+                <button class="btn btn-dark" data-dismiss="modal">Volver</button>
             </div>
         </div>
     </div>

@@ -17,11 +17,11 @@ class CreateProductosTable extends Migration
             $table->id();
             $table->unsignedBigInteger('codigo');
             $table->string('descripcion');
-            $table->decimal('precio_costo',10,2)->nullable();
-            $table->decimal('precio_venta_l1',10,2)->nullable();
-            $table->decimal('precio_venta_l2',10,2)->nullable();
-            $table->decimal('precio_venta_sug_l1',10,2)->nullable();
-            $table->decimal('precio_venta_sug_l2',10,2)->nullable();
+            $table->decimal('precio_costo',10,2)->default(0);
+            $table->decimal('precio_venta_l1',10,2)->default(0);
+            $table->decimal('precio_venta_l2',10,2)->default(0);
+            $table->decimal('precio_venta_sug_l1',10,2)->default(0);
+            $table->decimal('precio_venta_sug_l2',10,2)->default(0);
             $table->enum('estado', ['Disponible','Suspendido'])->default('Disponible');
             $table->enum('tipo', ['Art. Compra','Art. Venta','Ambos'])->default('Art. Venta');
             $table->enum('tiene_receta', ['si','no'])->default('no');

@@ -455,7 +455,8 @@ class FacturaBarController extends Component
         'agregarBanco'          => 'agregarBanco',
         'enviarDatosCheque'     => 'agregarCheque',
         'cobrar_factura'        => 'cobrar_factura',
-        'guardarCliente'        => 'guardarCliente'
+        'guardarCliente'        => 'guardarCliente',
+        'grabarImpresion'       => 'grabarImpresion'
     ];
     public function permitirCargaSinStock($option, $id)
     {

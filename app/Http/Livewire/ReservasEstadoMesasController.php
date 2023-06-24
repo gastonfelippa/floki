@@ -32,7 +32,7 @@ class ReservasEstadoMesasController extends Component
         $this->sectores = Sector::all()->where('comercio_id', $this->comercioId);
         $this->mesas = Mesa::where('comercio_id', $this->comercioId)
             ->where('estado', 'Disponible')
-            ->orWhere('id', $this->mesa)->get();
+            ->orWhere('id', $this->mesa_anterior)->get();
 
         $this->mozos = User::join('usuario_comercio as uc', 'uc.usuario_id', 'users.id')
             ->where('uc.comercio_id', $this->comercioId)->select('users.*')->orderBy('apellido')->get();

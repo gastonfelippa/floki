@@ -1,5 +1,7 @@
 <div class="row layout-top-spacing">
   <div class="col-12 layout-spacing">
+    @if($infoReservasP->count() || $infoReservasA->count() || $infoProductos->count()
+        || $infoPedidos->count() || $infoMesas->count())
     <div class="widget-content-area">
       <div class="widget-one"> 
         <div class="row justify-content-center">
@@ -89,11 +91,18 @@
         </div>
       </div>
     </div>
+    @endif
   </div>
 </div> 
 
 
 <style type="text/css" scoped>
+  thead tr th {     /* fija la cabecera de la tabla */
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #ffffff;
+  }
   h5 {
     color:white;
   }  
@@ -121,6 +130,9 @@
     font-size: 25px;
     min-width: 50px;
   }
+   .modal-dialog {
+    max-width: 700px!important;
+  }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
@@ -146,7 +158,7 @@
         $('#modalMesas').hide()  
         $('.modal-title').text('Pedidos')
     }else if(option == 'mesas'){
-      $('#modalReservas').hide()
+        $('#modalReservas').hide()
         $('#modalProductos').hide()
         $('#modalPedidos').hide()
         $('#modalMesas').show()  

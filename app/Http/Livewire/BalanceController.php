@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Balance;
+use App\Models\Comercio;
 use App\Models\Compra;
 use App\Models\Factura;
 use App\Models\MovimientoDeCaja;
@@ -16,7 +17,7 @@ use DB;
 class BalanceController extends Component
 {
     public $valorTotalStock, $e_i, $compras, $e_f, $cmv, $cFijos, $cVariables, $action = 1;
-    public $ventas, $p_cmv, $m_c, $p_m_c, $ventasPEq, $p_cF, $p_cV;
+    public $ventas, $p_cmv, $m_c, $p_m_c, $ventasPEq, $p_cF, $p_cV, $calculo;
     public $p_alq, $p_emp, $p_serv, $p_imp, $p_gastos_func, $p_egresos_varios, $p_gan; 
     public $comercioId, $balanceId, $empleados, $servicios, $impuestos;
     public $alquileres, $gastosDeFuncionamiento, $egresosVarios, $ganancia, $selector;
@@ -25,6 +26,9 @@ class BalanceController extends Component
     {
         //busca el comercio que está en sesión
 		$this->comercioId = session('idComercio');
+
+        $calculo = Comercio::find($this->comercioId);
+        $this->calculo = $calculo->calcular_precio_de_venta;
      
         $infoBalance = Balance::where('comercio_id', $this->comercioId)
             ->orderBy('existencia_inicial', 'desc')->select('*')->first();
@@ -46,32 +50,87 @@ class BalanceController extends Component
         if($this->ventas) $this->p_m_c = ($this->m_c * 100) / $this->ventas;
 
         if(!$this->selector) $this->selector = '1';
-        if($this->selector== '1'){     //por producto
+        if($this->selector == '1'){     //por producto
             $info = Producto::join('categorias as c', 'c.id', 'productos.categoria_id')
+                ->join('comercios as com', 'com.id', 'productos.comercio_id')
                 ->where('productos.comercio_id', $this->comercioId)
                 ->where('productos.tipo', 'not like', 'Art. Compra')
                 ->select('productos.id', 'productos.descripcion', 'productos.precio_costo', 
                     'productos.precio_venta_sug_l1', 'productos.precio_venta_sug_l2',
                     'productos.precio_venta_l1',  'productos.precio_venta_l2',
-                    'c.margen_1', 'c.margen_2',DB::RAW("0 as margen_actual_l1"),DB::RAW("0 as margen_actual_l2"),
+                    'c.margen_1', 'c.margen_2', 'com.calcular_precio_de_venta', 
+                    DB::RAW("0 as margen_actual_l1"),DB::RAW("0 as margen_actual_l2"),
                     DB::RAW("0 as diferencia_margen_1"), DB::RAW("0 as diferencia_margen_2"))->orderBy('productos.descripcion')->get();
             if($info){
-                $margen_actual_l1 = 0;
-                $margen_actual_l2 = 0;
-                foreach ($info as $i) {
-                    if($i->precio_costo > 0) $margen_actual_l1 = 1 - ($i->precio_costo / $i->precio_venta_l1);
-                    else $margen_actual_l1 = 0;
-                    $i->margen_actual_l1 = $margen_actual_l1 * 100;
-                    $i->margen_actual_l1 = round($i->margen_actual_l1, 2);
-                    if($i->margen_actual_l1 >= $i->margen_1) $i->diferencia_margen_1 = '>=';
-                    else $i->diferencia_margen_1 = '<';
+                foreach ($info as $i) {   
+                    if($this->calculo == 0){   //si agrego el margen al precio de costo del producto
+                        //obtengo el margen actual del producto
+                        if($i->precio_costo > 0) $margen_actual_l1 = $i->precio_venta_l1 / $i->precio_costo;
+                        else $margen_actual_l1 = 0;
+                        $i->margen_actual_l1 = $margen_actual_l1 * 100;
+                        $i->margen_actual_l1 = round($i->margen_actual_l1, 2) - 100;
 
-                    if($i->precio_costo > 0) $margen_actual_l2 = 1 - ($i->precio_costo / $i->precio_venta_l2);
-                    else $margen_actual_l2 = 0;
-                    $i->margen_actual_l2 = $margen_actual_l2 * 100;
-                    $i->margen_actual_l2 = round($i->margen_actual_l2, 2);
-                    if($i->margen_actual_l2 >= $i->margen_2) $i->diferencia_margen_2 = '>=';
-                    else $i->diferencia_margen_2 = '<';
+                        //obtengo el rango de 10%+ y 10%- sobre el margen requerido por la Categoría del producto
+                        $margen1_mas_10 = $i->margen_1 * 1.1;
+                        $margen1_menos_10 = $i->margen_1 - ($i->margen_1 * 0.1); 
+                        
+                        //hago las comparaciones
+                        if($i->margen_actual_l1 >= $i->margen_1){
+                            if($i->margen_actual_l1 > $margen1_mas_10) $i->diferencia_margen_1 = '>>';
+                            else $i->diferencia_margen_1 = '>=';
+                        }elseif($i->margen_actual_l1 < $i->margen_1){
+                            if($i->margen_actual_l1 < $margen1_menos_10) $i->diferencia_margen_1 = '<<';
+                            else $i->diferencia_margen_1 = '<';
+                        }
+
+                        if($i->precio_costo > 0) $margen_actual_l2 = $i->precio_venta_l2 / $i->precio_costo;
+                        else $margen_actual_l2 = 0;
+                        $i->margen_actual_l2 = $margen_actual_l2 * 100;
+                        $i->margen_actual_l2 = round($i->margen_actual_l2, 2) - 100;
+
+                        $margen2_mas_10 = $i->margen_2 * 1.1;
+                        $margen2_menos_10 = $i->margen_2 - ($i->margen_2 * 0.1);
+
+                        if($i->margen_actual_l2 >= $i->margen_2){
+                            if($i->margen_actual_l2 > $margen2_mas_10) $i->diferencia_margen_2 = '>>';
+                            else $i->diferencia_margen_2 = '>=';
+                        }elseif($i->margen_actual_l2 < $i->margen_2){
+                            if($i->margen_actual_l2 < $margen2_menos_10) $i->diferencia_margen_2 = '<<';
+                            else $i->diferencia_margen_2 = '<';
+                        } 
+                    }else{      //si obtengo el margen desde le precio de venta del producto
+                        if($i->precio_costo > 0) $margen_actual_l1 = 1 - ($i->precio_costo / $i->precio_venta_l1);
+                        else $margen_actual_l1 = 0;
+                        $i->margen_actual_l1 = $margen_actual_l1 * 100;
+                        $i->margen_actual_l1 = round($i->margen_actual_l1, 2);
+
+                        $margen1_mas_10 = $i->margen_1 * 1.1;
+                        $margen1_menos_10 = $i->margen_1 - ($i->margen_1 * 0.1); 
+                      
+                        if($i->margen_actual_l1 >= $i->margen_1){
+                            if($i->margen_actual_l1 > $margen1_mas_10) $i->diferencia_margen_1 = '>>';
+                            else $i->diferencia_margen_1 = '>=';
+                        }elseif($i->margen_actual_l1 < $i->margen_1){
+                            if($i->margen_actual_l1 < $margen1_menos_10) $i->diferencia_margen_1 = '<<';
+                            else $i->diferencia_margen_1 = '<';
+                        }   
+
+                        if($i->precio_costo > 0) $margen_actual_l2 = 1 - ($i->precio_costo / $i->precio_venta_l2);
+                        else $margen_actual_l2 = 0;
+                        $i->margen_actual_l2 = $margen_actual_l2 * 100;
+                        $i->margen_actual_l2 = round($i->margen_actual_l2, 2);
+
+                        $margen2_mas_10 = $i->margen_2 * 1.1;
+                        $margen2_menos_10 = $i->margen_2 - ($i->margen_2 * 0.1);
+
+                        if($i->margen_actual_l2 >= $i->margen_2){
+                            if($i->margen_actual_l2 > $margen2_mas_10) $i->diferencia_margen_2 = '>>';
+                            else $i->diferencia_margen_2 = '>=';
+                        }elseif($i->margen_actual_l2 < $i->margen_2){
+                            if($i->margen_actual_l2 < $margen2_menos_10) $i->diferencia_margen_2 = '<<';
+                            else $i->diferencia_margen_2 = '<';
+                        } 
+                    }                
                 }
             }  
         }elseif($this->selector == '2'){    //por categoría
@@ -157,9 +216,6 @@ class BalanceController extends Component
                 # code...
             }
         }
-        // return view('livewire.balance.margen_de_contribucion', [
-        //     'info' => $info
-        // ]);
         return view('livewire.balance.component', [
             'info' => $info
         ]);
@@ -178,7 +234,8 @@ class BalanceController extends Component
         try{ 
             $record = Producto::find($data->id);
             $record->update([
-                'precio_venta_l1' => $data->precio
+                'precio_venta_l1' => $data->precio_l1,
+                'precio_venta_l2' => $data->precio_l2
             ]);
             DB::commit();               
             $this->emit('actualizarPrecio');

@@ -3,8 +3,7 @@
         <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">Agregar Localidad</h5>
-        </div>
-       
+        </div>       
         <div class="modal-body">
             <div class="widget-content-area">
                 <div class="widget-one">

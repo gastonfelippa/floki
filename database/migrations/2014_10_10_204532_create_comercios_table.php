@@ -31,7 +31,7 @@ class CreateComerciosTable extends Migration
             $table->enum('imp_por_hoja', ['1','2','4'])->default('1');
             $table->boolean('imp_duplicado')->default(false);
             $table->boolean('calcular_precio_de_venta')->default(false);
-            $table->boolean('redondear_precio_de_venta')->default(false);
+            $table->boolean('redondear_precio_de_venta')->default(true);
             $table->enum('opcion_de_guardado_compra', ['0','1','2'])->default('0'); 
                                             //0 no modifica nada, 1 modifica solo costos y sugeridos
                                             //2 modifica todo, costos, sugeridos y listas
