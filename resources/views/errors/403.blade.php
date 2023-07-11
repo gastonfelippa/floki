@@ -1,5 +1,5 @@
 <!doctype html>
-<title>Sitio en Modo Mantenimiento</title>
+<title>Sesión expirada</title>
 <style>
   body { text-align: center; padding: 150px; }
   h1 { font-size: 50px; }
@@ -10,9 +10,9 @@
 </style>
 
 <article>
-    <h1>Pronto estaremos de nuevo en linea!</h1>
+    <h1>Ohhhh! Tu sesión ha expirado por inactividad...</h1>
     <div>
-        <p>Disculpe las molestias, pero estamos realizando un mantenimiento en este momento. Si lo necesita, siempre puede <a href="mailto:#">comunicarse con nosotros</a>, de lo contrario ¡volveremos a estar en línea en breve!</p>
+        <p>Para continuar deberás <a href="/">volver a loguearte</a>. Si lo necesitás, siempre podés <a href="mailto:#">comunicarte con nosotros</a>, de lo contrario ¡volveremos a estar en línea en breve!</p>
         {{-- <p>Sorry for the inconvenience but we&rsquo;re performing some maintenance at the moment. If you need to you can always <a href="mailto:#">contact us</a>, otherwise we&rsquo;ll be back online shortly!</p> --}}
         <p>&mdash; El equipo de FlokI</p>
     </div>

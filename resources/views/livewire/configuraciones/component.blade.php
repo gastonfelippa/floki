@@ -58,7 +58,7 @@
         </div> 
         <div class="row"> 
             <div class="col-12 layout-spacing">
-                <h6>Opciones de Guardado al Modificar un Producto</h6>
+                <h6>Opciones de Guardado al Modificar "el Costo" de un Producto</h6>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="inlineRadioOptions13" id="inlineRadio14" value="1" wire:model="opcion_de_guardado_producto">
                     <label class="form-check-label" for="inlineRadio14">Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos</label>
