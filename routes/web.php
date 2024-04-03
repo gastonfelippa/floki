@@ -1,27 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Mail;             
- 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use Illuminate\Support\Facades\Mail;      
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-//Auth::routes();
 Auth::routes(['verify' => true]);
 
-            //url  -      controlador       -     vista
+            //url  -      controlador       
 Route::get('/home', 'HomeController@index')->name('home')->middleware('verified');
 Route::get('/notify', 'HomeController@notificado')->name('notify')->middleware('verified');
 
@@ -47,6 +35,7 @@ Route::view('permisos', 'permisos')->middleware('permission:Usuarios_index');
 Route::view('permisos-club', 'permisos-club')->middleware('permission:Usuarios_index');
 
 Route::view('productos', 'productos')->middleware('permission:Productos_index');
+Route::view('productos-elaborados', 'productos-elaborados')->middleware('permission:Productos_index');
 Route::view('categorias', 'categorias')->middleware('permission:Categorias_index');
 Route::view('categorias-club', 'categorias-club')->middleware('permission:Categorias_index');
 Route::view('clientes', 'clientes')->middleware('permission:Clientes_index');

@@ -427,5 +427,14 @@
                 timer: 1500
             })
         })
+        Livewire.on('crearReserva',(accion)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: accion,
+                showConfirmButton: false,
+                timer: 1500
+            })
+        })
     }
 </script>

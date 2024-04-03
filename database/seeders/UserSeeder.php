@@ -6,13 +6,14 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\ModelHasRole;
-use App\Models\User;
-use App\Models\TipoComercio;
 use App\Models\Comercio;
 use App\Models\CondIva;
+use App\Models\MovimientoDeStock;
 use App\Models\Plan;
 use App\Models\Proceso;
 use App\Models\Provincia;
+use App\Models\TipoComercio;
+use App\Models\User;
 use Carbon\Carbon;
 
 class UserSeeder extends Seeder
@@ -212,5 +213,15 @@ class UserSeeder extends Seeder
         Proceso::create(['descripcion' => 'Plan De Prueba Finalizado', 'dia_ejecucion'=> '1']);
         Proceso::create(['descripcion' => 'Plan Activo En Mora', 'dia_ejecucion'=> '11']);
         Proceso::create(['descripcion' => 'Plan Activo Impago', 'dia_ejecucion'=> '16']);
+
+        MovimientoDeStock::create(['descripcion' => 'Existencia Inicial']);
+        MovimientoDeStock::create(['descripcion' => 'Compra de Mercadería']);
+        MovimientoDeStock::create(['descripcion' => 'Venta de Mercadería']);
+        MovimientoDeStock::create(['descripcion' => 'Modificación Manual Directa']);
+        MovimientoDeStock::create(['descripcion' => 'Modificación Manual Indirecta']);
+        MovimientoDeStock::create(['descripcion' => 'Ingreso de Mercadería por Devolución']);
+        MovimientoDeStock::create(['descripcion' => 'Egreso de Mercadería por Devolución']);
+        MovimientoDeStock::create(['descripcion' => 'Venta Sin Stock']);
+        MovimientoDeStock::create(['descripcion' => 'Baja de Mercadería por Mal Estado']);
     }
 }

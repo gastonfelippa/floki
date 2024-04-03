@@ -8,6 +8,7 @@ use App\Models\Comercio;
 use App\Models\Detcompra;
 use App\Models\Detpedido;
 use App\Models\Pedido;
+use App\Models\Peps;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Stock;
@@ -25,26 +26,15 @@ class PedidoController extends Component
     public function render()
     {
         //busca el comercio que está en sesión
-        $this->comercioId = session('idComercio');     
+        $this->comercioId = session('idComercio'); 
+
         $this->proveedores = Proveedor::select('id', 'nombre_empresa')
+                            ->orderBy('nombre_empresa')
                             ->where('comercio_id', $this->comercioId)
-                            ->whereNotIn('id', 
-                                Pedido::where('comercio_id', $this->comercioId)
-                                    ->where('estado', $this->estadoPedido)
-                                    ->select('proveedor_id')->get())->get();                                               
-        // if($this->producto_id){                    
-        //     $this->infoProductoPedido = Detpedido::join('pedidos as p', 'p.id', 'detpedidos.pedido_id')
-        //         ->join('proveedores as pr', 'pr.id', 'p.proveedor_id')
-        //         ->join('productos as prod', 'prod.id', 'detpedidos.producto_id')
-        //         ->where('detpedidos.producto_id', $this->producto_id)
-        //         ->where('p.estado', 'cargado')
-        //         ->where('detpedidos.comercio_id', $this->comercioId)
-        //         ->orWhere('detpedidos.producto_id', $this->producto_id)
-        //         ->where('p.estado', 'pedido')
-        //         ->where('detpedidos.comercio_id', $this->comercioId)
-        //         ->select('pr.nombre_empresa', 'p.estado', 'detpedidos.cantidad', 'prod.descripcion',
-        //             'p.updated_at')->get();
-        // }else $this->infoProductoPedido = [];
+                            ->whereNotIn('id', Pedido::where('comercio_id', $this->comercioId)
+                                                ->where('estado', $this->estadoPedido)
+                                                ->select('proveedor_id')->get())
+                            ->get();     
         
         //busco información sobre los pedidos cargados
         $info = [];
@@ -77,12 +67,12 @@ class PedidoController extends Component
         }
          //busco información para sugerir pedidos
         if($this->proveedor != 'Elegir'){
-            $infoPedido = Producto::join('stock as s', 's.producto_id', 'productos.id')
-                ->join('producto_proveedores as pp', 'pp.producto_id', 'productos.id')
+            $infoPedido = Producto::join('producto_proveedores as pp', 'pp.producto_id', 'productos.id')
                 ->where('pp.proveedor_id', $this->proveedor)
                 ->where('productos.comercio_id', $this->comercioId)
-                ->select('productos.*', 'productos.id as productoId', 's.*', 
-                    DB::RAW("0 as cantidad_pedido"), DB::RAW("0 as item_pedido"))->get();
+                ->select('productos.*', 'productos.id as productoId', DB::RAW("0 as cantidad_pedido"), 
+                    DB::RAW("0 as item_pedido"), DB::RAW("0 as stock_actual"))->get();
+
             $infoP = Pedido::join('proveedores as p', 'p.id', 'pedidos.proveedor_id')
                 ->where('pedidos.proveedor_id', $this->proveedor)
                 ->where('pedidos.estado', $this->estadoPedido)
@@ -94,20 +84,19 @@ class PedidoController extends Component
             } 
             else $this->pedido_id = false;
         }else $infoPedido = []; 
-        
+
         if($infoPedido != []){
             foreach($infoPedido as $i){
+                $peps = Peps::where('producto_id', $i->productoId)->sum('resto');
                 $stock_a_completar = 0;
-                $stock_a_completar = $i->stock_ideal - $i->stock_actual;
+                $stock_a_completar = $i->stock_ideal - $peps;
                 $i->cantidad_pedido = $stock_a_completar;
+                $i->stock_actual = $peps;
                 if($this->pedido_id){
                     $itemCargado = Detpedido::select('producto_id')
                         ->where('pedido_id', $this->pedido_id)->get();
-
                     foreach($itemCargado as $l){
-                        if($i->productoId == $l->producto_id){
-                            $i->item_pedido = true;
-                        }
+                        if($i->productoId == $l->producto_id) $i->item_pedido = true;
                     }    
                 }
             }

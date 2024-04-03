@@ -12,5 +12,5 @@ class Detfactura extends Model
     protected $dates = ['deleted_at'];
     protected $table = 'detfacturas';
     protected $fillable = ['factura_id', 'producto_id', 'subproducto_id', 'cantidad', 
-                           'precio', 'comercio_id'];
+                           'precio', 'costo', 'comercio_id'];
 }

@@ -38,8 +38,9 @@ class GastoController extends Component
         ]);
     }
     protected $listeners = [
-        'deleteRow'=>'destroy',
-        'createFromModal' => 'createFromModal'       
+        'StoreOrUpdate'   => 'StoreOrUpdate',       
+        'createFromModal' => 'createFromModal',
+        'deleteRow'       =>'destroy'
     ]; 
     public function doAction($action)
     {
@@ -166,18 +167,25 @@ class GastoController extends Component
     public function createFromModal($info)
     {
         $data = json_decode($info);
-        DB::begintransaction();
-        try{   
-            CategoriaGasto::create([
-                'descripcion' => ucwords($data->descripcion),
-                'tipo'        => $data->tipo,
-                'comercio_id' => $this->comercioId
-            ]);
-            session()->flash('msg-ok', 'Categoría creada exitosamente!!!'); 
-            DB::commit();               
-        }catch (\Exception $e){
-            DB::rollback();
-            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
+        $existe = CategoriaGasto::where('descripcion', ucwords($data->descripcion))
+                ->where('comercio_id', $this->comercioId)->get();  
+        if($existe->count() > 0 ) {
+            session()->flash('info', 'La Categoría de Gasto ingresada ya existe!!!');
+            return;
+        }else{ 
+            DB::begintransaction();
+            try{   
+                CategoriaGasto::create([
+                    'descripcion' => ucwords($data->descripcion),
+                    'tipo'        => $data->tipo,
+                    'comercio_id' => $this->comercioId
+                ]);
+                session()->flash('msg-ok', 'Categoría creada exitosamente!!!'); 
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se creó...');
+            }
         }
     }
     public function destroy($id, $comentario)

@@ -537,5 +537,25 @@
                 }
             });       
 		})
+        Livewire.on('peps_iniciado',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Esta Factura no se puede Eliminar!!',
+                text: 'Ya se vendieron productos que figuran en ella y su eliminación traería inconsistencia de datos',
+                showConfirmButton: true
+            })
+		})
+        Livewire.on('errorAlGrabarStock',()=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Esta Factura no se puede Pagar!!',
+                html: 'Existe un error al actualizar el Stock de los productos adquiridos. <br>' +
+                'Intente actualizar la página y pruebe nuevamente pagar la factura.<br>' +
+                'De persistir el error, deberá anular esta factura y proceder a confeccionarla nuevamente...',
+                showConfirmButton: true
+            })
+		})
     } 
 </script>

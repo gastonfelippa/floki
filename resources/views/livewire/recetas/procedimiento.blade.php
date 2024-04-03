@@ -11,7 +11,7 @@
     			</div> 
                 <div class="row">
                     <div class="col-sm-12 mb-3">
-                        <textarea id="form1" rows="8" class="form-control" wire:model="procedimiento" placeholder="Agrega la descripción..."></textarea>
+                        <textarea id="procedimiento" rows="8" class="form-control" wire:model="procedimiento" placeholder="Agrega la descripción..."></textarea>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -66,4 +66,7 @@
             }
 		})
     }
+    $(document).ready(function() {
+        document.getElementById("procedimiento").focus();
+    });
 </script>

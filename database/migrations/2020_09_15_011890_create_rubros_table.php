@@ -16,6 +16,7 @@ class CreateRubrosTable extends Migration
         Schema::create('rubros', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
+            $table->enum('mostrar_al_vender', ['si','no'])->default('si');
 
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');

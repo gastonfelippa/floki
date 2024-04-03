@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Models\CategoriaGasto;
 use App\Models\CondIva;
 use App\Models\Localidad;
 use App\Models\Proveedor;
@@ -12,7 +13,7 @@ use DB;
 class ProveedorController extends Component
 {
     public $nombre_empresa, $nombre_contacto, $apellido_contacto, $calle, $numero, $localidad = 'Elegir', $provincia = 'Elegir';
-    public $tel_empresa, $tel_contacto, $comercioId, $condIvaId = 'Elegir', $cuit; 
+    public $tel_empresa, $tel_contacto, $comercioId, $condIvaId = 'Elegir', $cuit, $categoriaId = 'Elegir'; 
     public $selected_id = null, $search, $action = 1; 
     public $recuperar_registro = 0, $descripcion_soft_deleted, $id_soft_deleted;
    
@@ -25,6 +26,7 @@ class ProveedorController extends Component
         $localidades = Localidad::select()->where('localidades.comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
         $condIva = CondIva::all();
+        $categorias = CategoriaGasto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
            
         if(strlen($this->search) > 0)
         {
@@ -44,7 +46,8 @@ class ProveedorController extends Component
                 'info' =>$info,
                 'localidades' => $localidades,
                 'provincias' => $provincias,
-                'condIva' => $condIva
+                'condIva' => $condIva,
+                'categorias' => $categorias
             ]);
         }
         else {
@@ -56,11 +59,20 @@ class ProveedorController extends Component
                     ->orderBy('proveedores.nombre_empresa')->get(),
                 'localidades' => $localidades,
                 'provincias' => $provincias,
-                'condIva' => $condIva
+                'condIva' => $condIva,
+                'categorias' => $categorias
             ]);
         }
         return view('livewire.proveedores.component');
     }
+
+    protected $listeners = [
+        'StoreOrUpdate'            => 'StoreOrUpdate',
+        'deleteRow'                =>'destroy',
+        'createFromModal'          => 'createFromModal',         
+        'createIvaFromModal'       => 'createIvaFromModal',         
+        'createCategoriaFromModal' => 'createCategoriaFromModal'         
+    ];
     public function doAction($action)
     {
         $this->action = $action;
@@ -79,6 +91,7 @@ class ProveedorController extends Component
         $this->nombre_contacto   = '';
         $this->apellido_contacto = '';
         $this->tel_contacto      = '';
+        $this->categoriaId       = 'Elegir';
         $this->selected_id       = null;   
         $this->search            = '';
     }   
@@ -86,17 +99,18 @@ class ProveedorController extends Component
     public function edit($id)
     {
         $record = Proveedor::findOrFail($id);
-        $this->selected_id = $id;
-        $this->nombre_empresa = $record->nombre_empresa;
-        $this->tel_empresa = $record->tel_empresa;
-        $this->condIvaId = $record->condiva_id;
-        $this->cuit = $record->cuit;
-        $this->calle = $record->calle;
-        $this->numero = $record->numero;
-        $this->localidad = $record->localidad_id;
-        $this->nombre_contacto = $record->nombre_contacto;
+        $this->selected_id       = $id;
+        $this->nombre_empresa    = $record->nombre_empresa;
+        $this->tel_empresa       = $record->tel_empresa;
+        $this->condIvaId         = $record->condiva_id;
+        $this->cuit              = $record->cuit;
+        $this->calle             = $record->calle;
+        $this->numero            = $record->numero;
+        $this->localidad         = $record->localidad_id;
+        $this->nombre_contacto   = $record->nombre_contacto;
         $this->apellido_contacto = $record->apellido_contacto;
-        $this->tel_contacto = $record->tel_contacto;
+        $this->tel_contacto      = $record->tel_contacto;
+        $this->categoriaId       = $record->categoria_id;
 
         $this->action = 2;
     }
@@ -142,8 +156,9 @@ class ProveedorController extends Component
     public function StoreOrUpdate()
     {        
         $this->validate([
-			'localidad' => 'not_in:Elegir',
-			'condIvaId' => 'not_in:Elegir'
+			'localidad'   => 'not_in:Elegir',
+			'condIvaId'   => 'not_in:Elegir',
+			'categoriaId' => 'not_in:Elegir'
 		]); 
 
         $this->validate([
@@ -219,31 +234,33 @@ class ProveedorController extends Component
                 }   
                 if($this->selected_id <= 0) {
                     Proveedor::create([
-                        'nombre_empresa' => mb_strtoupper($this->nombre_empresa),            
-                        'tel_empresa' => $this->tel_empresa,      
-                        'condiva_id' => $this->condIvaId,      
-                        'cuit' => $this->cuit,            
-                        'calle' => ucwords($this->calle),            
-                        'numero' => $this->numero,            
-                        'localidad_id' => $this->localidad,            
-                        'nombre_contacto' => mb_strtoupper($this->nombre_contacto),            
+                        'nombre_empresa'    => mb_strtoupper($this->nombre_empresa),            
+                        'tel_empresa'       => $this->tel_empresa,      
+                        'condiva_id'        => $this->condIvaId,      
+                        'cuit'              => $this->cuit,            
+                        'calle'             => ucwords($this->calle),            
+                        'numero'            => $this->numero,            
+                        'localidad_id'      => $this->localidad,            
+                        'nombre_contacto'   => mb_strtoupper($this->nombre_contacto),            
                         'apellido_contacto' => mb_strtoupper($this->apellido_contacto),            
-                        'tel_contacto' => $this->tel_contacto,      
-                        'comercio_id' => $this->comercioId            
+                        'tel_contacto'      => $this->tel_contacto,      
+                        'categoria_id'      => $this->categoriaId,      
+                        'comercio_id'       => $this->comercioId            
                     ]);
                 }else {   
                     $record = Proveedor::find($this->selected_id);
                     $record->update([
-                        'nombre_empresa' => mb_strtoupper($this->nombre_empresa),            
-                        'tel_empresa' => $this->tel_empresa,      
-                        'condiva_id' => $this->condIvaId,      
-                        'cuit' => $this->cuit,            
-                        'calle' => ucwords($this->calle),            
-                        'numero' => $this->numero,            
-                        'localidad_id' => $this->localidad,            
-                        'nombre_contacto' => mb_strtoupper($this->nombre_contacto),            
+                        'nombre_empresa'    => mb_strtoupper($this->nombre_empresa),            
+                        'tel_empresa'       => $this->tel_empresa,      
+                        'condiva_id'        => $this->condIvaId,      
+                        'cuit'              => $this->cuit,            
+                        'calle'             => ucwords($this->calle),            
+                        'numero'            => $this->numero,            
+                        'localidad_id'      => $this->localidad,            
+                        'nombre_contacto'   => mb_strtoupper($this->nombre_contacto),            
                         'apellido_contacto' => mb_strtoupper($this->apellido_contacto),            
-                        'tel_contacto' => $this->tel_contacto  
+                        'tel_contacto'      => $this->tel_contacto,
+                        'categoria_id'      => $this->categoriaId
                     ]);
                     $this->action = 1;              
                 }   
@@ -259,12 +276,6 @@ class ProveedorController extends Component
             return;
         }
     }
-
-    protected $listeners = [
-        'deleteRow'=>'destroy',
-        'createFromModal' => 'createFromModal',         
-        'createIvaFromModal' => 'createIvaFromModal'         
-    ];
     
     public function destroy($id)
     {
@@ -325,6 +336,31 @@ class ProveedorController extends Component
                     'descripcion' => ucwords($data->descripcion)
                 ]);
                 session()->flash('msg-ok', 'Condición de Iva creada exitosamente!!!'); 
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }  
+        } 
+    }  
+    public function createCategoriaFromModal($info)
+    {
+        $data = json_decode($info);
+
+        $existe = CategoriaGasto::where('descripcion', ucwords($data->descripcion))
+            ->where('comercio_id', $this->comercioId)->get();  
+        if($existe->count() > 0 ) {
+            session()->flash('info', 'La Categoría de Gasto ingresada ya existe!!!');
+            return;
+        }else{   
+            DB::begintransaction();
+            try{   
+                CategoriaGasto::create([
+                    'descripcion' => ucwords($data->descripcion),
+                    'tipo'        => $data->tipo,
+                    'comercio_id' => $this->comercioId
+                ]);
+                session()->flash('msg-ok', 'Categoría de Gasto creada exitosamente!!!'); 
                 DB::commit();               
             }catch (\Exception $e){
                 DB::rollback();

@@ -11,7 +11,7 @@
                                     <h6 class="bg-danger p-2" style="border-radius: 5px;">Mesa: {{$mesaDesc}}</h6>
                                 </div>
                                 <div>
-                                        <!-- <span class="badge bg-dark p-2">Mozo: {{$mozoDesc}}</span></p> -->
+                                        <!-- <span class="badge bg-dark p-2">Mozo: {{$mozoDesc}} </span></p> -->
                                     <h6 id="mozo" class="bg-danger p-2" style="border-radius: 5px;">Mozo: {{$mozoDesc}}</h6>
                                 </div>
                             </div>                        
@@ -357,7 +357,7 @@
         <div class="widget-content-area">
             <div class="widget-one widget-h">
                 <div class="row btnRubro mt-1">
-                    <div class="col-4">
+                    <div class="col-4 pl-0 pr-3">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
@@ -407,7 +407,7 @@
                             </div>
                         </div>
                     </div>
-                </div>               
+                </div>              
                 <input type="hidden" id="caja_abierta" wire:model="caja_abierta"> 
                 <input type="hidden" id="forzar_arqueo" wire:model="forzar_arqueo">
                 <input type="hidden" id="ultima_factura" wire:model="ultima_factura">
@@ -547,7 +547,6 @@
     {
         window.livewire.emit('grabarImpresion');
     }
-
     function Salir()
     {
         window.location.href="{{ url('reservas-estado-mesas') }}";
@@ -716,7 +715,6 @@
     {
         window.livewire.emit('dejar_pendiente')
     }
-
     function openModal(id)
     {
         $('#facturaId').val(id)
@@ -986,41 +984,39 @@
     function verBotones()
     {
         if(document.getElementById('botones').style.display == 'block') {
-            console.log(document.getElementById('botones').style.display,document.getElementById('factura').style.display);
             document.getElementById('botones').style.display = 'none';
             document.getElementById('factura').style.display = 'block';
         }else {
-            console.log(document.getElementById('botones').style.display,document.getElementById('factura').style.display);
             document.getElementById('botones').style.display = 'block';
             document.getElementById('factura').style.display = 'none';
         }
         
     }
-    function grabarCantidad()
-    {
-        var stock = Math.trunc($('[id="stock"]').val());  //'Math.trunc' devuelve la parte entera de un numero removiendo cualquier dígito decimal 
-        var cantidad = $('[id="cantidad"]').val();
+    // function grabarCantidad()
+    // {
+    //     var stock = Math.trunc($('[id="stock"]').val());  //'Math.trunc' devuelve la parte entera de un numero removiendo cualquier dígito decimal 
+    //     var cantidad = $('[id="cantidad"]').val();
         
-        if(stock < cantidad){
-            var texto = 'Solo restan ';
-            var unidades = ' unidades';
-            if(stock == 0 || stock == null){
-                texto = 'Restan ';
-                stock = '0';
-            }else if(stock == 1){
-                texto = 'Solo resta ';
-                unidades = ' unidad';  
-            } 
-            Swal.fire({
-                position: 'center',
-                icon: 'success',
-                title: 'Stock no disponible',
-                text: texto + stock + unidades,
-                showConfirmButton: true
-            })
-            $('[id="cantidad"]').val(stock);
-        }       
-    }
+    //     if(stock < cantidad){
+    //         var texto = 'Solo restan ';
+    //         var unidades = ' unidades';
+    //         if(stock == 0 || stock == null){
+    //             texto = 'Restan ';
+    //             stock = '0';
+    //         }else if(stock == 1){
+    //             texto = 'Solo resta ';
+    //             unidades = ' unidad';  
+    //         } 
+    //         Swal.fire({
+    //             position: 'center',
+    //             icon: 'success',
+    //             title: 'Stock no disponible',
+    //             text: texto + stock + unidades,
+    //             showConfirmButton: true
+    //         })
+    //         $('[id="cantidad"]').val(stock);
+    //     }       
+    // }
     function descontar_producto()
     {
         Swal.fire({
@@ -1031,9 +1027,34 @@
             timer: 3000
         })
     }
-    $(window).on("beforeunload", function() {    //ejecuta código antes de salir...
+    function factura_vacia()
+    { 
+        Swal.fire({
+            position: 'center',
+            icon: 'info',
+            title: 'La factura se eliminará porque su importe es cero...',
+            text: '¿Qué acción desea realizar?',
+            showDenyButton: true,
+            confirmButtonText: `Continuar agregando ventas`,
+            denyButtonText: `Salir y eliminar esta factura`,
+            timer: 5000,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                location.reload();
+            } else if (result.isDenied) {
+                window.livewire.emit('permitirCargaSinStock', 'no', id);
+            }
+        })
+    }
+    //ejecuta código antes de salir...
+    $(window).on("beforeunload", function() {    
+        total = $('#importeTotal').val();
         if($('[id="delivery"]').val() == 1){     //si es delivery me aseguro de que
             window.livewire.emit('salir');       //la factura quede como pendiente
+        } else if (total == 0) {
+            id = $('#idFact').val();            //si es una mesa, la anulo y queda como Disponible
+            comentario = 'Factura en cero';
+            window.livewire.emit('anularFactura',id, comentario);;
         }
     });
     /////código para prolongar la session
@@ -1138,7 +1159,7 @@
         Livewire.on('primeroEnviarACtaCte',()=>{
             Swal.fire('Cancelado','Primero se debe enviar la factura a Cuenta Corriente y luego se podrá hacer un pago a cuenta de la misma...','info');
             resetear();
-		})
+		})      
         Livewire.on('importeMayorQueSaldo',()=>{
             Swal.fire('Cancelado','El importe ingresado es mayor al saldo','info');
             resetear();
@@ -1199,10 +1220,10 @@
                 timer: 1000
             })            
 		})
-        Livewire.on('stock_no_disponible',(stock, producto)=>{
+        Livewire.on('stock_no_disponible_sin_opcion',(stock, producto)=>{
             var texto = 'Solo restan ';
             var unidades = ' unidades';
-            if(stock == 0 || stock == null){
+            if(stock == 0 || stock === null){
                 texto = 'Restan ';
                 stock = '0';
             }else if(stock == 1){
@@ -1211,13 +1232,14 @@
             }
             Swal.fire({
                 position: 'center',
-                icon: 'success',
+                icon: 'info',
                 title: 'Stock no disponible',
-                text: texto + stock + unidades + ' de ' + producto,
+                html: texto + stock + unidades + ' de ' + producto + '.<br><br>' +
+                'Para continuar con su carga deberá modificar su STOCK dirigiéndose a la pestaña <br> ABM ->> PRODUCTOS...',
                 showConfirmButton: true
             })
         })
-        Livewire.on('stock_receta_no_disponible',(stock, producto, id)=>{
+        Livewire.on('stock_no_disponible_con_opcion',(stock, producto, id)=>{
             var texto = 'Solo restan ';
             var unidades = ' unidades';
             if(stock == 0 || stock == null){
@@ -1234,8 +1256,43 @@
             Swal.fire({
                 position: 'center',
                 icon: 'info',
-                title: 'Stock de Materia Prima no disponible',
+                title: 'Stock no disponible',
                 text: texto + stock + unidades + ' de ' + producto,
+                showDenyButton: true,
+                confirmButtonText: `Permitir cargar sin stock`,
+                denyButtonText: `Anular carga`,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.livewire.emit('permitirCargaSinStock', 'si', id);
+                } else if (result.isDenied) {
+                    window.livewire.emit('permitirCargaSinStock', 'no', id);
+                }
+            })
+        })
+        Livewire.on('stock_receta_no_disponible_sin_opcion',(stock, id)=>{
+            texto = '';
+            for (var clave in stock) {
+                texto = texto + 'Restan ' + stock[clave].stock + stock[clave].unidadDeMedida + ' de ' + stock[clave].descripcion + '<br>'
+            };
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Stock no disponible',
+                html: texto +
+                'Para continuar con su carga deberá modificar su STOCK dirigiéndose a la pestaña <br> ABM ->> PRODUCTOS...',
+                showConfirmButton: true
+            })
+        })
+        Livewire.on('stock_receta_no_disponible_con_opcion',(stock, id)=>{
+            texto = '';
+            for (var clave in stock) {
+                texto = texto + 'Restan ' + stock[clave].stock + stock[clave].unidadDeMedida + ' de ' + stock[clave].descripcion + '<br>'
+            };
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Stock de Materia Prima no disponible',
+                html: texto,
                 showDenyButton: true,
                 confirmButtonText: `Permitir cargar sin stock`,
                 denyButtonText: `Anular carga`,
@@ -1256,6 +1313,15 @@
                 showConfirmButton: true
             })
 		})
+        Livewire.on('receta_sin_principal',(producto)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Debe designar algún componente de la receta de '+ producto + ' como "principal" para poder descontar su stock.',
+                text: 'O simplemente indicar que este producto no tiene receta, o que no se controla stock para el mismo desde la pestaña ABM ->> PRODUCTOS...',
+                showConfirmButton: true
+            })
+		})        
         Livewire.on('bancoCreado',()=>{
             Swal.fire({
                 position: 'center',
@@ -1292,6 +1358,10 @@
                 showConfirmButton: false,
                 timer: 1500
             })
+		})
+        Livewire.on('mensaje',(data)=>{
+            Swal.fire('Stock', data,'info');
+            resetear();
 		})
     } 
 </script>

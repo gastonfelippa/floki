@@ -12,7 +12,7 @@ class RubroController extends Component
 {
     public $descripcion, $descripcion_soft_deleted, $id_soft_deleted;
     public $selected_id, $search, $action = 1, $recuperar_registro = 0;  
-    public $comercioId;
+    public $mostrar_al_vender = 'si', $comercioId;
 
     public function render()
     {
@@ -33,7 +33,8 @@ class RubroController extends Component
         ]);
     }    
     protected $listeners = [
-        'deleteRow'=>'destroy'        
+        'StoreOrUpdate' => 'StoreOrUpdate',
+        'deleteRow'     =>'destroy'        
     ];
     public function doAction($action)
     {
@@ -42,9 +43,10 @@ class RubroController extends Component
     }
     private function resetInput()
     {
-        $this->descripcion = '';
-        $this->selected_id = null;    
-        $this->search = '';
+        $this->descripcion       = '';
+        $this->mostrar_al_vender = 'si';
+        $this->selected_id       = null;    
+        $this->search            = '';
     }
     public function edit($id)
     {
@@ -52,6 +54,8 @@ class RubroController extends Component
         $record = Rubro::findOrFail($id);
         $this->selected_id = $id;
         $this->descripcion = $record->descripcion;
+        if($record->mostrar_al_vender == 'si') $this->mostrar_al_vender = 'si';
+        else $this->mostrar_al_vender = 'no';
     }
     public function volver()
     {
@@ -81,7 +85,7 @@ class RubroController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se recuperó...');
         }
     }
-    public function StoreOrUpdate()
+    public function StoreOrUpdate($mostrar)
     { 
         $this->validate(['descripcion' => 'required']);
         
@@ -121,13 +125,15 @@ class RubroController extends Component
             }
             if($this->selected_id <= 0) {
                 $category =  Rubro::create([
-                    'descripcion' => mb_strtoupper($this->descripcion), 
-                    'comercio_id' => $this->comercioId            
+                    'descripcion'       => mb_strtoupper($this->descripcion),
+                    'mostrar_al_vender' => $mostrar, 
+                    'comercio_id'       => $this->comercioId            
                 ]);
             }else {   
                 $record = Rubro::find($this->selected_id);
                 $record->update([
-                    'descripcion' => mb_strtoupper($this->descripcion)
+                    'descripcion'       => mb_strtoupper($this->descripcion),
+                    'mostrar_al_vender' => $mostrar
                 ]);
                 $this->action = 1;              
             }

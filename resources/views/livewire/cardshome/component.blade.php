@@ -1,7 +1,7 @@
 <div class="row layout-top-spacing">
   <div class="col-12 layout-spacing">
-    @if($infoReservasP->count() || $infoReservasA->count() || $infoProductos->count()
-        || $infoPedidos->count() || $infoMesas->count())
+    @if($infoReservasP->count() > 0 || $infoReservasA->count() > 0 || $infoProductosCompra
+        || $infoProductosVenta || $infoPedidosC->count() || $infoPedidosP->count() || $infoMesas->count())
     <div class="widget-content-area">
       <div class="widget-one"> 
         <div class="row justify-content-center">
@@ -29,28 +29,46 @@
               </div>
             </div>
           @endif
-          <!-- PRODUCTOS -->
-          @if($infoProductos->count())
+          <!-- PRODUCTOS COMPRA-->
+          @if($infoProductosCompra)
+            <div class="card">
+              <div class="card-header" style="background-color:rgb(0, 113, 128);">
+                <div class="row">
+                  <div class="col-8">
+                    PRODUCTOS/COMPRA
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="badge bg-info"
+                      onclick="openModal('productosCompra')">Ver más...</button> 
+                  </div>
+                </div>
+              </div>
+              <div class="card-body" style="background-color:rgb(0, 113, 128);">
+                  <h5>Productos sin Stock <span class="badge bg ml-2">{{count($infoProductosCompra)}}</span></h5>
+              </div>
+            </div>
+          @endif
+          <!-- PRODUCTOS VENTA-->
+          @if($infoProductosVenta)
             <div class="card">
               <div class="card-header" style="background-color:green;">
                 <div class="row">
                   <div class="col-8">
-                    PRODUCTOS
+                    PRODUCTOS/VENTA
                   </div>
                   <div class="col-4">
                     <button type="button" class="badge bg-success"
-                      onclick="openModal('productos')">Ver más...</button> 
+                      onclick="openModal('productosVenta')">Ver más...</button> 
                   </div>
                 </div>
               </div>
               <div class="card-body" style="background-color:green;">
-                  <h5>Productos sin Stock <span class="badge bg ml-2">{{$infoProductos->count()}}</span></h5>
-                    <!-- <h3 class="card-title">{{$infoProductos->count()}}</h3> -->
+                  <h5>Productos sin Stock <span class="badge bg ml-2">{{count($infoProductosVenta)}}</span></h5>
               </div>
             </div>
           @endif
           <!-- PEDIDOS -->
-          @if($infoPedidos->count())
+          @if($infoPedidosC->count() || $infoPedidosP->count())
             <div class="card">
               <div class="card-header" style="background-color:orange;">
                 <div class="row">
@@ -64,7 +82,26 @@
                 </div>
               </div>
               <div class="card-body" style="background-color:orange;">
-                <h5>Pedidos pendientes <span class="badge bg ml-2">{{$infoPedidos->count()}}</span></h5>
+                @if($infoPedidosC->count())
+                  <div class="row">
+                    <div class="col-8">
+                      <h5>A recibir </h5>
+                    </div>
+                    <div class="col-4">
+                      <span class="badge bg ml-2">{{$infoPedidosC->count()}}</span>
+                    </div>
+                  </div>
+                @endif
+                @if($infoPedidosP->count())
+                  <div class="row mt-1">
+                    <div class="col-8">
+                      <h5>A realizar </h5>
+                    </div>
+                    <div class="col-4">
+                      <span class="badge bg ml-2">{{$infoPedidosP->count()}}</span>
+                    </div>
+                  </div>
+                @endif
               </div>
             </div>
           @endif
@@ -118,9 +155,8 @@
   .card-body {    
     opacity: 0.8;
   }
-  .card-title {
-    color:white;
-    font-weight: bold;
+  .modal-title {
+    color: black;
   }  
   .badge {
     color:white;
@@ -141,27 +177,38 @@
   {
     if(option == 'reservas'){
         $('#modalReservas').show()
-        $('#modalProductos').hide()
+        $('#modalProductosCompra').hide()
+        $('#modalProductosVenta').hide()
         $('#modalPedidos').hide()
         $('#modalMesas').hide()          
         $('.modal-title').text('Reservas para hoy')
-    }else if(option == 'productos'){
+    }else if(option == 'productosCompra'){
         $('#modalReservas').hide()
-        $('#modalProductos').show()
+        $('#modalProductosCompra').show()
+        $('#modalProductosVenta').hide()
+        $('#modalPedidos').hide()
+        $('#modalMesas').hide()  
+        $('.modal-title').text('Productos sin stock')
+    }else if(option == 'productosVenta'){
+        $('#modalReservas').hide()
+        $('#modalProductosCompra').hide()
+        $('#modalProductosVenta').show()
         $('#modalPedidos').hide()
         $('#modalMesas').hide()  
         $('.modal-title').text('Productos sin stock')
     }else if(option == 'pedidos'){
         $('#modalReservas').hide()
-        $('#modalProductos').hide()
+        $('#modalProductosCompra').hide()
+        $('#modalProductosVenta').hide()
         $('#modalPedidos').show()
         $('#modalMesas').hide()  
         $('.modal-title').text('Pedidos')
     }else if(option == 'mesas'){
         $('#modalReservas').hide()
-        $('#modalProductos').hide()
+        $('#modalProductosCompra').hide()
+        $('#modalProductosVenta').hide()
         $('#modalPedidos').hide()
-        $('#modalMesas').show()  
+        $('#modalMesas').show()
         $('.modal-title').text('Mesas Pendientes de Cobro')
     }
     $('#modalCardsHome').modal('show')

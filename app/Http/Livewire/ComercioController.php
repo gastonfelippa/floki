@@ -30,7 +30,7 @@ class ComercioController extends Component
     }
     public function render()
     { 
-        return view('livewire.comercios.component-en-desarrollo');
+        return view('livewire.comercios.component');
     }
 
     protected $listeners = [

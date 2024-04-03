@@ -17,8 +17,8 @@ class CreateCategoriasTable extends Migration
             $table->id();
             $table->string('descripcion');
             $table->enum('tipo', ['Compra','Venta','Ambos'])->default('Venta');
-            $table->string('margen_1')->nullable();
-            $table->string('margen_2')->nullable();
+            $table->string('margen_1')->default('0');
+            $table->string('margen_2')->default('0');
             $table->enum('mostrar_al_vender', ['si','no'])->default('si');
 
             $table->unsignedBigInteger('rubro_id');

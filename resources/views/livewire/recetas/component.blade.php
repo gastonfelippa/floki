@@ -5,15 +5,33 @@
         <div class="widget-content-area">
             <div class="widget-one">
                 <div class="row">
-                    <div class="col-md-7 col-sm-12">
+                    <div class="col-sm-12 col-md-5">
                         <h3><b>Receta de {{$prod_receta}}</b></h3>
                     </div> 
-                    <div class="col-md-3">
+                    <div class="col-sm-4 col-md-2 text-center">
+                        <h6 class="bg-danger py-2" style="border-radius: 5px;">Porciones <br>
+                            @if ($habilitar_porciones)
+                                <input id="nueva_porcion" wire:model="nueva_porcion" type="number" min="1" class="my-1 text-right"
+                                style="width:50px;font-weight: bold"
+                                onblur="comparar_porciones()">
+                            @else
+                                <input id="porciones" wire:model="porciones" type="number" min="1" class="my-1 text-right"
+                                style="width:50px;font-weight: bold" disabled>
+                            @endif                           
+                            <i class="bi bi-pencil-square" style="cursor: pointer;" wire:click="habilitar_porciones"></i>
+                        </h6> 
+                    </div>
+                    <div class="col-sm-3 col-md-2">
                         <button type="button" wire:click="doAction(2)" class="btn btn-warning">
                             Procedimiento
                         </button>
-                    </div> 
-                    <div class="col-md-2">
+                    </div>
+                    <div class="col-sm-2 col-md-1">
+                        <button type="button" class="btn btn-secondary" title="Ayuda..."
+                            onclick= "ayuda()"><i class="bi bi-question-square"></i>
+                        </button>
+                    </div>    
+                    <div class="col-sm-3 col-md-2">
                         <button type="button" onclick="volver()" class="btn btn-dark">
                             Volver
                         </button>
@@ -21,26 +39,29 @@
     			</div> 
                 @include('common.messages')
                 <div class="row mt-2">                    
-                    <div class="form-group col-2">
+                    <div class="form-group col-sm-6 col-md-2">
                         <label>Cantidad</label>
                         <input id="cantidad" wire:model.lazy="cantidad" type="text" 
-                            class="form-control form-control-sm text-center">
-                    </div>
-
-                    <div class="form-group col-3">
+                            class="form-control form-control-sm text-center" autocomplete="off">
+                    </div>                    
+                    <div class="form-group col-sm-6 col-md-2">
                         <label >U. Medida</label>
-                        <select wire:model="unidad" class="form-control text-left">
+                        <select id="unidad" wire:model="unidad" class="form-control form-control-sm text-left" 
+                            wire:change="verificar_unidades">
                             <option value="Elegir">Elegir</option>
                             <option value="Un">Un</option>
+                            <option value="Gr">Gr</option>
                             <option value="Kg">Kg</option>
+                            <option value="Ml">Ml</option>
                             <option value="Lt">Lt</option>
                             <option value="Mt">Mt</option>
                         </select>		
                     </div>
-                    <div class="form-group col-7">
-                        <label >Producto</label>
-                    <div class="input-group ">
-                        <select wire:model="producto" class="form-control text-left">
+                    <div class="form-group col-sm-6 col-md-4">
+                        <label >Ingrediente</label>
+                    <div class="input-group">
+                        <select wire:model="producto" class="form-control form-control-sm text-left" 
+                            onchange="buscar_producto()" wire:blur="verificar_unidades">
                             <option value="Elegir">Elegir</option>
                             @foreach($productos as $t)
                             <option value="{{ $t->id }}">
@@ -54,15 +75,26 @@
                         </div>	
                         </div>	
                     </div>
+                    <div class="form-group col-sm-3 col-md-2">
+                        <label>Presentación</label>
+                        <input wire:model.lazy="presentacion" type="text" 
+                            class="form-control form-control-sm text-center" disabled>
+                    </div>  
+                    <div class="form-group col-sm-3 col-md-2">
+                        <label>U. Medida</label>
+                        <input wire:model.lazy="unidad_medida_presentacion" type="text" 
+                            class="form-control form-control-sm text-center" disabled>
+                    </div>  
                 </div>
 
                 <div class="table-responsive scroll">
                     <table class="table table-hover table-checkable table-sm">
                         <thead>
                             <tr>
-                                <th class="text-center">CANTIDAD</th>
-                                <th class="text-center">UNIDAD</th>
-                                <th class="text-left">DESCRIPCIÓN</th>
+                                <th class="text-center" style="background-color:gray;color:white;">CANTIDAD/RECETA</th>
+                                <th class="text-center" style="background-color:gray;color:white;">INGREDIENTE</th>
+                                <th class="text-center">MERMA</th>
+                                <th class="text-right">CANTIDAD REAL</th>
                                 <th class="text-center">COSTO</th>
                                 <th class="text-center">IMPORTE</th>
                                 <th class="text-center">ACCIONES</th>
@@ -70,10 +102,26 @@
                         </thead>
                         <tbody>
                             @foreach($info as $r)
-                            <tr class="">
-                                <td class="text-center">{{number_format($r->cantidad,3,',','.')}}</td>
-                                <td class="text-center">{{$r->unidad_de_medida}}</td>
-                                <td class="text-left">{{$r->descripcion}}</td>
+                            <tr>
+                                @if (intval($r->cantidad) == floatval($r->cantidad))
+                                    <td class="text-center" style="background-color:goldenrod;">{{number_format($r->cantidad)}} {{$r->unidad_de_medida}}</td>
+                                @elseif ($r->unidad_de_medida == 'Un')
+                                    <td class="text-center" style="background-color:goldenrod;">{{number_format($r->cantidad,1,',','.')}} {{$r->unidad_de_medida}}</td>
+                                @else
+                                    <td class="text-center" style="background-color:goldenrod;">{{number_format($r->cantidad,3,',','.')}} {{$r->unidad_de_medida}}</td>
+                                @endif
+
+                                <td class="text-left" style="background-color:goldenrod;">{{$r->descripcion}}</td>
+                                <td class="text-center">{{$r->merma}}%</td>
+
+                                @if (intval($r->cantidad_real) == floatval($r->cantidad_real))
+                                    <td class="text-center">{{number_format($r->cantidad_real)}} {{$r->unidad_de_medida}}</td>
+                                @elseif ($r->unidad_de_medida == 'Un')
+                                    <td class="text-center">{{number_format($r->cantidad_real,1,',','.')}} {{$r->unidad_de_medida}}</td>
+                                @else
+                                    <td class="text-center">{{number_format($r->cantidad_real,3,',','.')}} {{$r->unidad_de_medida}}</td>
+                                @endif
+
                                 <td class="text-right">{{number_format($r->precio_costo,2,',','.')}}</td>
                                 <td class="text-right">{{number_format($r->importe,2,',','.')}}</td>
                                 <td class="text-center">
@@ -106,13 +154,13 @@
                 </div>  
 
                 <div class="row mt-3">
-                    <div class="col-6">
+                    <div class="col-sm-12 col-md-4 mb-2">
                         <button type="button" wire:click="resetInput" onclick="setfocus('cantidad')" class="btn btn-dark mr-1">
                             <i class="mbri-left"></i> Cancelar
                         </button>
                         <button type="button" 
-                            @if($cantidad) enabled @else disabled @endif
-                            onclick="calcularPrecioVenta()" 
+                            @if($cantidad && $unidad != 'Elegir') enabled @else disabled @endif
+                            onclick="calcularPrecioVenta(id)" 
                             @if($selected_id) class="btn bg-warning" id="btnModificar"
                             @else class="btn bg-primary" id="btnGuardar" 
                             @endif>
@@ -121,15 +169,25 @@
                             @endif
                         </button> 
                     </div>
-                    <div class="col-6 text-center">
-                        <h4 class="bg-danger" style="border-radius: 5px;">Costo Final : $ {{number_format($total,2,',','.')}}</h4> 
-                    </div> 
+                    <div class="col-sm-12 col-md-8">
+                        <div class="row">
+                            <div class="offset-md-3 col-3 text-center">
+                                <h6 class="bg-danger" style="border-radius: 5px;">Costo Total <br>$ {{number_format($total,2,',','.')}}</h6> 
+                            </div>
+                         
+                            <div class="col-6 text-center">
+                                <h5 class="bg-danger p-2" style="border-radius: 5px;">Costo Porción $ {{number_format($total_porcion,2,',','.')}}</h5> 
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
     	</div>
     </div>
     <input type="hidden" id="preguntarPorPrecio" wire:model="preguntarPorPrecio">
     <input type="hidden" id="preguntarPorPrecio" wire:model="cambiar_precios">
+    <input type="hidden" id="total" wire:model="total">
+    @include('livewire.recetas.modalAyuda')	
     @else
     <input type="hidden" id="tieneProcedimiento" wire:model="procedimiento">
 	@include('livewire.recetas.procedimiento')		
@@ -152,8 +210,37 @@
     }
 </style>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
 <script type="text/javascript">
-    function calcularPrecioVenta() {
+    function calcularPrecioVenta(id) {
+        if(id == 'btnGuardar'){
+            if($('#total').val() > 0){
+                if($('#porciones').val() == 0 || !$('#porciones').val()){
+                    Swal.fire('Cancelado','La cantidad de Porciones debe ser un número válido','info');
+                    return;
+                }
+            }else{
+                if($('#nueva_porcion').val() == 0 || !$('#nueva_porcion').val()){
+                    Swal.fire('Cancelado','La cantidad de Porciones debe ser un número válido','info');
+                    return;
+                }  
+            }
+        }   
+        if(id == 'btnModificar'){
+            if($('#total').val() > 0){
+                if($('#porciones').val() == 0 || !$('#porciones').val()){
+                    Swal.fire('Cancelado','La cantidad de Porciones debe ser un número válido','info');
+                    return;
+                }
+            }else{
+                if($('#nueva_porcion').val() == 0 || !$('#nueva_porcion').val()){
+                    Swal.fire('Cancelado','La cantidad de Porciones debe ser un número válido','info');
+                    return;
+                }  
+            }
+        }  
+    
         if($('[id="preguntarPorPrecio"]').val() == 'si'){
             Swal.fire({
                 icon: 'question',
@@ -171,7 +258,9 @@
                     window.livewire.emit('calcular_precio_venta', 'cambiar_todo', 'agregar', null, null);
                 }
             }); 
-        }else window.livewire.emit('calcular_precio_venta', null, 'agregar', null, null);     
+        }else window.livewire.emit('calcular_precio_venta', null, 'agregar', null, null);              
+       
+   
     }
     function Confirm(id)
     {
@@ -217,7 +306,6 @@
                 if (result.value) {
                     let comentario = result.value;
                     window.livewire.emit('calcular_precio_venta', data_cambios, 'eliminar', id, comentario);
-                    //window.livewire.emit('deleteRow', id, comentario)
                 }
             }else if (result.dismiss === Swal.DismissReason.cancel) {
                 Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
@@ -232,6 +320,25 @@
     {
         window.location.href="{{url('productos')}}";
     }
+    function buscar_producto()
+    {
+        window.livewire.emit('buscar_producto');
+    }
+    function verificar_unidades()
+    {
+        window.livewire.emit('verificar_unidades');
+    }
+    function comparar_porciones()
+    {
+        if($('#nueva_porcion').val() == 0 || $('#nueva_porcion').val() == ''){
+            Swal.fire('Cancelado','La cantidad de Porciones debe ser un número válido','info');    
+        }else window.livewire.emit('comparar_porciones');
+    }
+    function ayuda()
+    {
+        $('#modalAyuda').modal('show');
+    }
+
     window.onkeydown = PulsarTecla;
 	function PulsarTecla(e)
     {
@@ -241,11 +348,16 @@
         else if(tecla == 27) document.getElementById("btnCancelar").click();
     }
 
+    function setfocus(id) {
+        document.getElementById(id).focus();
+    }
+
     window.onload = function() {
         $(document).ready(function() {
-            document.getElementById("cantidad").focus();
+            setfocus('cantidad')
         });
         Livewire.on('cambiarPrecioDetalle',(cantidad)=>{
+            setfocus('cantidad');
             var existe = 'Existen ';
             var factura = ' facturas abiertas y/o pendientes ';
             if(cantidad == 1){
@@ -265,12 +377,41 @@
                 if (result.isConfirmed) { 
                     window.livewire.emit('actualizarPreciosCargados');
                 }
-            });       
+            });                   
 		})
-    }
-   
-    function setfocus($id) {
-        document.getElementById($id).focus();
-    }
-
+        Livewire.on('unidadesDeMedidaDiferentes',()=>{           
+            setfocus('unidad');
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: 'Las Unidades de Medida correspondientes a Cantidad y Presentación deben coincidir...',
+                showConfirmButton: true
+            })
+		})
+        Livewire.on('actualizar_porciones',()=>{ 
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: 'Deseas cambiar la cantidad de Porciones?',
+                text: 'Debes tener en cuenta que se producirán cambios en los Costos relacionados a este Producto...',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Continuar',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value) {
+                        window.livewire.emit('actualizarPorciones')
+                    }
+                }else if (result.dismiss === Swal.DismissReason.cancel) {
+                    window.livewire.emit('resetPorciones');
+                    Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+                }
+            })
+        })
+        Livewire.on('focus',()=>{ 
+            setfocus('cantidad');
+        })
+    }    
 </script>

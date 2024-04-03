@@ -1,8 +1,8 @@
 <div class="col-sm-12 col-md-6 layout-spacing">
 	<div class="widget-content-area">
-    @include('common.alerts')
-	@include('common.messages')
         <div class="widget-one">
+            @include('common.alerts')
+            @include('common.messages')
             <h5><b>@if($selected_id ==0) Nuevo Gasto  @else Editar Gasto @endif</b></h5>
             <div class="row mt-3">                               
                 <div class="col-12 col-md-6 layout-spacing">
@@ -33,8 +33,25 @@
                     </div>			               
                 </div>
             </div>              
-			@include('common.btnCancelarGuardar')          
+            <div class="row ">
+                <div class="col-12 mb-2">
+                    <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">
+                        <i class="mbri-left"></i> Cancelar
+                    </button>
+                    <button type="button" id="btnGuardar"
+                        onclick="guardar()"   
+                        class="btn btn-primary">
+                        Guardar
+                    </button> 
+                </div>            
+            </div>       
         </div>
     </div>	
 </div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        document.getElementById("nombre").focus();
+    });
+</script>
 

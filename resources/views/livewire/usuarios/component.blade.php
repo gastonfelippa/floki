@@ -48,7 +48,8 @@
 		</div> 
     	@elseif($action == 2)
     	@include('livewire.usuarios.form')		
-		@include('livewire.usuarios.modal')  
+		@include('livewire.usuarios.modal') 
+		@include('livewire.proveedores.modalCategoria') 
     	@endif  
     </div>
 </div>
@@ -125,6 +126,33 @@
 
         $('#modalAddLocalidad').modal('hide')
         window.livewire.emit('createFromModal', data)
+    }
+	function openModalCategoria()
+    {
+        $('.modal-title').text('Agregar Categoría de Egresos')    
+        $('#descripcion_cat').val('')
+		// $('.gastoFijo').val
+        $('#modalAddCategoria').modal('show')
+	}
+    function saveCategoria()
+    {
+        if($('#descripcion_cat').val() == '') {
+            toastr.error('El campo Descripción no puede estar vacío')
+            return;
+        }
+		var tipo;
+		var elementos = document.getElementsByName("checks");
+		for(var i=0; i<elementos.length; i++) {
+			if(!elementos[i].checked) tipo = 1;
+			else tipo = 2;
+		}
+        var data = JSON.stringify({
+            'descripcion': $('#descripcion_cat').val(),
+			'tipo': tipo,
+        });
+
+        $('#modalAddCategoria').modal('hide')
+        window.livewire.emit('createCategoriaFromModal', data)
     } 
 	function verificarPorDni()
 	{

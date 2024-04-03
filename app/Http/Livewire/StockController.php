@@ -4,6 +4,8 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Cliente;
+use App\Models\Peps;
+use App\Models\MovimientoDeStock;
 use App\Models\Producto;
 use App\Models\Stock;
 use App\Models\StockEnConsignacion;
@@ -17,8 +19,10 @@ class StockController extends Component
     public $nombreCliente, $cliente = 'Elegir', $clientes, $infoCli;
     public $title = "Stock", $valorTotalStock = 0, $valorTotalStockPorConsignatario = 0;
     public $valorTotalStockLocal = 0, $valorTotalStockConsignacion = 0;
-    public $info_sp, $mostrar_subproducto = 0, $subproducto_id;
-    public $comercioId, $modConsignaciones, $comercioTipo;
+    public $comercioId;
+    public $modConsignaciones, $comercioTipo, $idProductoHistorial, $productoStock, $cantidad;
+    public $infoHistorialStock = [], $e_i, $compras, $ventas, $data, $accion, $ventasTotal, $unidadDeMedida;
+    public $modificacion_manual_directa, $modificacion_manual_indirecta, $ventasSinStock, $dataAccion;
 
     public function render()
     {
@@ -37,7 +41,7 @@ class StockController extends Component
                 ->groupBy('s.cliente_id')->select('clientes.*', 's.cliente_id')->orderBy('clientes.apellido')->get();
         }
         $this->stockPorCliente($this->cliente);
-          
+       
 
 		if(strlen($this->search) && $this->action == 1){  //buscar >> stock local
             $this->valorTotalStock = 0;
@@ -45,72 +49,42 @@ class StockController extends Component
                 DB::RAW("'' as stock_total"), DB::RAW("0 as subtotal"), DB::RAW("'' as producto"))
                 ->where('codigo', $this->search)
 				->where('comercio_id', $this->comercioId)
+                ->where('estado', 'Disponible')
 				->orWhere('descripcion', 'like', '%' . $this->search .'%')
-				->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();  
+				->where('comercio_id', $this->comercioId)
+                ->where('estado', 'Disponible')
+                ->orderBy('descripcion')->get();
             foreach ($info as $i){
-                $this->info_sp = Subproducto::join('productos as p', 'p.id', 'subproductos.producto_id')
-                    ->select('subproductos.*', 'p.precio_costo', DB::RAW("0 as stock_local"), DB::RAW("0 as stock_en_consignacion"),
-                        DB::RAW("0 as stock_total"), DB::RAW("0 as subtotal"), DB::RAW("'' as producto"))
-                    ->where('producto_id', $i->id)->get();                
-                if($this->info_sp->count()){
-                    $this->mostrar_subproducto = 1;
-                    foreach ($this->info_sp as $l){
-                        $stock = Stock::where('subproducto_id', $l->id)->first();
-                        if($stock->count()) $l->stock_local = $stock->stock_actual;
-                        $stock_en_consig = StockEnConsignacion::where('subproducto_id', $l->id)->get()->sum('cantidad');
-                        if($stock_en_consig != null) $l->stock_en_consignacion = $stock_en_consig;
-                        $l->stock_total = $l->stock_local + $l->stock_en_consignacion;
-                        $l->subtotal = $l->stock_total * $l->precio_costo;
-                        $this->valorTotalStock += $l->subtotal;
-                        $l->producto = 0; 
-                    }
-                }else{
-                    $this->mostrar_subproducto = 0;
-                    $stock = Stock::where('producto_id', $i->id)->first();
-                    if($stock) $i->stock_local = $stock->stock_actual;
-                    else $i->stock_local = 0;
-                    
-                    $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                    if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
-                    else $i->stock_en_consignacion = 0;  
+                $stock = Peps::where('producto_id', $i->id)->sum('resto');
+                if($stock) $i->stock_local = $stock;
+                else $i->stock_local = 0;
+                
+                $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
+                if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                else $i->stock_en_consignacion = 0;  
 
-                    $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
-                    $i->subtotal = $i->stock_total * $i->precio_costo;
-                    $this->valorTotalStock += $i->subtotal; 
-                    $i->producto = 1;
-                }  
+                $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
+                $i->subtotal = ($i->precio_costo / $i->presentacion) * $i->stock_total;
+                $this->valorTotalStock += $i->subtotal; 
+                $i->producto = 1;
             }
-		}elseif($this->action == 1){   //stock local
-            $this->mostrar_subproducto = 0;
-            $this->valorTotalStock = 0;            
-            $this->valorTotalStockLocal = 0;
-            $this->valorTotalStockConsignacion = 0;
+		}elseif($this->action == 1){   //stock local            
             $info = Producto::select('productos.*', DB::RAW("0 as stock_local"), DB::RAW("'' as stock_en_consignacion"),
                 DB::RAW("'' as stock_total"), DB::RAW("0 as subtotal"))
-                ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();            
+                ->where('comercio_id', $this->comercioId)
+                ->where('estado', 'Disponible')
+                ->orderBy('descripcion')->get();            
             foreach ($info as $i){
-                $tiene_sp = Subproducto::where('producto_id', $i->id)->get();
-                if($tiene_sp->count()){
-                    $total = 0;
-                    $total_c = 0;
-                    foreach ($tiene_sp as $l){
-                        $stock = Stock::where('subproducto_id', $l->id)->first();
-                        if($stock->count()) $total += $stock->stock_actual;
+                $stock = Peps::where('producto_id', $i->id)->sum('resto');
+                if($stock) $i->stock_local = $stock;
+                else $i->stock_local = 0;
+                
+                $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->sum('cantidad');  
+                if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
+                else $i->stock_en_consignacion = 0;
 
-                        $stock_en_consig = StockEnConsignacion::where('subproducto_id', $l->id)->get()->sum('cantidad'); 
-                        if($stock_en_consig) $total_c += $stock_en_consig;
-                    }
-                    $i->stock_local = $total;
-                    $i->stock_en_consignacion = $total_c;
-                }else{
-                    $stock = Stock::where('producto_id', $i->id)->first();
-                    if($stock) $i->stock_local = $stock->stock_actual;
-                    else $i->stock_local = 0;
-                   
-                    $stock_en_consig = StockEnConsignacion::where('producto_id', $i->id)->get()->sum('cantidad');  
-                    if($stock_en_consig) $i->stock_en_consignacion = $stock_en_consig;
-                    else $i->stock_en_consignacion = 0;
-                } 
+                $i->precio_costo = $i->precio_costo / $i->presentacion;
+
                 $totalLocal = $i->stock_local * $i->precio_costo;
                 $this->valorTotalStockLocal += $totalLocal;                                    
 
@@ -120,21 +94,110 @@ class StockController extends Component
                 $i->stock_total = $i->stock_local + $i->stock_en_consignacion;
                 $i->subtotal = $i->stock_total * $i->precio_costo;
                 $this->valorTotalStock += $i->subtotal;
+                
             }
+            //dd($info);
             $this->verStockEnConsignacion($this->producto_id, null);   //null,null
             $this->verHistorialStockEnConsignacion($this->producto_id, $this->cliente_id, null);  //null,null
 		}elseif($this->action == 2){  //stock consignatario
             $info = Producto::select('id', 'codigo', 'descripcion', DB::RAW("'' as stock_en_consignacion"), 
-            DB::RAW("'' as stock_total"), DB::RAW("'' as producto"), DB::RAW("'' as descProducto"))
+                DB::RAW("'' as stock_total"), DB::RAW("'' as producto"), DB::RAW("'' as descProducto"))
                 ->where('comercio_id', $this->comercioId)
-                ->orderBy('descripcion')
-                ->get();
+                ->where('estado', 'Disponible')
+                ->orderBy('descripcion')->get();
         }
+        //busco el historial de movimientos de stock del producto seleccionado
+		if($this->idProductoHistorial){
+			$infoHistorial = Peps::join('movimiento_de_stock as mov', 'mov.id', 'peps.mov_stock_id')
+                ->join('productos as p', 'p.id', 'peps.producto_id')
+                ->where('peps.producto_id', $this->idProductoHistorial)
+                ->select('mov.descripcion', 'peps.*', 'p.unidad_de_medida', 'p.presentacion')->get();
+            foreach ($infoHistorial as $i) {
+                if ($i->mov_stock_id == 1) $this->e_i += $i->cantidad;
+                if ($i->mov_stock_id == 2) {
+                    $cantidad_real = $i->cantidad * $i->presentacion;
+                    $this->compras += $cantidad_real;
+                }
+                if ($i->mov_stock_id == 3) $this->ventas += $i->cantidad;
+                if ($i->mov_stock_id == 4) $this->modificacion_manual_directa += $i->cantidad;
+                if ($i->mov_stock_id == 5) $this->modificacion_manual_indirecta += $i->cantidad;
+                if ($i->mov_stock_id == 8) $this->ventasSinStock += $i->cantidad;
+                $this->unidadDeMedida = $i->unidad_de_medida;                
+            }
+            $this->ventasTotal = $this->ventas + $this->ventasSinStock;
+            $this->cantidad = $this->e_i + $this->compras + $this->ventasTotal + $this->modificacion_manual_directa + $this->modificacion_manual_indirecta;
+            $producto = Producto::find($this->idProductoHistorial);
+            $this->productoStock = $producto->descripcion;
+			$this->emit('abrirModalHistorialStock');
+		} else $infoHistorial = [];
+
+        if ($this->accion) {  //busco el detalle de los movimientos de stock del producto
+            $this->infoHistorialStock = Peps::join('users as u', 'u.id', 'peps.user_id')
+                ->where('peps.producto_id', $this->idProductoHistorial)
+                ->where('peps.mov_stock_id', $this->accion)->select('peps.*', 'u.name', 'u.apellido',
+                DB::RAW("'' as descProdModif"), DB::RAW("'' as accion"), DB::RAW("'' as user"))
+                ->orderBy('peps.created_at', 'desc')->get();      
+            if ($this->infoHistorialStock->count() > 0) {
+                foreach ($this->infoHistorialStock as $i) {
+                    if ($i->cantidad > 0) $i->accion = "Agrega";
+                    else $i->accion = "Quita";
+                    if ($i->prod_modif_id) {
+                        $producto = Producto::find($i->prod_modif_id);
+                        $i->descProdModif = $producto->descripcion;
+                        if ($i->cant_prod_modif > 0) $i->accion_prod_modif = "Agrega";
+                        else $i->accion_prod_modif = "Quita";    
+                    } 
+                    $i->user = $i->apellido . ", " . $i->name;
+                }
+            }
+            $data = MovimientoDeStock::find($this->accion);
+            $this->data = $data->descripcion;
+            $this->accion = null;
+            $this->emit('abrirModalDetalleHistorialStock');
+        } else $this->infoHistorialStock = [];
+
         return view('livewire.stock.component', [
-            'info' => $info
+            'info'          => $info,
+            'infoHistorial' => $infoHistorial
         ]);
     }
-    public function stockPorCliente($id){
+    public function resetInput()
+    {
+        $this->search                        = '';
+        $this->producto_id                   = null;
+        $this->producto                      = null;
+        $this->cliente_id                    = null;
+        $this->cliente                       = 'Elegir';
+        $this->infoHistorialStock            = [];
+        $this->dataAccion                    = null;
+        $this->cantidad                      = 0;
+        $this->e_i                           = 0;
+        $this->compras                       = 0;
+        $this->ventas                        = 0;
+        $this->ventasSinStock                = 0;
+        $this->modificacion_manual_directa   = 0;
+        $this->modificacion_manual_indirecta = 0;
+        $this->mostrar_subproducto           = 0;
+        $this->valorTotalStock               = 0;            
+        $this->valorTotalStockLocal          = 0;
+        $this->valorTotalStockConsignacion   = 0;
+    }    
+    protected $listeners = [
+        'productoHistorial',
+        'verHistorialStock'
+    ];    
+    public function doAction($action)
+    {
+        $this->action = $action;
+        if($action == 1) $this->title = "Stock"; 
+        else{
+            if($this->comercioTipo == 10) $this->title = "Stock en Condicional";
+            else $this->title = "Stock en Consignación";
+        }
+        $this->resetInput();
+    }    
+    public function stockPorCliente($id)
+    {
         $this->valorTotalStockPorConsignatario = 0;
         $this->infoCli = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
             ->where('stock_en_consignacion.cliente_id', $id)
@@ -166,9 +229,7 @@ class StockController extends Component
                     ->get()->sum('cantidad');
             }else{
                 $stock_en_consig = StockEnConsignacion::join('clientes as c', 'c.id', 'stock_en_consignacion.cliente_id')
-                    ->join('subproductos as sp', 'sp.id', 'stock_en_consignacion.subproducto_id')    
-                    ->join('productos as p', 'p.id', 'sp.producto_id')
-                    ->where('stock_en_consignacion.subproducto_id', $i->subproducto_id)
+                    ->join('productos as p', 'p.id', 'stock_en_consignacion.producto_id')
                     ->where('stock_en_consignacion.cliente_id', $id)
                     ->select('sp.id', 'sp.descripcion', 'p.precio_venta_l2')->first();
                 $i->articuloId = $stock_en_consig->id;
@@ -186,24 +247,6 @@ class StockController extends Component
         }
         $this->producto_id=null;    
         $this->subproducto_id=null;    
-    }
-    public function doAction($action)
-    {
-        $this->action = $action;
-        if($action == 1) $this->title = "Stock"; 
-        else{
-            if($this->comercioTipo == 10) $this->title = "Stock en Condicional";
-            else $this->title = "Stock en Consignación";
-        }
-        $this->resetInput();
-    }
-    public function resetInput()
-    {
-        $this->search      = '';
-        $this->producto_id = null;
-        $this->producto    = null;
-        $this->cliente_id  = null;
-        $this->cliente     = 'Elegir';
     }
     public function recargarPagina()
     {
@@ -323,5 +366,15 @@ class StockController extends Component
             }
         }
         if($cliente_id != null) $this->emit('abrirModalHistorial');
+    }
+    public function productoHistorial($idProducto)
+	{
+		$this->idProductoHistorial = $idProducto;
+        $this->resetInput();
+	}
+    public function verHistorialStock($accion)
+    {
+        $this->accion = $accion;
+        $this->dataAccion = $accion;
     }
 }

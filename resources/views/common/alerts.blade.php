@@ -19,16 +19,19 @@
           toastr.options = {
             "progressBar" : true
           }
-           toastr.success("{{ @session('msg-ok') }}", "Ok!!");                               
-         </script>                           
+           toastr.success("{{ @session('msg-ok') }}", "Ok!!");            
+         </script> 
 @endif
-@if (session()->has('msg-ops'))                        
-         <script>
-           toastr.options = {
-            "progressBar" : true
-          }
-           toastr.error("{{ @session('msg-ops') }}", "Atención!!"); 
-         </script>                           
+@if (session()->has('msg-ops'))  
+    <script>
+        toastr.options = {
+          "progressBar" : true,
+          "showMethod"  : 'slideDown',
+          "hideMethod"  : 'slideUp',
+          "closeMethod" : 'slideUp'
+        }
+        toastr.warning("{{ @session('msg-ops') }}", "Ups!!"); 
+    </script>                           
 @endif
 @if (session()->has('info'))                        
          <script>

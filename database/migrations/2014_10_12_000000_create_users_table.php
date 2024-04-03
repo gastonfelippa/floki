@@ -30,11 +30,18 @@ class CreateUsersTable extends Migration
             $table->enum('abonado', ['Si', 'No', 'Admin'])->default('No');
             $table->string('username')->unique()->nullable();
             $table->string('pass')->nullable();
-            $table->string('email')->nullable()->unique();
+            $table->string('email')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->datetime('fecha_ingreso')->nullable();
             $table->datetime('fecha_nac')->nullable();
+            $table->enum('estado', ['Activo','Suspendido', 'Baja'])->default('Activo')->nullable();
+
+            $table->unsignedBigInteger('categoria_id')->nullable();
+            $table->foreign('categoria_id')->references('id')->on('categoria_gastos');
+
+            $table->unsignedBigInteger('comercio_id')->nullable();
+            $table->foreign('comercio_id')->references('id')->on('comercios');
 
             $table->rememberToken();
             $table->softDeletes();

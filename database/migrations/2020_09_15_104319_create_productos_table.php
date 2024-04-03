@@ -18,12 +18,17 @@ class CreateProductosTable extends Migration
             $table->unsignedBigInteger('codigo');
             $table->string('descripcion');
             $table->decimal('precio_costo',10,2)->default(0);
+            $table->decimal('merma',4,2)->default(0);
             $table->decimal('precio_venta_l1',10,2)->default(0);
             $table->decimal('precio_venta_l2',10,2)->default(0);
             $table->decimal('precio_venta_sug_l1',10,2)->default(0);
             $table->decimal('precio_venta_sug_l2',10,2)->default(0);
+            $table->decimal('stock_ideal',10,2)->nullable();
+            $table->decimal('stock_minimo',10,2)->nullable();
+            $table->integer('presentacion')->default(1);
+            $table->enum('unidad_de_medida', ['Un','Gr','Kg','Ml', 'Lt', 'Mt'])->default('Un');
             $table->enum('estado', ['Disponible','Suspendido'])->default('Disponible');
-            $table->enum('tipo', ['Art. Compra','Art. Venta','Ambos'])->default('Art. Venta');
+            $table->enum('tipo', ['Art. Compra/Venta','Art. Compra','Art. Venta c/receta','Art. Elaborado'])->default('Art. Compra/Venta');
             $table->enum('tiene_receta', ['si','no'])->default('no');
             $table->enum('controlar_stock', ['si','no'])->default('si');
             

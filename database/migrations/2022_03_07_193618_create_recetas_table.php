@@ -19,6 +19,7 @@ class CreateRecetasTable extends Migration
             $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');
 
+            $table->smallInteger('porciones')->default(1);
             $table->longText('procedimiento')->nullable();
             $table->string('comentario')->nullable();
             //$table->string('autor');

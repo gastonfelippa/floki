@@ -3,10 +3,19 @@
     <div class="col-sm-12 col-md-10 layout-spacing">             
         <div class="widget-content-area">
             <div class="widget-one">
+                @include('common.alerts')   
+                @include('common.messages') <!-- validación de campos -->
                 <div class="row">
-                    <div class="col-xl-12 text-center">
+                    <div class="col-xl-9 text-center">
                         <h3><b>Productos</b></h3>
-                    </div> 
+                    </div>
+                    <div class="col-3 text-right mb-1">   
+                        @if ($verDisponibles)
+                            <button type="button" class="btn btn-info" wire:click="VerDisponibles(false)">Ver Suspendidos</button>
+                        @else
+                            <button type="button" class="btn btn-info" wire:click="VerDisponibles(true)">Ver Disponibles</button>
+                        @endif 
+                    </div>
                 </div> 
                 @if($recuperar_registro == 1)
 				<div class="row">
@@ -56,7 +65,7 @@
                                     <th class="text-center">P/VENTA <br>LISTA 1</th>
                                     <th class="text-center">P/VENTA <br>LISTA 2</th>
                                     @endif
-                                    <th class="text-center">ESTADO</th>
+                                    {{-- <th class="text-center">ESTADO</th> --}}
                                     <th class="text-center">STOCK</th>
                                     @can('Productos_create')
                                     <th class="text-left">CATEGORIA</th>
@@ -74,7 +83,7 @@
                                     @endcan
                                     <td class="text-center">{{number_format($r->precio_venta_l1,2,',','.')}}</td>                               
                                     <td class="text-center">{{number_format($r->precio_venta_l2,2,',','.')}}</td>                               
-                                    <td class="text-center">{{$r->estado}}</td>
+                                    {{-- <td class="text-center">{{$r->estado}}</td> --}}
                                     <td class="text-center">{{number_format($r->stock_actual,3,',','.')}}</td>
                                     @can('Productos_create')
                                     <td>{{$r->categoria}}</td>
@@ -103,26 +112,28 @@
                                                 data-toggle="tooltip" data-placement="top" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></a>
                                             </li>
                                             @endcan
-                                            <li>
-                                                <a href="javascript:void(0);"   
-                                                onclick="openModalProveedor({{$r->id}})"
-                                                data-toggle="tooltip" data-placement="top" title="Ver Proveedor">
-                                                @if($r->proveedor == 1)
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-success" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
-                                                @else
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-danger" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
-                                                @endif
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);"   
-                                                onclick="openModalHistorial({{$r->id}})"
-                                                data-toggle="tooltip" data-placement="top" title="Historial de compras">
-                                                @if($r->historial == 1)
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-success" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                                
-                                                @else
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-danger" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                               
-                                                @endif
-                                            </li>
+                                            @if($r->tiene_receta == 'no')
+                                                <li>
+                                                    <a href="javascript:void(0);"   
+                                                    onclick="openModalProveedor({{$r->id}})"
+                                                    data-toggle="tooltip" data-placement="top" title="Ver Proveedor">
+                                                    @if($r->proveedor == 1)
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-success" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
+                                                    @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-truck text-danger" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg></a>
+                                                    @endif
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);"   
+                                                    onclick="openModalHistorial({{$r->id}})"
+                                                    data-toggle="tooltip" data-placement="top" title="Historial de compras">
+                                                    @if($r->historial == 1)
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-success" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                                
+                                                    @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-danger" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>                                               
+                                                    @endif
+                                                </li>
+                                            @endif    
                                         </ul>
                                     </td>
                                 </tr>
@@ -143,6 +154,8 @@
         @can('Productos_create')
             @include('livewire.productos.form')			
             @include('livewire.productos.modal')
+            @include('livewire.productos.calculadora_de_merma')		
+            @include('livewire.productos.stockInicial')		
             @include('livewire.productos.modal_subproducto')			
         @endcan
     @elseif($action == 3)
@@ -253,34 +266,53 @@ thead tr th {     /* fija la cabecera de la tabla */
 			swal.close()   
 		})
     }
-    function precioBajo()
+    function validar(tipo)
     {
-        var selected = document.getElementById("selected_id");
-        if(selected){
-            const costo_actual = new Number($('[id="costo_actual"]').val());   //costo_en_bd
-            const costo_nuevo = new Number($('[id="precio_costo"]').val());    //costo_nuevo
-            if(costo_nuevo > 0){
-                if(costo_nuevo < costo_actual){
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'warning',
-                        title: 'Atención!!',
-                        text: 'El nuevo Precio de Costo del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
-                        showConfirmButton: true,
-                        showCancelButton: true,
-                        confirmButtonText: 'Continuar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) { 
-                            opcionCambiarPrecios();
-                        }else if (result.dismiss === Swal.DismissReason.cancel) {
-                            $('[id="precio_costo"]').val($('[id="costo_actual"]').val());
-                            Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
-                        }
-                    });  
-                }else if(costo_nuevo >= costo_actual) window.livewire.emit('calcular_precio_venta');
-            } 
-        }else window.livewire.emit('calcular_precio_venta');
+        const stock = new Number($('[id="stock_actual"]').val());
+        const stock_ideal = new Number($('[id="stock_ideal"]').val());
+        const stock_minimo = new Number($('[id="stock_minimo"]').val());
+        if (stock != null && stock < 0 || stock_ideal != null && stock_ideal < 0 || stock_minimo != null && stock_minimo < 0){
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡¡ATENCIÓN!!!',
+                text: 'El Stock '+ tipo +' no puede ser negativo...',
+                showConfirmButton: true
+            })
+            window.livewire.emit('validarStockNegativo', tipo);
+        };
+    }
+    function precioBajo()
+    {   
+        const costo_actual = new Number($('[id="costo_actual"]').val());   //costo_en_bd
+        const costo_nuevo = new Number($('[id="precio_costo"]').val());    //costo_nuevo
+        if(costo_nuevo > 0){
+            var selected = document.getElementById("selected_id");
+            if(selected){         
+                //solo cuando estoy modificando...
+                if(costo_nuevo > 0){
+                    if(costo_nuevo < costo_actual){
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'warning',
+                            title: 'Atención!!',
+                            text: 'El nuevo Precio de Costo del Producto que estás cargando ES MENOR que el Precio de Costo actual que tiene dicho Producto.',
+                            showConfirmButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: 'Continuar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) { 
+                                opcionCambiarPrecios();
+                            }else if (result.dismiss === Swal.DismissReason.cancel) {
+                                $('[id="precio_costo"]').val($('[id="costo_actual"]').val());
+                                Swal.fire('Cancelado', 'Tu registro está a salvo :)', 'error')
+                            }
+                        });  
+                    }else if(costo_nuevo >= costo_actual) window.livewire.emit('calcular_precio_venta');
+                } 
+            }else window.livewire.emit('calcular_precio_venta');
+        }
     }
     function opcionCambiarPrecios() 
     {          
@@ -303,23 +335,6 @@ thead tr th {     /* fija la cabecera de la tabla */
             }
         });       
     }
-    function existenciaInicial() 
-    {          
-        Swal.fire({
-            icon: 'question',
-            title: '¿El Stock Actual que ingresaste es Existencia Inicial?',
-            text: 'Debes estar seguro porque esta acción se hará por única vez para este Producto. Si decides que NO, lo podrás hacer en otro momento',
-            showDenyButton: true,
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'Si',
-            showCancelButton: true,
-            cancelButtonText: 'No'
-        }).then((result) => {
-            if (result.isConfirmed) { 
-                window.livewire.emit('existenciaInicial', 'si');
-            }
-        });       
-    }
     function validarProducto()
     {
         if($('#nombre').val() != '') window.livewire.emit('validarProducto');
@@ -332,16 +347,8 @@ thead tr th {     /* fija la cabecera de la tabla */
             var costo_actual = $('[id="costo_actual"]').val();   //costo_en_bd
             var costo_nuevo = $('[id="precio_costo"]').val();    //costo_nuevo
             if(costo_actual === costo_nuevo) solo_precios_listas = 1;
-        }          
+        }        
         var salsa = false, guarn = false, receta='no', stock='no';
-        if(document.getElementById('salsa_si')){
-            if(document.getElementById('cliComanda').value == '1' && document.getElementById('salsa_si').checked) salsa = true;
-        }
-        if(document.getElementById('guarn_si')){
-            if(document.getElementById('cliComanda').value == '1' && document.getElementById('guarn_si').checked) guarn = true;
-        }
-        if(document.getElementById('receta_si').checked) receta = 'si';
-        if(document.getElementById('stock_si').checked) stock = 'si';
         document.getElementById("nombre").focus();
         window.livewire.emit('guardar', salsa, guarn, receta, stock, solo_precios_listas);
     }
@@ -373,7 +380,37 @@ thead tr th {     /* fija la cabecera de la tabla */
         var texto = $('#texto').val();
         if(texto != '') window.livewire.emit('grabar_texto_base', texto);
         $('#modal').modal('hide'); 
+    }
+    function openModalCalculadora()
+    {
+        $('#modal_calculadora').modal('show');
+	} 
+    function openModalStockInicial()
+    {
+        // $('#modal_stock_inicial').trigger("focus")
+        $('#modal_stock_inicial').modal('show');
+	} 
+	function calcular_merma()
+    {
+        var peso_bruto = $('#peso_bruto').val();
+        var peso_neto = $('#peso_neto').val();
+        var rendimiento = ((peso_neto / peso_bruto) * 100).toFixed(0);
+        var merma = (100 - rendimiento).toFixed(0);
+        $('#merma').val(merma);
+        $('#rendimiento').val(rendimiento);
     } 
+	function cargarStockInicial()
+    {
+        var stockInicial = $('#stockInicial').val();
+        var unidadDeMedida = $('#unidad_de_medida').val();
+        var costoHistorico = $('#costo_historico').val();
+        $('#stock_ini').val(stockInicial);
+        $('#modal_stock_inicial').modal('hide');
+        window.livewire.emit('cargarStockInicial', stockInicial,unidadDeMedida,costoHistorico);
+    } 
+    function foco(idElemento){
+        document.getElementById(idElemento).focus();
+    }
     function agregar_sp(producto)
     {
         $('#texto_sp').val(producto);
@@ -424,13 +461,12 @@ thead tr th {     /* fija la cabecera de la tabla */
     }
     /////
     window.onload = function() {
-        document.getElementById("search").focus();
         Livewire.on('eliminarRegistro',()=>{
             Swal.fire({
                 position: 'center',
                 icon: 'info',
                 title: 'Tu registro no se puede eliminar!',
-                text: 'Existen Subproductos relacionados a este Producto...',
+                text: 'Existen Recetas relacionadas a este Producto...',
                 showConfirmButton: false,
                 timer: 3500
             })
@@ -536,5 +572,29 @@ thead tr th {     /* fija la cabecera de la tabla */
         Livewire.on('abrirModalHistorial',()=>{
             $('#modal_productoHistorial').modal('show'); 
 		})
+        Livewire.on('search_focus',()=>{
+            document.getElementById("search").focus();
+		})
+        Livewire.on('crear_receta',(id,descripcion)=>{
+            Swal.fire({
+                position: 'center',
+                icon: 'info',
+                title: '¡¡ATENCIÓN!!',
+                text: '¿Deseas crear ahora la receta para ' + descripcion + '?',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Si',
+                showCancelButton: true,
+                cancelButtonText: 'Dejar para otro momento...'
+            }).then((result) => {
+                if (result.isConfirmed) { 
+                    window.livewire.emit('ver_receta',id);
+                } else if (result.isDenied) {
+                    Swal.close();
+                }
+            });
+		})
+        Livewire.on('existencia_inicial',()=>{  
+            Swal.fire('Actualizado','La Existencia Inicial se grabó correctamente...','success');
+        }) 
     }
 </script>

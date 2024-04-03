@@ -20,7 +20,7 @@ class CreateDetRecetasTable extends Migration
             $table->foreign('receta_id')->references('id')->on('recetas');
             
             $table->decimal('cantidad',10,3);
-            $table->enum('unidad_de_medida', ['Un','Kg','Lt', 'Mt']);
+            $table->enum('unidad_de_medida', ['Un','Gr','Kg','Ml','Lt', 'Mt']);
             
             $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreign('producto_id')->references('id')->on('productos');

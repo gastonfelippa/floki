@@ -11,10 +11,10 @@
 					<div class="col-md-6 col-sm-12 mt-1">
 						<div class="form-check form-check-inline p-1">
 							<input class="form-check-input" type="radio" wire:model="estadoPedido" value="cargado" checked>
-							Cargados</div>
+							A realizar</div>
 						<div class="form-check form-check-inline p-1">
 							<input class="form-check-input" type="radio" wire:model="estadoPedido" value="pedido">
-							Realizados</div>
+							A recibir</div>
 						<div class="form-check form-check-inline p-1">
 							<input class="form-check-input" type="radio" wire:model="estadoPedido" value="recibido">
 							Recibidos</div>

@@ -579,16 +579,32 @@ class PdfController extends Controller
     public function PDFListaDePrecios($numero)
     {
 		$this->comercioId = session('idComercio');
+        
+        $comercio = Comercio::where('id', $this->comercioId)->get();
+        if($comercio->count()){  
+            $nombre = $comercio[0]->nombre;
+            $logo   = $comercio[0]->logo;
+        }
 		$listaNumero = $numero;
 
         if($numero == 1){
             $info = Producto::select('codigo', 'descripcion', 'precio_venta_l1 as precio')
-                ->where('comercio_id', $this->comercioId)->orderBy('codigo', 'asc')->get();
+            ->where('comercio_id', $this->comercioId)
+            ->where('tipo', 'like', 'Art. Compra/Venta')
+            ->orWhere('comercio_id', $this->comercioId)
+            ->where('tipo', 'like', 'Art. Venta c/receta')
+            ->orderBy('codigo')
+            ->get();
         }else{
             $info = Producto::select('codigo', 'descripcion', 'precio_venta_l2 as precio')
-                ->where('comercio_id', $this->comercioId)->orderBy('codigo', 'asc')->get();
+            ->where('comercio_id', $this->comercioId)
+            ->where('tipo', 'like', 'Art. Compra/Venta')
+            ->orWhere('comercio_id', $this->comercioId)
+            ->where('tipo', 'like', 'Art. Venta c/receta')
+            ->orderBy('codigo')
+            ->get();
         }
-        $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero'));
+        $pdf = PDF::loadView('livewire.pdf.pdfListaDePrecios', compact('info', 'listaNumero', 'nombre', 'logo'));
         return $pdf->stream();
     }
     public function PDFpedidos2($pedidoId)

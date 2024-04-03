@@ -13,7 +13,28 @@
                     </div>
                 </div>
             </div>
-            @include('common.btnCancelarGuardar') 
+            <div class="row">
+                <div class="col-12 col-md-6 layout-spacing">
+                    <div class="form-check form-switch ml-3">
+                        @if($mostrar_al_vender == 'si')
+                        <input class="form-check-input" type="checkbox" id="mostrar" checked>
+                        @else
+                        <input class="form-check-input" type="checkbox" id="mostrar">
+                        @endif
+                        <label class="form-check-label" for="flexSwitchCheckChecked">Mostrar Rubro al Vender</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <button type="button" wire:click="doAction(1)" class="btn btn-dark mr-1">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="guardar()" class="btn btn-primary">
+                        Guardar
+                    </button>       
+                </div>
+            </div>
         </div>
     </div>	
 </div>

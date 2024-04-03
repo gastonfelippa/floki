@@ -116,7 +116,11 @@
             }
 		})	
 	}		
-
+	function guardar()
+    {
+		document.getElementById("nombre").focus();
+        window.livewire.emit('StoreOrUpdate');
+    }
 	function openModal()
     {
         $('.modal-title').text('Agregar Categoría de Egresos')    

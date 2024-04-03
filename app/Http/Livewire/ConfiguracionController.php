@@ -3,40 +3,61 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Traits\GenericTrait;
+use App\Models\Auditoria;
 use App\Models\Categoria;
+use App\Models\Comanda;
 use App\Models\Comercio;
+use App\Models\Compra;
+use App\Models\Detcomanda;
+use App\Models\Detcompra;
+use App\Models\Detfactura;
+use App\Models\DetMetodoPago;
+use App\Models\Factura;
+use App\Models\Mesa;
+use App\Models\Peps;
 use App\Models\Producto;
+use Carbon\Carbon;
 use DB;
 
 class ConfiguracionController extends Component
 {
-    public $leyenda_factura, $periodo_arqueo, $imp_por_hoja, $imp_duplicado, $hora_apertura;
+    use GenericTrait;
+
+    public $leyenda_factura, $periodo_arqueo, $hora_apertura;
     public $calcular_precio_de_venta, $redondear_precio_de_venta;
     public $opcion_de_guardado_compra, $opcion_de_guardado_producto;
-    public $comercioId;
+    public $venta_sin_stock, $imp_por_hoja, $imp_duplicado; 
+    public $comercioId, $error = 1;
 
     public function mount()
     {
         $this->comercioId = session('idComercio');
        
         $comercio = Comercio::find($this->comercioId);
-        if($comercio->count())
+        if($comercio)
         {
             $this->leyenda_factura             = $comercio->leyenda_factura;
             $this->hora_apertura               = $comercio->hora_apertura;
             $this->periodo_arqueo              = $comercio->periodo_arqueo;
+            $this->venta_sin_stock             = $comercio->venta_sin_stock;
             $this->imp_por_hoja                = $comercio->imp_por_hoja;
             $this->imp_duplicado               = $comercio->imp_duplicado;
             $this->calcular_precio_de_venta    = $comercio->calcular_precio_de_venta;
             $this->redondear_precio_de_venta   = $comercio->redondear_precio_de_venta;
             $this->opcion_de_guardado_compra   = $comercio->opcion_de_guardado_compra;
             $this->opcion_de_guardado_producto = $comercio->opcion_de_guardado_producto;
-        }
+        }     
     }
+
     public function render()
     {
-        return view('livewire.configuraciones.component');
+        return view('livewire.configuraciones.component'); 
     }
+    protected $listeners = [
+        'borrarDatos',
+        'recuperarDatos'
+    ];
     public function StoreOrUpdate()
     {
         if(!$this->periodo_arqueo || $this->periodo_arqueo == 0) $this->periodo_arqueo = '';
@@ -46,17 +67,24 @@ class ConfiguracionController extends Component
         DB::begintransaction();
         try{  
             $comercio = Comercio::find($this->comercioId);
-            $comercio->update([
-                'leyenda_factura'             => $this->leyenda_factura,
-                'hora_apertura'               => $this->hora_apertura,
-                'periodo_arqueo'              => $this->periodo_arqueo,
-                'imp_por_hoja'                => $this->imp_por_hoja,
-                'imp_duplicado'               => $this->imp_duplicado,
-                'calcular_precio_de_venta'    => $this->calcular_precio_de_venta,
-                'redondear_precio_de_venta'   => $this->redondear_precio_de_venta,
-                'opcion_de_guardado_compra'   => $this->opcion_de_guardado_compra,
-                'opcion_de_guardado_producto' => $this->opcion_de_guardado_producto
-            ]); 
+            if ($comercio) {
+                $comercio->update([
+                    'leyenda_factura'             => $this->leyenda_factura,
+                    'hora_apertura'               => $this->hora_apertura,
+                    'periodo_arqueo'              => $this->periodo_arqueo,
+                    'venta_sin_stock'             => $this->venta_sin_stock,
+                    'imp_por_hoja'                => $this->imp_por_hoja,
+                    'imp_duplicado'               => $this->imp_duplicado,
+                    'calcular_precio_de_venta'    => $this->calcular_precio_de_venta,
+                    'redondear_precio_de_venta'   => $this->redondear_precio_de_venta,
+                    'opcion_de_guardado_compra'   => $this->opcion_de_guardado_compra,
+                    'opcion_de_guardado_producto' => $this->opcion_de_guardado_producto
+                ]); 
+            } else {
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El Comercio no existe...');
+                return;
+            }
 
             //actualizo los precios de venta sugeridos para los productos que tenga cargados con anterioridad
             $productos = Producto::where('comercio_id', $this->comercioId)->get();
@@ -82,7 +110,6 @@ class ConfiguracionController extends Component
                     ]);
                 }
             }   
-
             session()->flash('msg-ok', 'Configuraciones actualizadas');  
             DB::commit();               
         }catch (Exception $e){
@@ -90,5 +117,69 @@ class ConfiguracionController extends Component
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! Los registros no se grabaron...');
         }
         return;
+    }
+    public function borrarDatos()
+    {
+        DB::beginTransaction();
+        try {
+            $mesa_status = Mesa::where('comercio_id', $this->comercioId)->get();
+            if ($mesa_status->count() > 0) {
+                foreach ($mesa_status as $i) $i->update(['estado' => 'Disponible']);
+            }
+
+            $detComandas = Detcomanda::where('comercio_id', $this->comercioId)->count();
+            $comandas = Comanda::where('comercio_id', $this->comercioId)->count();
+            $detMetodoPagos = DetMetodoPago::where('comercio_id', $this->comercioId)->count();
+            $detFacturas = Detfactura::where('comercio_id', $this->comercioId)->count();
+            $facturas = Factura::where('comercio_id', $this->comercioId)->count();
+            $detCompras = Detcompra::where('comercio_id', $this->comercioId)->count();
+            $compras = Compra::where('comercio_id', $this->comercioId)->count();
+            $peps = Peps::where('comercio_id', $this->comercioId)->count();
+            $auditorias = Auditoria::where('comercio_id', $this->comercioId)->count();
+      
+            if ($detComandas > 0) Detcomanda::where('comercio_id', $this->comercioId)->delete();
+            if ($comandas > 0) Comanda::where('comercio_id', $this->comercioId)->delete();
+            if ($detMetodoPagos > 0) DetMetodoPago::where('comercio_id', $this->comercioId)->delete();
+            if ($peps > 0) Peps::truncate();
+            if ($detFacturas > 0) Detfactura::where('comercio_id', $this->comercioId)->delete();
+            if ($facturas > 0) Factura::where('comercio_id', $this->comercioId)->delete();
+            if ($detCompras > 0) Detcompra::where('comercio_id', $this->comercioId)->delete();
+            if ($compras > 0) Compra::where('comercio_id', $this->comercioId)->delete();
+            if ($auditorias > 0) Auditoria::where('comercio_id', $this->comercioId)->delete();
+
+            $productos = Producto::where('comercio_id', $this->comercioId)->get();
+            if ($productos->count() > 0) { //agrego todos los productos con EI = 0
+                foreach ($productos as $i) $actualizarStock = $this->actualizarStockTrait(1, false, false, null, null, null, $i->id, $i->precio_costo, null);
+            }
+            if ($actualizarStock) {
+                DB::commit();
+                session()->flash('msg-ok', 'Las tablas seleccionadas se blanquearon correctamente!!');
+            } else {
+                DB::rollback();
+                session()->flash('msg-ops', 'El blanqueo de tablas no se pudo realizar porque hubo problemas' .
+                ' al grabar la Existencia Inicial...');
+            }
+            
+        } catch (Exception $e) {
+            DB::rollback();
+            // session()->flash('msg-ops', $e->getMessage());
+            session()->flash('msg-ops', 'El blanqueo de tablas no se pudo realizar...');
+        } 
+    }
+    public function recuperarDatos()
+    {
+        try {
+            $fecha = Carbon::now()->toDateString(); // Fecha que deseas consultar
+            $fechaCarbon = Carbon::parse($fecha);
+            //$fechaCarbon = "2024-03-27";
+            $resultados = Peps::onlyTrashed()->whereDate('deleted_at', '=', $fechaCarbon)->get();
+            //$resultados = Factura::onlyTrashed()->whereDate('deleted_at', '=', $fechaCarbon)->get();
+            if ($resultados->count() > 0) {
+                foreach ($resultados as $i) $i->restore();
+            }
+            session()->flash('msg-ok', 'Las tablas seleccionadas se recuperaron correctamente!!');
+        } catch (\Exception $e) {
+            session()->flash('msg-ops', 'Las tablas no se pudieron recuperar...');
+        }
     }
 }

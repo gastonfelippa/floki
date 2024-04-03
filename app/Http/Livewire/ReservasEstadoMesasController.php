@@ -24,7 +24,7 @@ class ReservasEstadoMesasController extends Component
         session(['idMesa' => null]);
 
         $this->asignarReserva = session('asignarReserva');
-        if($this->asignarReserva) $this->Edit($this->asignarReserva);
+        if($this->asignarReserva) $this->edit($this->asignarReserva);
 
         $hoy = Carbon::now();  
         $hoy_solo_fecha = Carbon::parse($hoy)->format('Y-m-d'); 
@@ -62,13 +62,16 @@ class ReservasEstadoMesasController extends Component
                     ->where('fecha', $hoy_solo_fecha)
                     ->select('*', DB::RAW("'' as mesaDesc"))->get();
             }else{
-                $this->reservas = Reserva::where('mesa_id', 'like', $this->search_table)
-                ->where('comercio_id', $this->comercioId)
-                ->where('fecha', $hoy_solo_fecha)
-                ->select('*', DB::RAW("'' as mesaDesc"))->get();
+                $mesaId = Mesa::where('descripcion', 'like', $this->search_table)
+                    ->where('comercio_id', $this->comercioId)->first();
+                if($mesaId) {
+                    $this->reservas = Reserva::where('mesa_id', $mesaId['id'])
+                        ->where('comercio_id', $this->comercioId)
+                        ->where('fecha', $hoy_solo_fecha)
+                        ->select('*', DB::RAW("'' as mesaDesc"))->get();
+                }
             }
         }
-
         foreach ($this->reservas as $i) {
             if ($i->mesa_id) {
                 $mesa = Mesa::find($i->mesa_id);
@@ -77,6 +80,7 @@ class ReservasEstadoMesasController extends Component
                 $i->mesaDesc = 'Sin asignar...';
             }
         }
+
        
         switch ($this->estadoMesa) {
             case '1': //todas
@@ -220,7 +224,7 @@ class ReservasEstadoMesasController extends Component
                 }else{
                     session(['idMozo' => null]);
                     session(['facturaPendiente' => null]); 
-                return redirect()->to('/facturasbar');  
+                    return redirect()->to('/facturasbar');  
                 } 
             }else session()->flash('message', 'La mesa ingresada no existe');
         }
@@ -253,7 +257,7 @@ class ReservasEstadoMesasController extends Component
         $this->fecha         = Carbon::parse($record->fecha)->format('d-m-Y');
         $this->horario       = $record->horario;
         $this->comentario    = $record->comentario;
-        $this->mesa          = $record->mesa_id;
+        if($record->mesa_id) $this->mesa = $record->mesa_id;        
         $this->mesa_anterior = $record->mesa_id;
       
         $this->doAction(3);
@@ -266,11 +270,13 @@ class ReservasEstadoMesasController extends Component
            
         $this->validate([
             'nombre'   => 'required', 
-            'cantidad' => 'required|numeric'
+            'cantidad' => 'required|numeric',
+            'fecha'    => 'required'
         ]);
 
         $estado = 'Pendiente';
-        if($this->mesa) $estado = 'Asignada'; 
+        if($this->mesa == 'Elegir') $this->mesa = null;
+        if($this->mesa) $estado = 'Asignada';        
  
         DB::begintransaction();
         try{
@@ -351,8 +357,8 @@ class ReservasEstadoMesasController extends Component
                     $record->update(['estado' => 'Reservada']);
                 }
             }             
-            if($this->selected_id) session()->flash('msg-ok', 'Reserva Actualizada');    
-            else session()->flash('msg-ok', 'Reserva Creada'); 
+            if($this->selected_id) $this->emit('crearReserva', 'Reserva actualizada exitosamente!!!');    
+            else $this->emit('crearReserva', 'Reserva creada exitosamente!!!'); 
 
             DB::commit();            
         }catch (Exception $e){

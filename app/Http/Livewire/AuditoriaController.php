@@ -154,12 +154,14 @@ class AuditoriaController extends Component
                     $i->item = $info2[0]->descripcion . ' - ' . $info2[0]->sucursal . ' N° ' . 
                                 $info2[0]->numero . ' $ ' . $info2[0]->importe;
                     break;
-                case 'Entregas/Facturas':                               
+                case 'Entregas/Facturas': 
+                    dd($i->id);                   
                     $info2 = Auditoria::join('det_metodo_pagos as det', 'det.id', 'auditorias.item_deleted_id')
                         ->join('facturas as f', 'f.id', 'det.factura_id')
                         ->join('mesas as m', 'm.id', 'f.mesa_id')
                         ->where('auditorias.id', $i->id)->select('f.numero', 'det.importe', 'm.descripcion', 'det.medio_de_pago')->get();
-                    $metodoDePago = '';
+                    //dd($info2);
+                        $metodoDePago = '';
                         if($info2[0]->medio_de_pago == 1) $metodoDePago = 'Efectivo'; 
                     elseif($info2[0]->medio_de_pago == 2) $metodoDePago = 'Tarjeta Débito';
                     elseif($info2[0]->medio_de_pago == 3) $metodoDePago = 'Tarjeta Crédito';
@@ -167,7 +169,8 @@ class AuditoriaController extends Component
                     elseif($info2[0]->medio_de_pago == 5) $metodoDePago = 'Cheque';
                     elseif($info2[0]->medio_de_pago == 6) $metodoDePago = 'Cuenta Corriente';
                         $i->item = 'FAC' . str_pad($info2[0]->numero, 6, '0', STR_PAD_LEFT) . ' Mesa N° ' . $info2[0]->descripcion . ' ' . $metodoDePago . ' $ ' . $info2[0]->importe;                   
-                    break; 
+                    
+                        break; 
                 case 'Detalle/Recetas':                               
                     $info2 = Auditoria::join('det_recetas as det', 'det.id', 'auditorias.item_deleted_id')
                         ->join('recetas as r', 'r.id', 'det.receta_id')

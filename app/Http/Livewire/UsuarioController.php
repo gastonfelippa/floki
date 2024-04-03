@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use App\Models\Auditoria;
+use App\Models\CategoriaGasto;
 use App\Models\Comercio;
 use App\Models\Empleado;
 use App\Models\Localidad;
@@ -30,7 +31,8 @@ class UsuarioController extends Component
     use RegistersUsers;
     
     public $name, $apellido, $documento, $calle, $numero, $localidad = 'Elegir', $provincia = 'Elegir';
-    public $sexo = 0, $telefono1, $fecha_ingreso, $fecha_nac, $email, $username, $password;
+    public $categoriaId = 'Elegir', $sexo = 0, $telefono1, $fecha_ingreso, $fecha_nac, $email;
+    public $estado='Activo', $username, $password, $mail = 1;
     public $selected_id = null, $search, $action = 1;
     public $comercioId, $comercio, $admin;
     public $rol, $roles, $comentario = '', $dni_valido = false;
@@ -44,7 +46,8 @@ class UsuarioController extends Component
 
         $localidades = Localidad::select()->where('comercio_id', $this->comercioId)->orderBy('descripcion','asc')->get();
         $provincias = Provincia::all();
- 
+        $categorias = CategoriaGasto::where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
+
         $this->roles = Role::select('*')->where('id', '<>', '1')->where('comercio_id', $this->comercioId)->get();
       
         //busca el nombre del comercio logueado y de su admin para el envío de emails
@@ -82,7 +85,8 @@ class UsuarioController extends Component
         return view('livewire.usuarios.component', [
             'info' =>$info,
             'localidades' => $localidades,
-            'provincias' => $provincias
+            'provincias' => $provincias,
+            'categorias' => $categorias
         ]);
     }
     
@@ -94,28 +98,31 @@ class UsuarioController extends Component
     
     public function resetInput()
     {
-        $this->name = '';
-        $this->apellido = '';
-        $this->documento = '';
-        $this->calle = '';
-        $this->numero = '';
-        $this->localidad = 'Elegir';
-        $this->telefono1 = '';
-        $this->fecha_nac = '';
+        $this->name          = '';
+        $this->apellido      = '';
+        $this->documento     = '';
+        $this->calle         = '';
+        $this->numero        = '';
+        $this->localidad     = 'Elegir';
+        $this->telefono1     = '';
+        $this->fecha_nac     = '';
         $this->fecha_ingreso = '';
-        $this->sexo = 0;
-        $this->email = '';
-        $this->password = '';
-        $this->selected_id = null;
-        $this->action = 1;
-        $this->search = '';
-        $this->dni_valido = false;
+        $this->sexo          = 0;
+        $this->email         = '';
+        $this->password      = '';
+        $this->selected_id   = null;
+        $this->action        = 1;
+        $this->search        = '';
+        $this->dni_valido    = false;
+        $this->categoriaId   = 'Elegir';
+        $this->estado        = 'Activo';
     }
     
     public $listeners = [
-        'deleteRow' => 'destroy',
-        'createFromModal' => 'createFromModal',
-        'verificarPorDni' => 'verificarPorDni'       
+        'deleteRow'                => 'destroy',
+        'createFromModal'          => 'createFromModal',
+        'verificarPorDni'          => 'verificarPorDni',
+        'createCategoriaFromModal' => 'createCategoriaFromModal'        
 	];
 
     public function verificarPorDni()
@@ -205,6 +212,8 @@ class UsuarioController extends Component
         $this->sexo          = $record->sexo;
         $this->email         = $record->email;
         $this->selected_id   = $record->id;
+        $this->categoriaId   = $record->categoria_id;
+        $this->estado        = $record->estado;
 
         $this->action = 2;
     }
@@ -251,25 +260,46 @@ class UsuarioController extends Component
             }            
         }
         
+        if($this->selected_id > 0){
+            $existe_email = User::where('users.email', 'like', '%'. $this->email . '%')
+                                ->where('id', '<>', $this->selected_id)
+                                ->where('comercio_id', $this->comercioId)->get();
+            if($existe_email->count() > 0){
+                $this->mail = null;
+            }
+        }else{
+            $existe_email = User::where('users.email', 'like', '%'. $this->email . '%')
+                                ->where('comercio_id', $this->comercioId)->get();
+            if($existe_email->count() > 0){
+                $this->mail = null;
+            }
+        }
+       
         $this->username = $username; 
         //busco el id del rol No Usuario para agregarlo por defecto al nuevo usuario
         $rolNoUsuario = Role::where('alias', 'No Usuario')
                     ->where('comercio_id', $this->comercioId)
                     ->select('id')->get();
-        
+
         $this->validate([
-			'sexo'      => 'not_in:0',
-			'localidad' => 'not_in:Elegir'
+			'sexo'        => 'not_in:0',
+			'localidad'   => 'not_in:Elegir',
+			'categoriaId' => 'not_in:Elegir'],
+            ['categoriaId.not_in' => 'Debe ingresar una Categoría'
 		]);
         
         $this->validate([
+            'mail'      => 'required',
             'name'      => 'required',
             'apellido'  => 'required',
             'documento' => 'required',
             'telefono1' => 'required',
-            'email'     => ['required', 'string', 'email', 'max:255']
-        ]);  
+            'email'     => ['required', 'string', 'email', 'max:255']],
+            ['mail.required' => 'La dirección de email ya existe en la BD',
+             'telefono1.required' => 'Debe ingresar un N° de teléfono'
+        ]);
 
+        
         if($this->numero == '' && $this->calle != '') $this->numero = 's/n';       
         
         DB::begintransaction();                 //iniciar transacción para grabar
@@ -277,21 +307,23 @@ class UsuarioController extends Component
             if($this->selected_id <= 0)
             {
                 $user = User::create([
-                    'name'              => ucwords($this->name),
-                    'apellido'          => ucwords($this->apellido),
-                    'documento'         => $this->documento,
-                    'calle'             => ucwords($this->calle),
-                    'numero'            => $this->numero,
-                    'localidad_id'      => $this->localidad,
-                    'telefono1'         => $this->telefono1,
-                    'fecha_ingreso'     => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
-                    'fecha_nac'         => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
-                    'sexo'              => $this->sexo,
-                    'email'             => strtolower($this->email),
-                    'username'          => $username,
-                    'password'          => Hash::make($password),
-                    'pass'              => $password,
-                    'abonado'           => 'No',
+                    'name'          => ucwords($this->name),
+                    'apellido'      => ucwords($this->apellido),
+                    'documento'     => $this->documento,
+                    'calle'         => ucwords($this->calle),
+                    'numero'        => $this->numero,
+                    'localidad_id'  => $this->localidad,
+                    'telefono1'     => $this->telefono1,
+                    'fecha_ingreso' => Carbon::parse($this->fecha_ingreso)->format('Y,m,d h:i:s'),             
+                    'fecha_nac'     => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
+                    'sexo'          => $this->sexo,
+                    'email'         => strtolower($this->email),
+                    'username'      => $username,
+                    'password'      => Hash::make($password),
+                    'pass'          => $password,
+                    'abonado'       => 'No',
+                    'categoria_id'  => $this->categoriaId,
+                    'conercio_id'   => $this->comercioId,
                     //'email_verified_at' => Carbon::now()    //comentar cuando funcione la autenticacion en la nube
                 ]);
                     
@@ -305,8 +337,7 @@ class UsuarioController extends Component
                     'model_type' => 'App\Models\User',           
                     'model_id'   => $user->id           
                 ]);
-            }
-            else{
+            }else{
                 $user = User::find($this->selected_id);
                 $user->update([
                     'name'              => ucwords($this->name),
@@ -320,22 +351,52 @@ class UsuarioController extends Component
                     'fecha_nac'         => Carbon::parse($this->fecha_nac)->format('Y,m,d h:i:s'),
                     'sexo'              => $this->sexo,
                     'email'             => strtolower($this->email),
-                    'abonado'           => 'No'
+                    'abonado'           => 'No',
+                    'categoria_id'      => $this->categoriaId,
+                    'estado'       	    => $this->estado,
                     //'username'          => $username
                     //'email_verified_at' => Carbon::now(),    //comentar cuando funcione la autenticacion en la nube
                 ]);
             }
             DB::commit();
-            //descomentar cuando funcione la autenticacion en la nube
-            $this->sendEmail($user, $this->comercio, $this->admin);
-            $this->doAction(1);
+            
             if($this->selected_id > 0) session()->flash('message', 'Usuario Actualizado');            
-            else session()->flash('message', 'Usuario creado exitosamente! Verificar envío de email');       
+            else {
+                //descomentar cuando funcione la autenticacion en la nube
+                $this->sendEmail($user, $this->comercio, $this->admin);
+                session()->flash('message', 'Usuario creado exitosamente! Verificar envío de email'); 
+            }      
+            $this->doAction(1);
         }catch (\Exception $e){
             DB::rollback();    //en caso de error, deshacemos para no generar inconsistencia de datos  
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
         }  
-    }      
+    } 
+    public function createCategoriaFromModal($info)
+    {
+        $data = json_decode($info);
+
+        $existe = CategoriaGasto::where('descripcion', ucwords($data->descripcion))
+            ->where('comercio_id', $this->comercioId)->get();  
+        if($existe->count() > 0 ) {
+            session()->flash('info', 'La Categoría de Gasto ingresada ya existe!!!');
+            return;
+        }else{   
+            DB::begintransaction();
+            try{   
+                CategoriaGasto::create([
+                    'descripcion' => ucwords($data->descripcion),
+                    'tipo'        => $data->tipo,
+                    'comercio_id' => $this->comercioId
+                ]);
+                session()->flash('msg-ok', 'Categoría de Gasto creada exitosamente!!!'); 
+                DB::commit();               
+            }catch (\Exception $e){
+                DB::rollback();
+                session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se eliminó...');
+            }  
+        } 
+    }       
     public function destroy($id, $comentario)
     {
         if ($id) {

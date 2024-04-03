@@ -80,6 +80,13 @@
             }
 		})
     }
+	function guardar()
+    {
+        var mostrar = 'no';
+        if(document.getElementById('mostrar').checked) mostrar = 'si';
+		document.getElementById("nombre").focus();
+        window.livewire.emit('StoreOrUpdate', mostrar);
+    }
     window.onkeydown = PulsarTecla;
 	function PulsarTecla(e)
     {

@@ -342,10 +342,11 @@ class CortesController extends Component
             ->where('movimiento_de_cajas.ingreso_id', '<>', null)
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
             ->select('g.descripcion', 'movimiento_de_cajas.importe')->get();
-        $listaEgresos = MovimientoDeCaja::join('proveedores as g', 'g.id', 'movimiento_de_cajas.egreso_id')
+        $listaEgresos = MovimientoDeCaja::join('gastos as g', 'g.id', 'movimiento_de_cajas.egreso_id')
             ->where('movimiento_de_cajas.egreso_id', '<>', null)
             ->where('movimiento_de_cajas.arqueo_id', $this->nro_arqueo)
-            ->select('g.nombre_empresa', 'movimiento_de_cajas.importe')->get(); 
+            ->where('movimiento_de_cajas.comercio_id', $this->comercioId)
+            ->select('g.descripcion', 'movimiento_de_cajas.importe')->get(); 
 
         return view('livewire.cortes.component',[
                 'users'             => $users,

@@ -1,13 +1,13 @@
 <div class="col-sm-12 col-md-6 layout-spacing">
 	<div class="widget-content-area">
-        <div class="modal-header">
+        <div class="modal-header" style="background-color:#808080;border-radius:1em;">
             <div class="row col-12">
-                <div class="col-6">
-                    <h4><b>Cobrar Factura</b></h4>
+                <div class="col-4">
+                    <h3><b>Cobrar Factura</b></h3>
                 </div>
-                <div class="col-6 text-right mt-1">
+                <div class="col-8 text-right mt-1">
                     @if($entrega == 0)
-                        <h6><b>Total $ {{number_format($total,2,',','.')}}</b></h6>
+                        <h1 class="text-center"><b>Total $ {{number_format($total,2,',','.')}}</b></h1>
                     @else
                         <h6>Total $ {{number_format($total,2,',','.')}}</h6>
                         <h6>Entrega $ - {{number_format($entrega,2,',','.')}}</h6>
@@ -57,7 +57,7 @@
             @endif
             <div class="row">   
                 <div class="form-group col-4">
-                    <label style="font-size: 12px;">Medio de Pago</label>
+                    <label style="font-size:12px;color:black;"><b>Medio de Pago</b></label>
                     <select id="formaDePago" onchange="mostrarInput()" class="form-control form-control-sm">
                         <option value="1">Efectivo</option>
                         <option value="2">Tarjeta Débito</option>
@@ -68,11 +68,11 @@
                     </select>
                 </div>
                 <div class="form-group col-4">
-                    <label style="font-size: 12px;">N° Comp. de Pago</label>
+                    <label style="font-size:12px;color:black;"><b>N° Comp. de Pago</b></label>
                     <input id="num" class="form-control form-control-sm text-center" disabled>
                 </div>
                 <div class="form-group col-4">
-                    <label style="font-size: 12px;">Importe</label>
+                    <label style="font-size:12px;color:black;"><b>Importe</b></label>
                     <input id="importe" class="form-control form-control-sm text-center"
                     {{ $modComandas == 1 ? 'enabled' : 'disabled' }}>                  
                 </div>
@@ -92,6 +92,18 @@
         <input type="hidden" id="modComandas" wire:model="modComandas">   
     </div>
 </div>
+
+<style type="text/css" scoped>
+    h1{
+        background-color:rgba(255, 145, 71, 0.829);
+        color:white;
+        border-radius:5px;"
+    }
+    h3{
+        color: white;
+    }
+
+</style>
  
 <script type="text/javascript"> 
     $(document).ready(function () {

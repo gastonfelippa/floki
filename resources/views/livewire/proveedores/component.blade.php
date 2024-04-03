@@ -1,5 +1,4 @@
-<div class="row layout-top-spacing"> 
-    @include('common.alerts') 
+<div class="row layout-top-spacing">
     @if($action == 1)    
     <div class="col-sm-12 layout-spacing">      
     	<div class="widget-content-area">
@@ -54,6 +53,7 @@
 	@include('livewire.proveedores.form')		
 	@include('livewire.proveedores.modal')		
 	@include('livewire.proveedores.modalIva')		
+	@include('livewire.proveedores.modalCategoria')		
 	@endcan
 	@endif
 </div>
@@ -130,6 +130,38 @@
         $('#modalAddIva').modal('hide')
         window.livewire.emit('createIvaFromModal', data)
     } 
+    function openModalCategoria()
+    {
+        $('.modal-title').text('Agregar Categoría de Egresos')    
+        $('#descripcion_cat').val('')
+		// $('.gastoFijo').val
+        $('#modalAddCategoria').modal('show')
+	}
+    function saveCategoria()
+    {
+        if($('#descripcion_cat').val() == '') {
+            toastr.error('El campo Descripción no puede estar vacío')
+            return;
+        }
+		var tipo;
+		var elementos = document.getElementsByName("checks");
+		for(var i=0; i<elementos.length; i++) {
+			if(!elementos[i].checked) tipo = 1;
+			else tipo = 2;
+		}
+        var data = JSON.stringify({
+            'descripcion': $('#descripcion_cat').val(),
+			'tipo': tipo,
+        });
+
+        $('#modalAddCategoria').modal('hide')
+        window.livewire.emit('createCategoriaFromModal', data)
+    }
+    function guardar()
+    {
+		document.getElementById("nombre").focus();
+        window.livewire.emit('StoreOrUpdate');
+    }
     window.onload = function() {
         document.getElementById("search").focus();
     }

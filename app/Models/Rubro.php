@@ -12,5 +12,5 @@ class Rubro extends Model
     protected $dates = ['deleted_at'];
     
     protected $table = 'rubros';
-    protected $fillable = ['descripcion', 'comercio_id'];
+    protected $fillable = ['descripcion', 'mostrar_al_vender', 'comercio_id'];
 }

@@ -58,7 +58,7 @@
         </div> 
         <div class="row"> 
             <div class="col-12 layout-spacing">
-                <h6>Opciones de Guardado al Modificar "el Costo" de un Producto</h6>
+                <h6>Opciones de Guardado al "Modificar Manualmente el Costo" de un Producto</h6>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="inlineRadioOptions13" id="inlineRadio14" value="1" wire:model="opcion_de_guardado_producto">
                     <label class="form-check-label" for="inlineRadio14">Deseo que solo se modifiquen los Precios de Costo y de Venta Sugeridos</label>
@@ -93,31 +93,42 @@
                 </div>
             </div>
         </div> 
-        <div class="row">           
+        <div class="row"> 
+            <div class="col-12 col-md-4 layout-spacing">
+                <h6>Permitir ventas sin stock</h6>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio4" value="1" wire:model="venta_sin_stock">
+                    <label class="form-check-label" for="inlineRadio4">Si</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio5" value="0" wire:model="venta_sin_stock" checked>
+                    <label class="form-check-label" for="inlineRadio5">No</label>
+                </div>
+            </div>          
             <div class="col-12 col-md-4 layout-spacing">
                 <h6>Impresiones en Hoja A4</h6>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio4" value="1" wire:model="imp_por_hoja" checked>
-                    <label class="form-check-label" for="inlineRadio4">1 hoja</label>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions3" id="inlineRadio6" value="1" wire:model="imp_por_hoja" checked>
+                    <label class="form-check-label" for="inlineRadio6">1 hoja</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio5" value="2" wire:model="imp_por_hoja">
-                    <label class="form-check-label" for="inlineRadio5">1/2 hoja</label>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions3" id="inlineRadio7" value="2" wire:model="imp_por_hoja">
+                    <label class="form-check-label" for="inlineRadio7">1/2 hoja</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio6" value="4" wire:model="imp_por_hoja">
-                    <label class="form-check-label" for="inlineRadio6">1/4 hoja</label>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions3" id="inlineRadio8" value="4" wire:model="imp_por_hoja">
+                    <label class="form-check-label" for="inlineRadio8">1/4 hoja</label>
                 </div>
             </div>
             <div class="col-12 col-md-4 layout-spacing">
                 <h6>Imprimir Duplicados</h6>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions3" id="inlineRadio7" value="1" wire:model="imp_duplicado">
-                    <label class="form-check-label" for="inlineRadio7">Si</label>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions4" id="inlineRadio9" value="1" wire:model="imp_duplicado">
+                    <label class="form-check-label" for="inlineRadio9">Si</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions3" id="inlineRadio8" value="0" wire:model="imp_duplicado" checked>
-                    <label class="form-check-label" for="inlineRadio8">No</label>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions4" id="inlineRadio10" value="0" wire:model="imp_duplicado" checked>
+                    <label class="form-check-label" for="inlineRadio10">No</label>
                 </div>
             </div>
         </div>
@@ -130,6 +141,21 @@
                     wire:click.prevent="StoreOrUpdate"   
                     class="btn btn-primary">
                     <i class="mbri-success"></i> Guardar
+                </button>
+                <button type="button"
+                    onclick="borrarDatos()"   
+                    class="btn btn-warning">
+                    <i class="mbri-success"></i> Borrar Datos de Prueba
+                </button>        
+                <button type="button"
+                    onclick="recuperarDatos()"   
+                    class="btn btn-warning">
+                    <i class="mbri-success"></i> Recuperar Datos de Prueba
+                </button>       
+                <button type="button"
+                    onclick=""   
+                    class="btn btn-success">
+                    <i class="mbri-success"></i> Restaurar a valores preestablecidos
                 </button>       
             </div>
         </div>
@@ -142,5 +168,48 @@
     function salir()
     {
         window.location.href="{{ url('home') }}";
+    }
+    function borrarDatos()
+    {
+        Swal.fire({
+            position: 'center',
+            icon: 'question',
+            title: 'CONFIRMAR',
+            html: '¿DESEAS ELIMINAR TODOS LOS REGISTROS DE PRUEBA?<br>' + 
+            'No podrás deshacer esta acción...',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.livewire.emit('borrarDatos')  
+                swal.close() 
+            }  
+        })       
+    }
+    function recuperarDatos()
+    {
+        Swal.fire({
+            position: 'center',
+            icon: 'question',
+            title: 'CONFIRMAR',
+            text: '¿DESEAS RECUPERAR TODOS LOS REGISTROS DE PRUEBA?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            closeOnConfirm: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.livewire.emit('recuperarDatos')  
+                swal.close() 
+            }  
+        })  
     }
 </script>

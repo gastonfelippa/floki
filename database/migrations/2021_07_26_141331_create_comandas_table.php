@@ -26,7 +26,11 @@ class CreateComandasTable extends Migration
 
             $table->datetime('sent_at')->nullable();
             $table->datetime('finished_at')->nullable();
+            
+            $table->unsignedBigInteger('comercio_id');
+            $table->foreign('comercio_id')->references('id')->on('comercios');
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }

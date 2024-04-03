@@ -12,7 +12,7 @@ use DB;
 
 class CategoriaController extends Component
 {
-	public $descripcion, $margen_1, $margen_2, $rubros, $rubro ='Elegir', $tipo = 'Ambos';
+	public $descripcion, $margen_1 = 0, $margen_2 = 0, $rubros, $rubro ='Elegir', $tipo = 'Ambos';
     public $selected_id, $search, $action = 1, $recuperar_registro = 0, $calcular_precio_de_venta;  
     public $descripcion_soft_deleted, $id_soft_deleted;
     public $comercioId, $comercioTipo, $modComandas, $mostrar_al_vender = 'si', $mostrar_al_vender_ch;
@@ -60,8 +60,8 @@ class CategoriaController extends Component
     private function resetInput()
     {
         $this->descripcion       = '';
-        $this->margen_1          = '';
-        $this->margen_2          = '';
+        $this->margen_1          = 0;
+        $this->margen_2          = 0;
         $this->rubro             = 'Elegir';
         $this->selected_id       = null;    
         $this->search            = '';
@@ -128,9 +128,9 @@ class CategoriaController extends Component
         try{
             if($this->selected_id > 0) {
                 $existe = Categoria::where('descripcion', $this->descripcion)
-                ->where('id', '<>', $this->selected_id)
-                ->where('comercio_id', $this->comercioId)
-                ->withTrashed()->get();
+                    ->where('id', '<>', $this->selected_id)
+                    ->where('comercio_id', $this->comercioId)
+                    ->withTrashed()->get();
                 if($existe->count() && $existe[0]->deleted_at != null) {
                     $this->action = 1;
                     $this->recuperar_registro = 1;

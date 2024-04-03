@@ -32,6 +32,9 @@ class MovimientosDeCajaController extends Component
 
         $egresos = Gasto::where('comercio_id', $this->comercioId)->get();
         $proveedores = Proveedor::where('comercio_id', $this->comercioId)->get();
+        // $proveedores = Proveedor::join('users as u', 'u.comercio_id', 'proveedores.comercio_id')
+        //                 ->where('proveedores.comercio_id', $this->comercioId)->get();
+        // dd($proveedores);
         $ingresos = OtroIngreso::where('comercio_id', $this->comercioId)->get();
      
         switch ($this->estado) {    //'estado' indica si se ven egresos u otros ingresos de entrada al form

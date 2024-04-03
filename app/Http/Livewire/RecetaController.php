@@ -17,12 +17,15 @@ use DB;
 class RecetaController extends Component
 {
     public $comercioId, $id_prod_receta;
-    public $cantidad = null, $total, $comentario, $action = 1, $selected_id = null;
+    public $cantidad = null, $total, $total_porcion, $comentario, $action = 1, $selected_id = null;
     public $unidad = 'Elegir', $producto = 'Elegir', $productos, $prod_receta, $prod = 'Helado 1 Bocha';
+    public $presentacion, $unidad_medida_presentacion, $porciones, $porcion, $habilitar_porciones = false;
     public $porcentaje, $calcular_precio_de_venta, $redondear_precio_de_venta, $categoria;
     public $precioCosto, $precio_venta_sug_l1, $precio_venta_sug_l2, $precio_venta_l1, $precio_venta_l2;
     public $porcentaje_margen_1, $porcentaje_margen_2, $importe_anterior, $preguntarPorPrecio;
     public $recetaId, $tiene_receta, $procedimiento, $cambiar_precios, $detalleProductoCargado;
+    public $precio_venta_sub_receta_l1, $precio_venta_sub_receta_l2, $precio_venta_sub_receta_sug_l1, $precio_venta_sub_receta_sug_l2;
+    public $nueva_porcion;
 
     public function render()
     {
@@ -33,8 +36,8 @@ class RecetaController extends Component
         if(!$this->preguntarPorPrecio) $this->preguntarPorPrecio = 'si';
 
         $record = Comercio::find($this->comercioId);
-		$this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
-		$this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
+        $this->calcular_precio_de_venta = $record->calcular_precio_de_venta;
+        $this->redondear_precio_de_venta = $record->redondear_precio_de_venta;
 
         $producto = Producto::find($this->id_prod_receta);
         $this->prod_receta = $producto->descripcion;
@@ -45,29 +48,40 @@ class RecetaController extends Component
         $this->porcentaje_margen_2 = $porcentaje[0]->margen_2;
 
         $this->productos = Producto::where('comercio_id', $this->comercioId)
-                            ->where('tipo', 'not like', 'Art. Venta')->orderBy('descripcion')->get();
+                            ->where('tipo', 'not like', 'Art. Venta')
+                            ->where('estado', 'Disponible')
+                            ->where('id', 'not like', $this->id_prod_receta)->orderBy('descripcion')->get();
 
         $this->tiene_receta = Receta::where('producto_id', $this->id_prod_receta)
-            ->where('comercio_id', $this->comercioId)->select('id', 'procedimiento')->get();
+            ->where('comercio_id', $this->comercioId)->select('id', 'porciones', 'procedimiento')->get();
         if($this->tiene_receta->count()){
             $this->recetaId = $this->tiene_receta[0]->id;
+            $this->porciones= $this->tiene_receta[0]->porciones;
         }
 
         $info = DetReceta::join('recetas as r', 'r.id', 'det_recetas.receta_id')
             ->where('r.producto_id', $this->id_prod_receta)
             ->where('r.comercio_id', $this->comercioId)
             ->select('det_recetas.*', DB::RAW("'' as descripcion"), DB::RAW("'' as precio_costo"),
-                DB::RAW("'' as importe"))->get();
+                DB::RAW("0 as merma"),DB::RAW("0 as cantidad_real"),DB::RAW("'' as importe"))->get();              
         $this->total = 0;
-        if($info->count()){
+        if($info->count() > 0){
             foreach ($info as $i){
                 $producto = Producto::find($i->producto_id);
                 $i->descripcion = $producto->descripcion;
                 $i->precio_costo = $producto->precio_costo;
-                $i->importe = $i->cantidad * $producto->precio_costo;
 
-                $this->total = $this->total + $i->importe;
+                if($producto->merma > 0) $i->merma = $producto->merma;
+                else $i->merma = 0;
+              
+                if ($producto->merma > 0) {
+                    $i->cantidad_real = $i->cantidad + (($i->cantidad * $producto->merma)/100);
+                }else $i->cantidad_real = $i->cantidad;
+
+                $i->importe = ($i->cantidad_real * $producto->precio_costo)/$producto->presentacion;
+                $this->total = $this->total + $i->importe;               
             }
+            if($this->total > 0) $this->total_porcion = $this->total / $this->porciones;
         }
         return view('livewire.recetas.component', ['info' => $info]);
     }
@@ -81,16 +95,58 @@ class RecetaController extends Component
             if($procedimiento) $this->procedimiento = $procedimiento->procedimiento;
         }
     }
-    public function resetInput(){
-        $this->cantidad            = null;
-        $this->unidad              = 'Elegir';
-        $this->producto            = 'Elegir';
-        $this->selected_id         = null;
+    public function resetInput()
+    {
+        $this->cantidad                   = null;
+        $this->unidad                     = 'Elegir';
+        $this->producto                   = 'Elegir';
+        $this->presentacion               = '';
+        $this->unidad_medida_presentacion = null;
+        $this->producto                   = 'Elegir';
+        $this->selected_id                = null;
+        $this->habilitar_porciones        = false;
+        $this->emit('focus');
     }
     protected $listeners = [
-        'calcular_precio_venta'     => 'calcular_precio_venta',
-        'actualizarPreciosCargados' => 'actualizarPreciosCargados'
+        'calcular_precio_venta',
+        'actualizarPreciosCargados',
+        'buscar_producto',
+        'verificar_unidades',
+        'habilitar_porciones',
+        'comparar_porciones',
+        'resetPorciones',
+        'actualizarPorciones'
 	];
+    public function resetPorciones()
+    {
+        $this->habilitar_porciones = false;
+    }
+    public function habilitar_porciones()
+    {
+        $this->nueva_porcion = $this->porciones;
+        $this->habilitar_porciones = true;
+    }
+    public function comparar_porciones()
+    {
+        if($this->total > 0) if($this->nueva_porcion != $this->porciones) $this->emit('actualizar_porciones');
+    }
+    public function buscar_producto()
+    {
+        $producto = Producto::where('id', $this->producto)->select('presentacion', 'unidad_de_medida')->first();
+        if ($producto){
+            $this->presentacion = $producto->presentacion;
+            $this->unidad_medida_presentacion = $producto->unidad_de_medida;
+        }else $this->resetInput();  
+    }
+    public function verificar_unidades()
+    {
+        if($this->unidad != 'Elegir' && $this->unidad_medida_presentacion){
+            if($this->unidad != $this->unidad_medida_presentacion){
+                $this->unidad = 'Elegir';
+                $this->emit('unidadesDeMedidaDiferentes');
+            } 
+        }
+    }
 	public function actualizarPreciosCargados()
 	{
 		//ACTUALIZO LOS IMPORTES QUE FIGUREN EN LOS DETALLE DE FACTURA ABIERTA O PENDIENTE
@@ -104,7 +160,7 @@ class RecetaController extends Component
 				->orWhere('facturas.estado', 'pendiente')
 				->where('facturas.comercio_id', $this->comercioId)
 				->where('df.producto_id', $this->id_prod_receta)
-				->select('df.id', 'df.precio')->get();
+				->select('df.id', 'facturas.mesa_id')->get();
 			if($detalle->count()){
 				foreach ($detalle as $i) {
 					$grabar = Detfactura::find($i->id);
@@ -112,7 +168,7 @@ class RecetaController extends Component
 					else $grabar->update(['precio' => $this->precio_venta_l2]);	
 				}
 			}
-			session()->flash('msg-ok', 'Facturas actualizadas exitosamente!!!');
+            $this->emit('facturasActualizadas');
 			DB::commit();
 		}catch (\Exception $e){
 			DB::rollback();
@@ -121,6 +177,31 @@ class RecetaController extends Component
 		$this->resetInput();
 		return;
 	}
+    public function actualizarPorciones()
+    {
+        DB::begintransaction();
+        try{
+            $receta = Receta::find($this->recetaId);
+            $receta->update(['porciones' => $this->nueva_porcion]);
+            $this->total_porcion = $this->total / $this->nueva_porcion;
+            
+            //calculo los precios a modificar
+            $this->calcularPrecios($this->total_porcion);
+
+            //actualizo los precios del producto de la receta
+            $this->actualizarPreciosProductoReceta();
+
+            //actualizo precios de recetas en donde este producto aparezca como ingrediente
+            $this->actualizarRecetasRelacionadas();         
+
+            session()->flash('msg-ok', 'Porción Actualizada');
+            DB::commit();
+        }catch (\Exception $e){
+            DB::rollback();
+            session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
+        }
+        $this->resetInput();
+    }
     public function edit($id)
     {
         $record = DetReceta::findOrFail($id);
@@ -128,10 +209,18 @@ class RecetaController extends Component
         $this->cantidad    = $record->cantidad;
         $this->unidad      = $record->unidad_de_medida;
         $this->producto    = $record->producto_id;
+
         //calculo el importe del item a editar de la receta para luego descontar del total
         $producto = Producto::find($this->producto);
+        $cantidad = $this->cantidad;
         $precio_costo = $producto->precio_costo;
-        $this->importe_anterior = $this->cantidad * $precio_costo;
+        $this->presentacion = $producto->presentacion;
+        $this->unidad_medida_presentacion = $producto->unidad_de_medida;
+      
+        if ($producto->merma > 0) {
+            $cantidad_real = $cantidad + (($cantidad * $producto->merma)/100);
+        }else $cantidad_real = $cantidad;
+        $this->importe_anterior = ($cantidad_real * $producto->precio_costo)/$producto->presentacion;
     }
     public function calcular_precio_venta($data_cambios, $accion, $id, $comentario)
     {
@@ -139,7 +228,7 @@ class RecetaController extends Component
             $this->preguntarPorPrecio = 'no';
             $this->cambiar_precios = $data_cambios;
         }
-        if($accion == 'agregar'){    //si agrego un item
+        if($accion == 'agregar'){    //si agrego o modifico un item
             $this->validate([
                 'cantidad' => 'required|numeric|min:0|not_in:0',
                 'unidad'   => 'not_in:Elegir|required',
@@ -149,9 +238,14 @@ class RecetaController extends Component
             $producto = Producto::find($this->producto);
             $cantidad = $this->cantidad;
             $precio_costo = $producto->precio_costo;
-            $importe = $cantidad * $precio_costo;
+          
+            if ($producto->merma > 0) {
+                $cantidad_real = $cantidad + (($cantidad * $producto->merma)/100);
+            }else $cantidad_real = $cantidad;
+            $importe = ($cantidad_real * $producto->precio_costo)/$producto->presentacion;
+
             if($this->selected_id) $precio_costo = $this->total - $this->importe_anterior + $importe;
-            else $precio_costo = $this->total + $importe;
+            else $precio_costo = $this->total + $importe;  //costo de esta receta
         }else{     //si elimino un item
             $this->comentario = $comentario;
             //calculo variables para luego actualizar precios de costo y venta del producto
@@ -161,22 +255,36 @@ class RecetaController extends Component
 
             $producto = Producto::find($producto);
             $precio_costo = $producto->precio_costo;
-            $importe = $cantidad * $precio_costo;
+
+            if ($producto->merma > 0) {
+                $cantidad_real = $cantidad + (($cantidad * $producto->merma)/100);
+            }else $cantidad_real = $cantidad;
+            $importe = ($cantidad_real * $producto->precio_costo)/$producto->presentacion; 
             $precio_costo = $this->total - $importe;
         }
+        
+        if($this->total > 0) $this->total_porcion = $precio_costo / $this->porciones;
+        else $this->total_porcion = $precio_costo / $this->nueva_porcion;
 
+        if($accion == 'agregar') $this->StoreOrUpdate();    //si agrego un item
+        else $this->destroy($id);                            //si elimino un item
+
+    }
+    public function calcularPrecios($precioDeCosto)
+    {
+        //LA VARIABLE '$precio_costo' HACE REFERENCIA AL PRECIO DE COSTO DEL PRODUCTO CABECERA DE LA RECETA
         if ($this->calcular_precio_de_venta == 0){
             //calcula el precio de venta sumando el margen de ganancia al costo del producto
-            $this->precio_venta_sug_l1 = ($precio_costo * $this->porcentaje_margen_1) / 100 + $precio_costo;
-            $this->precio_venta_sug_l2 = ($precio_costo * $this->porcentaje_margen_2) / 100 + $precio_costo;
-            $this->precio_venta_l1 = ($precio_costo * $this->porcentaje_margen_1) / 100 + $precio_costo;
-            $this->precio_venta_l2 = ($precio_costo * $this->porcentaje_margen_2) / 100 + $precio_costo;
+            $this->precio_venta_sug_l1 = ($precioDeCosto * $this->porcentaje_margen_1) / 100 + $precioDeCosto;
+            $this->precio_venta_sug_l2 = ($precioDeCosto * $this->porcentaje_margen_2) / 100 + $precioDeCosto;
+            $this->precio_venta_l1 = ($precioDeCosto * $this->porcentaje_margen_1) / 100 + $precioDeCosto;
+            $this->precio_venta_l2 = ($precioDeCosto * $this->porcentaje_margen_2) / 100 + $precioDeCosto;
         }else{
             //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
-            $this->precio_venta_sug_l1 = $precio_costo * 100 / (100 - $this->porcentaje_margen_1);
-            $this->precio_venta_sug_l2 = $precio_costo * 100 / (100 - $this->porcentaje_margen_2);
-            $this->precio_venta_l1 = $precio_costo * 100 / (100 - $this->porcentaje_margen_1);
-            $this->precio_venta_l2 = $precio_costo * 100 / (100 - $this->porcentaje_margen_2);
+            $this->precio_venta_sug_l1 = $precioDeCosto * 100 / (100 - $this->porcentaje_margen_1);
+            $this->precio_venta_sug_l2 = $precioDeCosto * 100 / (100 - $this->porcentaje_margen_2);
+            $this->precio_venta_l1 = $precioDeCosto * 100 / (100 - $this->porcentaje_margen_1);
+            $this->precio_venta_l2 = $precioDeCosto * 100 / (100 - $this->porcentaje_margen_2);
         }
         if ($this->redondear_precio_de_venta == 1){
             $this->precio_venta_sug_l1 = round($this->precio_venta_sug_l1, 0);
@@ -184,13 +292,11 @@ class RecetaController extends Component
             $this->precio_venta_l1 = round($this->precio_venta_l1, 0);
             $this->precio_venta_l2 = round($this->precio_venta_l2, 0);
         }
-        $this->precioCosto = $precio_costo;
-        if($accion == 'agregar') $this->StoreOrUpdate();    //si agrego un item
-        else $this->destroy($id);                            //si elimino un item
-
+        $this->precioCosto = $precioDeCosto;        
     }
     public function StoreOrUpdate()
     {
+        $this->verificar_unidades();
         DB::begintransaction();
         try{
             if($this->selected_id){    //si modifico un item
@@ -204,6 +310,7 @@ class RecetaController extends Component
                 if(!$this->recetaId){
                     $receta = Receta::create([
                         'producto_id' => $this->id_prod_receta,
+                        'porciones'   => $this->nueva_porcion,
                         'comercio_id' => $this->comercioId
                     ]);
                     $receta =  DetReceta::create([
@@ -223,33 +330,28 @@ class RecetaController extends Component
                     ]);
                 }
             }
-            //en todos los casos modifico los precios del Producto Final según lo elegido
-            $producto = Producto::find($this->id_prod_receta);
-            if($this->cambiar_precios == 'cambiar_todo'){  //modifica precios sugeridos y de lista
-                $producto->update([
-                    'precio_costo'        => $this->precioCosto,
-                    'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
-                    'precio_venta_sug_l2' => $this->precio_venta_sug_l2,
-                    'precio_venta_l1'     => $this->precio_venta_l1,
-                    'precio_venta_l2'     => $this->precio_venta_l2
-                ]);
-            }else{       				//solo modifica precios sugeridos
-                $producto->update([
-                    'precio_costo'        => $this->precioCosto,
-                    'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
-                    'precio_venta_sug_l2' => $this->precio_venta_sug_l2
-                ]);
+
+            //calculo los precios a modificar
+            $this->calcularPrecios($this->total_porcion);
+
+            //actualizo los precios del producto de la receta
+            $this->actualizarPreciosProductoReceta();
+          
+            //actualizo precios de recetas en donde este producto aparezca como ingrediente 
+            $this->actualizarRecetasRelacionadas();
+
+            //Si modifico los Precios de Lista, verifico los Detalle de Factura Abierta o Pendiente
+            //que contengan este Producto cargado. Luego pregunto si se quieren modificar las mismas o no.
+            if($this->cambiar_precios == 'cambiar_todo'){
+                $this->detalleProductoCargado = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
+                    ->where('facturas.estado', 'abierta')
+                    ->where('facturas.comercio_id', $this->comercioId)
+                    ->where('df.producto_id', $this->id_prod_receta)
+                    ->orWhere('facturas.estado', 'pendiente')
+                    ->where('facturas.comercio_id', $this->comercioId)
+                    ->where('df.producto_id', $this->id_prod_receta)
+                    ->select('df.id')->get();
             }
-            //VERIFICO LOS DETALLES DE FACTURA ABIERTA O PENDIENTE QUE CONTENGAN AL PRODUCTO(materia prima)
-            //QUE ESTAMOS CREANDO O MODIFICANDO PARA LUEGO PREGUNTAR SI SE QUIEREN MODIFICAR LAS MISMAS O NO
-            $this->detalleProductoCargado = Factura::join('detfacturas as df', 'df.factura_id', 'facturas.id')
-                ->where('facturas.estado', 'abierta')
-                ->where('facturas.comercio_id', $this->comercioId)
-                ->where('df.producto_id', $this->id_prod_receta)
-                ->orWhere('facturas.estado', 'pendiente')
-                ->where('facturas.comercio_id', $this->comercioId)
-                ->where('df.producto_id', $this->id_prod_receta)
-                ->select('df.id', 'df.precio')->get();
 
             if($this->selected_id) session()->flash('msg-ok', 'Item Actualizado');
             else session()->flash('msg-ok', 'Item Creado');
@@ -260,6 +362,8 @@ class RecetaController extends Component
         }
         if($this->detalleProductoCargado && $this->detalleProductoCargado->count()){
 			$this->emit('cambiarPrecioDetalle', $this->detalleProductoCargado->count());
+            $this->resetInput();
+			return;
 		}else{
 			$this->resetInput();
 			return;
@@ -312,26 +416,34 @@ class RecetaController extends Component
         if ($id) {
             DB::begintransaction();
             try{
-                //en todos los casos modifico los precios del 'id_prod_receta' según lo elegido
-                $producto = Producto::find($this->id_prod_receta);
-                if($this->cambiar_precios == 'cambiar_todo'){  //modifica precios sugeridos y de lista
-                    $producto->update([
-                        'precio_costo'        => $this->precioCosto,
-                        'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
-                        'precio_venta_sug_l2' => $this->precio_venta_sug_l2,
-                        'precio_venta_l1'     => $this->precio_venta_l1,
-                        'precio_venta_l2'     => $this->precio_venta_l2
-                    ]);
-                }else{       				//solo modifica precios sugeridos
-                    $producto->update([
-                        'precio_costo'        => $this->precioCosto,
-                        'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
-                        'precio_venta_sug_l2' => $this->precio_venta_sug_l2
-                    ]);
-                }
+                // //modifico los precios del 'id_prod_receta' según lo elegido
+                // $producto = Producto::find($this->id_prod_receta);
+                // if($this->cambiar_precios == 'cambiar_todo'){  //modifica precios sugeridos y de lista
+                //     $producto->update([
+                //         'precio_costo'        => $this->precioCosto,
+                //         'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                //         'precio_venta_sug_l2' => $this->precio_venta_sug_l2,
+                //         'precio_venta_l1'     => $this->precio_venta_l1,
+                //         'precio_venta_l2'     => $this->precio_venta_l2
+                //     ]);
+                // }else{       				//solo modifica precios sugeridos
+                //     $producto->update([
+                //         'precio_costo'        => $this->precioCosto,
+                //         'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                //         'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+                //     ]);
+                // }
+                //calculo los precios a modificar
+                $this->calcularPrecios($this->total_porcion);
 
                 //elimino item de la receta
                 $receta = DetReceta::find($id)->delete();
+
+                //actualizo los precios del producto de la receta
+                $this->actualizarPreciosProductoReceta();
+
+                $this->actualizarRecetasRelacionadas(); 
+
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
                     'tabla'           => 'Detalle/Recetas',
@@ -340,6 +452,7 @@ class RecetaController extends Component
                     'comentario'      => $this->comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
+
                 session()->flash('msg-ok', 'Registro eliminado con éxito!!');
                 DB::commit();
             }catch (\Exception $e){
@@ -348,5 +461,90 @@ class RecetaController extends Component
             }
             return;
         }
+    }
+    public function actualizarPreciosProductoReceta()
+    {
+        $producto = Producto::find($this->id_prod_receta);
+        if($this->cambiar_precios == 'cambiar_todo'){  //modifica precios sugeridos y de lista
+            $producto->update([
+                'precio_costo'        => $this->precioCosto,
+                'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                'precio_venta_sug_l2' => $this->precio_venta_sug_l2,
+                'precio_venta_l1'     => $this->precio_venta_l1,
+                'precio_venta_l2'     => $this->precio_venta_l2
+            ]);
+        }else{       				//solo modifica precios sugeridos
+            $producto->update([
+                'precio_costo'        => $this->precioCosto,
+                'precio_venta_sug_l1' => $this->precio_venta_sug_l1,
+                'precio_venta_sug_l2' => $this->precio_venta_sug_l2
+            ]);
+        };
+    }
+    public function actualizarRecetasRelacionadas()
+    { 
+        $sub_receta = DetReceta::join('recetas as r', 'r.id', 'det_recetas.receta_id')
+            ->where('det_recetas.producto_id', $this->id_prod_receta)
+            ->where('det_recetas.comercio_id', $this->comercioId)
+            ->select('det_recetas.receta_id', 'r.producto_id')->get();
+        if($sub_receta->count()){              
+            foreach ($sub_receta as $i){   
+                $sub_receta = DetReceta::where('receta_id', $i->receta_id)
+                    ->where('comercio_id', $this->comercioId)
+                    ->select('cantidad', 'unidad_de_medida', 'producto_id')->get();
+                $precio_costo_sub_receta = 0;
+                $this->precio_venta_sub_receta_sug_l1 = null;
+                $this->precio_venta_sub_receta_sug_l2 = null;
+                $this->precio_venta_sub_receta_l1 = null;
+                $this->precio_venta_sub_receta_l2 = null;
+                foreach ($sub_receta as $j) {
+                    $producto = Producto::where('id', $j->producto_id)   
+                        ->select('descripcion','precio_costo', 'merma', 'presentacion')->first();
+                    if ($producto->merma > 0) {
+                        $cantidad_real = $j->cantidad + (($j->cantidad * $producto->merma)/100);
+                    }else $cantidad_real = $j->cantidad;
+                    $importe_item_receta = ($cantidad_real * $producto->precio_costo)/$producto->presentacion;
+                    $precio_costo_sub_receta += $importe_item_receta;
+                }  
+                        
+                //LA VARIABLE '$precio_costo_sub_receta' HACE REFERENCIA AL PRECIO DE COSTO DEL PRODUCTO 
+                //QUE CONTIENE AL PRODUCTO CABECERA COMO INGREDIENTE DE SU PROPIA RECETA
+                if ($this->calcular_precio_de_venta == 0){
+                    //calcula el precio de venta sumando el margen de ganancia al costo del producto
+                    $this->precio_venta_sub_receta_sug_l1 = ($precio_costo_sub_receta * $this->porcentaje_margen_1) / 100 + $precio_costo_sub_receta;
+                    $this->precio_venta_sub_receta_sug_l2 = ($precio_costo_sub_receta * $this->porcentaje_margen_2) / 100 + $precio_costo_sub_receta;
+                    $this->precio_venta_sub_receta_l1 = ($precio_costo_sub_receta * $this->porcentaje_margen_1) / 100 + $precio_costo_sub_receta;
+                    $this->precio_venta_sub_receta_l2 = ($precio_costo_sub_receta * $this->porcentaje_margen_2) / 100 + $precio_costo_sub_receta;
+                }else{
+                    //calcula el precio de venta obteniendo el margen de ganancia sobre el mismo
+                    $this->precio_venta_sub_receta_sug_l1 = $precio_costo_sub_receta * 100 / (100 - $this->porcentaje_margen_1);
+                    $this->precio_venta_sub_receta_sug_l2 = $precio_costo_sub_receta * 100 / (100 - $this->porcentaje_margen_2);
+                    $this->precio_venta_sub_receta_l1 = $precio_costo_sub_receta * 100 / (100 - $this->porcentaje_margen_1);
+                    $this->precio_venta_sub_receta_l2 = $precio_costo_sub_receta * 100 / (100 - $this->porcentaje_margen_2);
+                }
+                if ($this->redondear_precio_de_venta == 1){
+                    $this->precio_venta_sub_receta_sug_l1 = round($this->precio_venta_sub_receta_sug_l1, 0);
+                    $this->precio_venta_sub_receta_sug_l2 = round($this->precio_venta_sub_receta_sug_l2, 0);
+                    $this->precio_venta_sub_receta_l1 = round($this->precio_venta_sub_receta_l1, 0);
+                    $this->precio_venta_sub_receta_l2 = round($this->precio_venta_sub_receta_l2, 0);
+                }
+                $producto_sub_receta = Producto::find($i->producto_id);
+                if($this->cambiar_precios == 'cambiar_todo'){ 
+                    $producto_sub_receta->update([
+                        'precio_costo'        => $precio_costo_sub_receta,
+                        'precio_venta_sug_l1' => $this->precio_venta_sub_receta_sug_l1,
+                        'precio_venta_sug_l2' => $this->precio_venta_sub_receta_sug_l2,
+                        'precio_venta_l1'     => $this->precio_venta_sub_receta_l1,
+                        'precio_venta_l2'     => $this->precio_venta_sub_receta_l2
+                    ]);
+                }else{       			
+                    $producto_sub_receta->update([
+                        'precio_costo'        => $precio_costo_sub_receta,
+                        'precio_venta_sug_l1' => $this->precio_venta_sub_receta_sug_l1,
+                        'precio_venta_sug_l2' => $this->precio_venta_sub_receta_sug_l2,
+                    ]);
+                }
+            }
+        } 
     }
 }

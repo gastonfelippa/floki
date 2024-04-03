@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Detcomanda extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
 
+    protected $dates = ['deleted_at'];
     protected $table = 'detcomandas';
-    protected $fillable = ['comanda_id', 'producto_id', 'subproducto_id','cantidad', 'descripcion', 'comercio_id'];
+    protected $fillable = ['comanda_id', 'producto_id', 'subproducto_id','cantidad', 'descripcion', 
+                           'comercio_id'];
 }

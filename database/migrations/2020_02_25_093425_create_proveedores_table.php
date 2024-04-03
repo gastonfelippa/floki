@@ -32,6 +32,9 @@ class CreateProveedoresTable extends Migration
             $table->string('apellido_contacto')->nullable();
             $table->string('tel_contacto',15)->nullable();
             
+            $table->unsignedBigInteger('categoria_id');
+            $table->foreign('categoria_id')->references('id')->on('categoria_gastos');
+
             $table->unsignedBigInteger('comercio_id');
             $table->foreign('comercio_id')->references('id')->on('comercios');
            

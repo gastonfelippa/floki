@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Traits\GenericTrait;
 use App\Models\Auditoria;
 use App\Models\Banco;
 use App\Models\CajaUsuario;
@@ -10,6 +11,7 @@ use App\Models\Categoria;
 use App\Models\Cheque;
 use App\Models\Cliente;
 use App\Models\Comanda;
+use App\Models\Comercio;
 use App\Models\Ctacte;
 use App\Models\Detcomanda;
 use App\Models\Detfactura;
@@ -19,6 +21,7 @@ use App\Models\Factura;
 use App\Models\Guarnicion;
 use App\Models\Localidad;
 use App\Models\Mesa;
+use App\Models\Peps;
 use App\Models\Producto;
 use App\Models\Receta;
 use App\Models\Reserva;
@@ -29,11 +32,13 @@ use App\Models\Subproducto;
 use App\Models\User;
 use Carbon\Carbon;
 use DB;
+use Log;
 
 class FacturaBarController extends Component
 {
+    use GenericTrait;
 	//properties
-    public $stock, $cantidad = 1, $precio, $estado='ABIERTO', $inicio_factura, $mostrar_datos, $facturaPendiente;
+    public $stock, $cantidad = 1, $precio, $costo, $estado='ABIERTO', $inicio_factura, $mostrar_datos, $facturaPendiente;
     public $cliente="Elegir", $empleado="Elegir", $producto="Elegir", $subproducto="Elegir", $mesa="Elegir", $mozo="Elegir", $salon =null;
     public $clientes, $empleados, $productos, $subproductos, $mesas, $mozos, $rubros, $bancos = "Elegir", $esConsFinal;
     public $selected_id = 0, $detalleFactId = 0, $agregar_quitar_producto = 1, $numFactura, $action = 1;
@@ -49,9 +54,9 @@ class FacturaBarController extends Component
     public $unir_comandas = 'no', $estadoComanda, $tab = 'factura', $infoComandaEnEspera;
     public $modDelivery, $modComandas, $modConsignaciones, $mesaId, $mozoId, $mesaDesc, $mozoDesc, $permisos = 1;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no', $tiene_receta = false;
-    public $camarero = null, $categoria_id, $rubro_id, $search, $permitirCargaSinStock = 'no';
+    public $camarero = null, $categoria_id, $rubro_id, $search;
     public $info = [], $infoMediosDePago = [];
-    public $lista, $importeCompPago, $nomCli;
+    public $lista, $importeCompPago, $nomCli, $permitir_carga_sin_stock = 'no', $venta_sin_stock_general, $se_imprime_en_comanda;
 	
 	public function render()
     {
@@ -63,6 +68,10 @@ class FacturaBarController extends Component
         $this->modComandas = session('modComandas');
         $this->modConsignaciones = session('modConsignaciones');
         $this->facturaPendiente = session('facturaPendiente');
+
+        //verifico para luego preguntar o no al vender sin stock
+        $comercio = Comercio::where('id', $this->comercioId)->select('venta_sin_stock')->first();
+        $this->venta_sin_stock_general = $comercio->venta_sin_stock;
 
         //vemos si tenemos una caja habilitada con nuestro user_id
         $caja_abierta = CajaUsuario::where('caja_usuarios.caja_usuario_id', auth()->user()->id)
@@ -85,7 +94,8 @@ class FacturaBarController extends Component
         }else{
             $buscar_mesa = Mesa::find($this->mesaId);
             $this->mesaDesc = $buscar_mesa->descripcion;
-            if(session()->has('idMozo')){             //si es una mesa nueva
+            if ($buscar_mesa->estado != 'Ocupada' && $buscar_mesa->estado != 'C/factura') { //si es una mesa nueva
+                //if(session()->has('idMozo')){             //si es una mesa nueva
                 //$this->mozoDesc = session("idMozo");       //si queremos que muestre el id del mozo en la factura
                 $mozo = session('idMozo');
                 $idMozo = $mozo['lista'];
@@ -167,32 +177,34 @@ class FacturaBarController extends Component
             if($encabezado->count()){
                 if($this->factura_id){  //si hay alguna factura abierta debo ver si es de salón o delivery
                     $encabezado = Factura::find($this->factura_id);
-                    if($encabezado->mesa_id != null){  //al tener mesa_id significa que no es delivery
-                        $encabezado = Factura::join('mesas as m', 'm.id', 'facturas.mesa_id')
-                            ->where('facturas.id', $this->factura_id)
-                            ->select('facturas.*', 'facturas.numero as nroFact', 'm.descripcion')->get();
-                        $this->inicio_factura = false;
-                        $this->numFactura = $encabezado[0]->nroFact;
-                        $this->fecha = $encabezado[0]->created_at;
-                        $this->clienteId = $encabezado[0]->cliente_id;   ///AGREGADO//////
-                        $this->delivery = 0;          //dice si la factura es delivery
-                        $this->mostrar_datos = 0;     //muestra datos del modal, no de la BD  
-                    }else{      //busco factura delivery
-                        $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
-                            ->join('users as u','u.id','facturas.repartidor_id')
-                            ->where('facturas.id', $this->factura_id)
-                            ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
-                                    'c.numero', 'u.name as nomRep', 'u.apellido as apeRep')->get();
-                        $this->numFactura = $encabezado[0]->nroFact;
-                        $this->fecha = $encabezado[0]->created_at;
-                        $this->clienteId = $encabezado[0]->cliente_id;
-                        $this->mesaDesc = $encabezado[0]->descripcion;
-                        $this->inicio_factura = false;
-                        $this->delivery = 1;
-                        $this->estado_entrega = $encabezado[0]->estado_entrega;
-                        $this->dirCliente = $encabezado[0]->calle . ' ' . $encabezado[0]->numero;
-                        $this->verSaldo($encabezado[0]->cliente_id);
-                        $this->mostrar_datos = 0;
+                    if ($encabezado) {
+                        if($encabezado->mesa_id != null){  //al tener mesa_id significa que no es delivery
+                            $encabezado = Factura::join('mesas as m', 'm.id', 'facturas.mesa_id')
+                                ->where('facturas.id', $this->factura_id)
+                                ->select('facturas.*', 'facturas.numero as nroFact', 'm.descripcion')->get();
+                            $this->inicio_factura = false;
+                            $this->numFactura = $encabezado[0]->nroFact;
+                            $this->fecha = $encabezado[0]->created_at;
+                            $this->clienteId = $encabezado[0]->cliente_id;   ///AGREGADO//////
+                            $this->delivery = 0;          //dice si la factura es delivery
+                            $this->mostrar_datos = 0;     //muestra datos del modal, no de la BD  
+                        }else{      //busco factura delivery
+                            $encabezado = Factura::join('clientes as c','c.id','facturas.cliente_id')
+                                ->join('users as u','u.id','facturas.repartidor_id')
+                                ->where('facturas.id', $this->factura_id)
+                                ->select('facturas.*', 'facturas.numero as nroFact','c.nombre as nomCli', 'c.apellido as apeCli','c.calle',
+                                        'c.numero', 'u.name as nomRep', 'u.apellido as apeRep')->get();
+                            $this->numFactura = $encabezado[0]->nroFact;
+                            $this->fecha = $encabezado[0]->created_at;
+                            $this->clienteId = $encabezado[0]->cliente_id;
+                            $this->mesaDesc = $encabezado[0]->descripcion;
+                            $this->inicio_factura = false;
+                            $this->delivery = 1;
+                            $this->estado_entrega = $encabezado[0]->estado_entrega;
+                            $this->dirCliente = $encabezado[0]->calle . ' ' . $encabezado[0]->numero;
+                            $this->verSaldo($encabezado[0]->cliente_id);
+                            $this->mostrar_datos = 0;
+                        }
                     }
                 }else {             //si no hay una factura abierta para esa mesa, le sumo 1 a la última
                     $this->inicio_factura = true;
@@ -258,12 +270,16 @@ class FacturaBarController extends Component
             $this->articulos = Producto::where('comercio_id', $this->comercioId)
                 ->where('descripcion', 'like', '%' . $this->search .'%')
                 ->where('tipo', 'not like', 'Art. Compra')
+                ->where('tipo', 'not like', 'Art. Elaborado')
+                ->where('estado', 'Disponible')
                 ->select('id', 'descripcion')
                 ->orderBy('descripcion')->get();
         }else{
             $this->articulos = Producto::where('comercio_id', $this->comercioId)
                 ->where('categoria_id', $this->categoria_id)
                 ->where('tipo', 'not like', 'Art. Compra')
+                ->where('tipo', 'not like', 'Art. Elaborado')
+                ->where('estado', 'Disponible')
                 ->select('id', 'descripcion')
                 ->orderBy('descripcion')->get();
         }
@@ -279,7 +295,9 @@ class FacturaBarController extends Component
             ->where('comercio_id', $this->comercioId)
             ->select('id', 'descripcion')->orderBy('descripcion')->get();
 
-        $this->rubros = Rubro::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
+        $this->rubros = Rubro::where('comercio_id', $this->comercioId)
+                            ->where('mostrar_al_vender', 'si')
+                            ->select('id', 'descripcion')->orderBy('descripcion')->get();
         $this->salsas = Salsa::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
         $this->guarniciones = Guarnicion::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
         $this->mesas = Mesa::where('comercio_id', $this->comercioId)->select('id', 'descripcion')->orderBy('descripcion')->get();
@@ -386,6 +404,7 @@ class FacturaBarController extends Component
         $this->cantidad           = 1;
         $this->barcode            = '';
         $this->precio             = '';
+        $this->costo              = '';
         $this->producto           = 'Elegir';
         $this->subproducto        = 'Elegir';
         $this->selected_id        = 0;
@@ -411,11 +430,12 @@ class FacturaBarController extends Component
         $this->stock              = '';
         $this->detalleFactId      = 0;
         $this->agregar_quitar_producto = 1;
-        $this->permitirCargaSinStock = 'no';
         $this->tiene_receta      = false;
         $this->saldo             = 0;
         $this->info              = [];
         $this->infoMediosDePago  = [];
+        $this->se_imprime_en_comanda = null;
+        $this->permitir_carga_sin_stock = 'no';
     } 
     public function ocultar_sp()
     {
@@ -429,6 +449,7 @@ class FacturaBarController extends Component
             $this->articulos = null;
             $articulos = Producto::where('codigo', $this->barcode)
                             ->where('tipo', 'not like', 'Art. Compra')
+                            ->where('estado', 'Disponible')
                             ->where('comercio_id', $this->comercioId)->get();
             if ($articulos->count()) $this->producto = $articulos->id;
             else session()->flash('msg-error', 'El Código no existe...');
@@ -460,6 +481,7 @@ class FacturaBarController extends Component
     ];
     public function permitirCargaSinStock($option, $id)
     {
+        $this->permitir_carga_sin_stock = $option;
         if($option == 'si') $this->verSalsaGuarn($id);
     }
     public function salir()
@@ -553,6 +575,8 @@ class FacturaBarController extends Component
     {
         $pvta = Producto::select()->where('codigo', $id)
             ->where('tipo', 'not like', 'Art. Compra')
+            ->where('tipo', 'not like', 'Art. Elaborado')
+            ->where('estado', 'Disponible')
             ->where('comercio_id', $this->comercioId)->get();
         
         if ($pvta->count() > 0){
@@ -562,14 +586,6 @@ class FacturaBarController extends Component
             session()->flash('msg-error', 'El Código no existe...');
         } 
     }
-    // public function editEntrega($id)
-    // {
-    //     $record = DetMetodoPago::find($id);
-    //     $this->selected_id = $id;
-    //     $this->producto = $record->producto_id;
-    //     $this->precio = $record->precio;
-    //     $this->cantidad = $record->cantidad;
-    // }
     public function modificarComanda($id)
     {
         $record = Detcomanda::find($id); 
@@ -577,7 +593,6 @@ class FacturaBarController extends Component
         $record->update([                       //actualizamos el registro
             'producto_id' => $this->producto,
             'cantidad'    => $this->cantidad,
-            'precio'      => $this->precio
         ]);
         if($this->controlar_stock == 'si'){
             $record = Stock::where('producto_id', $this->producto)->first();  
@@ -588,150 +603,60 @@ class FacturaBarController extends Component
     }
     public function StoreOrUpdateButton($articuloId, $accion, $detalleId, $precio)
     {
+        if ($accion == 0) $this->permitir_carga_sin_stock = 'si';
         $this->agregar_quitar_producto = $accion;
         $this->detalleFactId = $detalleId;
         if($precio) $this->precio = $precio;
-        
-        if($articuloId == 0 && $this->es_producto == 1){
-            $this->validate([
-                'producto' => 'not_in:Elegir|required',
-                'cantidad' => 'required|numeric|min:0|not_in:0']);
-        }elseif($articuloId == 0 && $this->es_producto == 0){
-            $this->validate([
-                'subproducto' => 'not_in:Elegir|required',
-                'cantidad'    => 'required|numeric|min:0|not_in:0']);            
-        }
-        if($articuloId != 0){                  //si cargo desde los botones
-            if($this->es_producto == 1){        //si cargué un producto, verifico si tiene subproductos
-                $this->tiene_sp = Subproducto::where('producto_id', $articuloId)->where('comercio_id', $this->comercioId)->get();
-                if($this->tiene_sp->count()){   //si tiene, los muestro
-                    $this->mostrar_sp = 1;
-                    $this->es_producto = 0; 
-                }else $this->verificar_stock($articuloId); //sino valido stock producto
-            }else $this->verificar_stock($articuloId); //si cargué un subproducto, valido su stock
-        }else{                                 //si cargo desde el form
-            if($this->es_producto == 1){       //si es un producto, verifico si tiene subproductos
-                $record = Subproducto::where('producto_id', $this->producto)->where('comercio_id', $this->comercioId)->get();
-                if($record->count()){          //si tiene, los muestro en el select
-                    $this->es_producto = 0;
-                    //return;
-                }else $this->verificar_stock($this->producto); //si no tiene subproductos,valido stock producto
-            }else $this->verificar_stock($this->subproducto); //si cargué un subproducto, valido su stock
-        }
+        $this->verificar_stock($articuloId);
     }
     public function verificar_stock($id)
     {
-        $this->cantidad = 1;
-           //consulto si se controla el stock del producto o subproducto cargado
-        if($this->es_producto == 1) $producto = Producto::where('id', $id)->where('comercio_id', $this->comercioId)->first();
-        else{
-            $producto = Subproducto::join('productos as p', 'p.id', 'subproductos.producto_id')
-                ->where('subproductos.id', $id)
-                ->where('comercio_id', $this->comercioId)
-                ->select('p.precio_venta_l1', 'p.precio_venta_l2', 'p.controlar_stock')->first();
-        }
-        if($producto->tiene_receta == 'si') $this->tiene_receta = true;
-        //consulto el precio y si se controla el stock del producto 
-        if($this->delivery == 0) $this->precio = $producto->precio_venta_l1;
-        else $this->precio = $producto->precio_venta_l2;
-        $this->controlar_stock = $producto->controlar_stock;
-            
-        if($this->agregar_quitar_producto == 1){ //si agregamos un producto, verificamos si tiene stock
-            if($id != 'mantener_id'){    //si cargamos desde los botones
-                $this->producto = $id;
-                $this->cantidad = 1;
-            } else $this->validate(['producto' => 'not_in:Elegir','cantidad' => 'required']);
+        //$this->cantidad = 1;
+        $this->producto = $id;
+           //consulto si se controla el stock del producto cargado
+        $producto = Producto::find($id);
+        if ($producto) {
+            $this->controlar_stock = $producto->controlar_stock;
+            if($producto->tiene_receta == 'si') $this->tiene_receta = true;
+            if($producto->sectorcomanda_id) $this->se_imprime_en_comanda = true;
 
-         
-            if($this->controlar_stock == 'si'){     //si se controla el stock 
-                if($this->selected_id > 0){                 //si modificamos item
-                    $record = Detfactura::find($this->selected_id);
-                    $cantidad_detalle = $record->cantidad;
-                    if($this->es_producto == 1){
-                        if($producto->tiene_receta == 'si'){
-                            $principal = [];
-                            $principal = DetReceta::where('producto_id', $id)->where('comercio_id', $this->comercioId)->get();
-                            if($principal->count()){
-                                foreach ($principal as $i) {
-                                    if($i->principal == 'si'){
-                                        $stock = Stock::where('producto_id', $i->producto_id)->where('comercio_id', $this->comercioId)->first();
-                                    } 
-                                }
-                            }
-                        }else $stock = Stock::where('producto_id', $id)->where('comercio_id', $this->comercioId)->first(); 
-                    }else $stock = Stock::where('subproducto_id', $id)->where('comercio_id', $this->comercioId)->first();   
-                    $stock_local = $stock->stock_actual;
-                    $stock_local_nuevo = $stock_local + $cantidad_detalle; 
-                    if($stock_local_nuevo == null) $stock_local_nuevo = 0;
+            //recupero los precios de costo y de venta
+            $this->costo = $producto->precio_costo;
+            if($this->delivery == 0) $this->precio = $producto->precio_venta_l1;
+            else $this->precio = $producto->precio_venta_l2;
+        } else return; 
 
-                    if($stock_local_nuevo >= $this->cantidad){
-                        $this->verSalsaGuarn($id);
-                    } else {
-                        $this->emit('stock_no_disponible', $stock_local); 
-                        $this->resetInput();
-                    } 
-                }else{                            //si creamos un item
-                    $stock = [];
-                    if($this->es_producto == 1){
-                        if($producto->tiene_receta == 'si'){
-                            $receta = Receta::where('producto_id', $id)->where('comercio_id', $this->comercioId)->first();
-                            if($receta){
-                                $principal = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
-                                    ->where('p.comercio_id', $this->comercioId)
-                                    ->where('det_recetas.receta_id', $receta->id)
-                                    ->select('det_recetas.*', 'p.descripcion')->get();
-                                if($principal){
-                                    foreach ($principal as $i) {
-                                        if($i->principal == 'si'){
-                                            $stock_local = 0;
-                                            $stock = Stock::where('producto_id', $i->producto_id)->where('comercio_id', $this->comercioId)->first();
-                                            $stock_local = $stock->stock_actual;
-                                            if($stock_local < $i->cantidad){
-                                                $stock_local = $stock_local / $i->cantidad;
-                                                $this->emit('stock_receta_no_disponible', $stock_local, $i->descripcion, $id);
-                                                return;                                                
-                                            } 
-                                        } 
-                                    }
-                                } 
-                            }else {
-                                $this->emit('receta_sin_detalle', $producto->descripcion); 
-                                $this->resetInput();
-                            }                             
-                        }else $stock = Stock::where('producto_id', $id)->where('comercio_id', $this->comercioId)->first(); 
-                    }else $stock = Stock::where('subproducto_id', $id)->where('comercio_id', $this->comercioId)->first();
-                  
-                    if($stock) $stock_local = $stock->stock_actual;
-                    else return;
-                    if($stock_local >= $this->cantidad){
-                        $this->verSalsaGuarn($id);
-                    } else {
-                        $stock_local = $stock_local / $this->cantidad;
-                        $this->emit('stock_no_disponible', $stock_local, $producto->descripcion); 
-                        $this->resetInput(); 
-                    } 
-                }
-            }else $this->verSalsaGuarn($id);      //si no se controla stock
-        }else $this->verSalsaGuarn($id);    //si quitamos un producto desde el botón "-"
+        if($this->agregar_quitar_producto == 1){
+            if($this->controlar_stock == 'si') {
+                $verificar_stock = $this->verificarStockTrait($this->cantidad, $id, $producto->tipo);
+                if ($verificar_stock[0] == 1) {
+                    $this->emit('receta_sin_principal', $producto->descripcion); 
+                    return;
+                } elseif ($verificar_stock[0] == 2) {
+                    if ($this->venta_sin_stock_general == 1) {
+                        $this->emit('stock_receta_no_disponible_con_opcion',$verificar_stock[1], $verificar_stock[2]);
+                    } else $this->emit('stock_receta_no_disponible_sin_opcion',$verificar_stock[1], $verificar_stock[2]);
+                    return;
+                } elseif ($verificar_stock[0] == 3) {
+                    $this->emit('receta_sin_detalle', $producto->descripcion);
+                    return; 
+                } elseif ($verificar_stock[0] == 4) { //stock no disponible CON opción
+                    $peps = Peps::where('producto_id', $id)->where('comercio_id', $this->comercioId)->sum('resto');
+                    if ($this->venta_sin_stock_general == 1) {
+                        $this->emit('stock_no_disponible_con_opcion', $peps, $producto->descripcion, $producto->id);
+                    } else $this->emit('stock_no_disponible_sin_opcion', $peps, $producto->descripcion);
+                    return;
+                } elseif ($verificar_stock[0] == 5) { //stock no disponible SIN opción
+                    $peps = Peps::where('producto_id', $id)->where('comercio_id', $this->comercioId)->sum('resto');
+                    $this->emit('stock_no_disponible_sin_opcion', $peps, $producto->descripcion);
+                    return; 
+                } else $this->verSalsaGuarn();
+            } else $this->verSalsaGuarn();
+        } else $this->verSalsaGuarn();
     }
-    public function verSalsaGuarn($id)
+    public function verSalsaGuarn()
     {
-        if($id != 'mantener_id') {  //si se carga desde los botones
-            if($this->es_producto == 1){
-                $producto = Producto::where('id', $id)->where('comercio_id', $this->comercioId)->first();
-                $this->producto = $id;
-            }else{
-                $producto = Subproducto::join('productos as p', 'p.id', 'subproductos.producto_id')
-                    ->where('subproductos.id', $id)
-                    ->where('comercio_id', $this->comercioId)
-                    ->select('subproductos.descripcion','p.id')->first();
-                $this->subproducto = $id;
-                $this->texto_base_subproducto = $producto->descripcion;
-                $this->producto = $producto->id;
-            }
-        }
-        $comanda = Producto::where('id', $this->producto)->where('comercio_id', $this->comercioId)->first();
-        if($comanda->sectorcomanda_id){
+        if($this->se_imprime_en_comanda) {
             $record = Producto::join('texto_base_comandas as tbc', 'tbc.id', 'productos.texto_base_comanda_id')
                 ->where('productos.id', $this->producto)
                 ->where('productos.comercio_id', $this->comercioId)
@@ -747,68 +672,43 @@ class FacturaBarController extends Component
             if($this->estadoComanda == 'en espera'){
                $this->verEstadoComandas(); 
             }else $this->emit('modal_comanda');
-        }else $this->StoreOrUpdate(1, '');
+        }else $this->StoreOrUpdate(1,'');
     }
     public function StoreOrUpdate($cantidad, $texto_comanda)
     {
         $this->cantidad = $cantidad;
+       // dd($this->cantidad);
         $this->texto_comanda = $texto_comanda;
-        
+
         $producto = Producto::where('id', $this->producto)->where('comercio_id', $this->comercioId)->first();
         $this->sector_comanda = $producto->sectorcomanda_id;
 
         $this->validate([
             'cantidad' => 'required',
             'producto' => 'required',
-            'precio'   => 'required'
+            'precio'   => 'required',
+            'costo'    => 'required'
         ]);
         ////calculo el total a grabar en la factura
-        if($this->agregar_quitar_producto == 0 && $this->detalleFactId > 0) $this->totalAgrabar = $this->total - ($this->cantidad * $this->precio); 
+        if($this->agregar_quitar_producto == 0) $this->totalAgrabar = $this->total - ($this->cantidad * $this->precio); 
         else $this->totalAgrabar = $this->total + ($this->cantidad * $this->precio); 
         
+        $actualizarStock = true;
+        $grabarComanda = true;
+
         DB::begintransaction();           //iniciar transacción para grabar
         try{                              //si se resta un producto desde el botón "-"
-            if($this->agregar_quitar_producto == 0 && $this->detalleFactId > 0){
+            if($this->agregar_quitar_producto == 0){
                 $record = DetFactura::find($this->detalleFactId); 
                 $cantidad_detalle = $record->cantidad;
                 $cantidad_nueva = $cantidad_detalle - 1;
                 if($cantidad_nueva > 0) $record->update(['cantidad' => $cantidad_nueva]);
                 else $record->delete();   //si la cantidad es 0, eliminamos el registro   
-                
-                $record = Factura::find($this->factura_id);  //actualizamos el encabezado
-                $record->update(['importe' => $this->totalAgrabar]); 
-               
                 //AUMENTAR STOCK///
-                if($this->controlar_stock == 'si'){
-                    if($this->tiene_receta){
-                        $receta = Receta::where('producto_id', $this->producto)->where('comercio_id', $this->comercioId)->first();
-                        if($receta){    //si tiene detalle de receta cargado
-                            $detReceta = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
-                                ->where('p.comercio_id', $this->comercioId)
-                                ->where('det_recetas.receta_id', $receta->id)
-                                ->select('det_recetas.*', 'p.descripcion')->get();
-                            if($detReceta){
-                                foreach ($detReceta as $i) {
-                                    $stock_local = 0;
-                                    $stock = Stock::where('producto_id', $i->producto_id)->where('comercio_id', $this->comercioId)->first();
-                                    $stock_local = $stock->stock_actual;
-                                    $stock_nuevo = $stock_local + $i->cantidad;
-                                    $stock->update(['stock_actual' => $stock_nuevo]);
-                                }
-                            }else{       //si no tiene el detalle de la receta cargado
-                                $this->emit('receta_sin_detalle', $producto->descripcion); 
-                                return;
-                            }
-                        }
-                    }else{
-                        if($this->es_producto == 1) $record = Stock::where('producto_id', $this->producto)->where('comercio_id', $this->comercioId)->first();
-                        else $record = Stock::where('subproducto_id', $this->subproducto)->where('comercio_id', $this->comercioId)->first();
-                        $stockAnterior = $record['stock_actual'];
-                        $stockNuevo = $stockAnterior + 1;  
-                        $record->update(['stock_actual' => $stockNuevo]); 
-                    }
-                }
-            }else {                 //si se quiere crear
+                $actualizarStock = $this->actualizarStockTrait(3, false, false, null, $this->detalleFactId, $this->cantidad, $this->producto, null, null);                        
+                //dd('actualizar: ' . $actualizarStock);
+                ///COMANDA??????///
+            }else {                 //si se quiere agregar una venta
                 if($this->cliente == 'Elegir') $this->cliente = null; else $this->delivery = 1;
                 if($this->empleado == 'Elegir'){
                     $this->empleado = null;  
@@ -848,10 +748,10 @@ class FacturaBarController extends Component
                         }
                         $mesa->update(['estado' => 'Ocupada']);   
                     }
-                    $this->inicio_factura = false;
                     $this->factura_id = $factura->id;
-                }  
+                }                
 
+                $detalleVentaId = null;
                 $existe = Detfactura::select('id')           //buscamos si el producto ya está cargado
                     ->where('factura_id', $this->factura_id)
                     ->where('comercio_id', $this->comercioId)
@@ -860,105 +760,52 @@ class FacturaBarController extends Component
                     $edit_cantidad = Detfactura::find($existe[0]->id); 
                     $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
                     $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
+                    $detalleVentaId = $existe[0]->id;
                 }else{
                     $add_item = Detfactura::create([         //creamos un nuevo detalle
                         'factura_id'  => $this->factura_id,
                         'producto_id' => $this->producto,
                         'cantidad'    => $this->cantidad,
                         'precio'      => $this->precio,
+                        'costo'       => $this->costo,
                         'comercio_id' => $this->comercioId
                     ]);	
-                }
-                $record = Factura::find($this->factura_id);  //actualizamos el encabezado
-                $record->update(['importe' => $this->totalAgrabar]); 
+                    $detalleVentaId = $add_item->id;
+                }  
+
+                //PEPS
+                if($this->controlar_stock == 'si'){
+                    //$accion, $agregarVenta, $inicioFactura, $detalleCompraId, $detalleVentaId, $cantidad, $productoId, $costoHistorico,$stockActual                         
+                    if($this->permitir_carga_sin_stock == 'no'){
+                        $actualizarStock = $this->actualizarStockTrait(3, true, $this->inicio_factura, null, $detalleVentaId, $this->cantidad, $this->producto, $this->precio, null);
+                    }else{
+                        $actualizarStock = $this->actualizarStockTrait(8, true, $this->inicio_factura, null, $detalleVentaId, $this->cantidad, $this->producto, $this->costo, null);
+                    }
+                }   
 
                 //COMANDA////
-                if($this->sector_comanda){
-                    if($this->inicio_comanda) {
-                        $comanda = Comanda::create([
-                            'factura_id'       => $this->factura_id,
-                            'estado'           => 'cargado',
-                            'sectorcomanda_id' => $this->sector_comanda
-                        ]);
-                        $this->inicio_comanda = false;
-                        $this->comanda_id = $comanda->id;
-                    }  
-                    $existe = Detcomanda::select('id') //buscamos si el producto o subproducto ya está cargado
-                        ->where('comanda_id', $this->comanda_id)
-                        ->where('producto_id', $this->producto)
-                        ->where('descripcion', $this->texto_comanda)
-                        ->where('comercio_id', $this->comercioId)
-                        ->orWhere('comanda_id', $this->comanda_id)
-                        ->where('subproducto_id', $this->subproducto)
-                        ->where('descripcion', $this->texto_comanda)
-                        ->where('comercio_id', $this->comercioId)
-                        ->get();
-                    if ($existe->count()){
-                        $edit_cantidad = Detcomanda::find($existe[0]->id); 
-                        $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
-                        $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
-                    }else{
-                        if($this->es_producto == 1){
-                            $add_item = Detcomanda::create([         //creamos un nuevo detalle
-                                'comanda_id'  => $this->comanda_id,
-                                'producto_id' => $this->producto,
-                                'cantidad'    => $this->cantidad,
-                                'descripcion' => $this->texto_comanda,
-                                'comercio_id' => $this->comercioId
-                            ]);
-                        }else{
-                            $add_item = Detcomanda::create([         //creamos un nuevo detalle
-                                'comanda_id'     => $this->comanda_id,
-                                'subproducto_id' => $this->subproducto,
-                                'cantidad'       => $this->cantidad,
-                                'descripcion'    => $this->texto_comanda,
-                                'comercio_id'    => $this->comercioId
-                            ]);
-                        }
-                    } 
-                    $this->tab = 'comanda';                   
+                
+                if($this->sector_comanda) $grabarComanda = $this->grabarComanda();
+                
+            } 
+            $record = Factura::find($this->factura_id);  //actualizamos el encabezado
+            $record->update(['importe' => $this->totalAgrabar]); 
+       
+            if ($actualizarStock && $grabarComanda){  //verifico si se grabaron todos los datos de stock y la comanda si existiera
+                DB::commit();
+                if($this->selected_id) session()->flash('message', 'Registro Actualizado');       
+                else{
+                    if($this->agregar_quitar_producto == 0) $this->emit('registroAgregado', 'descontado');
+                    else $this->emit('registroAgregado', 'agregado'); 
+                } 
+            } else {
+                DB::rollback();
+                if (!$actualizarStock) {
+                    session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó porque existen problemas al actualizar el Stock...');
+                } else {
+                    session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó porque existen problemas al actualizar la Comanda...');
                 }
-                /////////////
-             
-                //STOCK///
-                if($this->controlar_stock == 'si'){
-                    if($this->tiene_receta){
-                        $receta = Receta::where('producto_id', $this->producto)->where('comercio_id', $this->comercioId)->first();
-                        if($receta){    //si tiene detalle de receta cargado
-                            $detReceta = DetReceta::join('productos as p', 'p.id', 'det_recetas.producto_id')
-                                ->where('p.comercio_id', $this->comercioId)
-                                ->where('det_recetas.receta_id', $receta->id)
-                                ->select('det_recetas.*', 'p.descripcion')->get();
-                            if($detReceta){
-                                foreach ($detReceta as $i) {
-                                    $cantidadTotalADescontar = $this->cantidad * $i->cantidad;
-                                    $stock_local = 0;
-                                    $stock = Stock::where('producto_id', $i->producto_id)->where('comercio_id', $this->comercioId)->first();
-                                    $stock_local = $stock->stock_actual;
-                                    $stock_nuevo = $stock_local - $cantidadTotalADescontar;
-                                    $stock->update(['stock_actual' => $stock_nuevo]);
-                                }
-                            }else{       //si no tiene el detalle de la receta cargado
-                                $this->emit('receta_sin_detalle', $producto->descripcion); 
-                                return;
-                            }
-                        }
-                    }else{
-                        if($this->es_producto == 1) $record = Stock::where('producto_id', $this->producto)->where('comercio_id', $this->comercioId)->first();
-                        else $record = Stock::where('subproducto_id', $this->subproducto)->where('comercio_id', $this->comercioId)->first();
-                        $stockAnterior = $record['stock_actual'];
-                        $stockNuevo = $stockAnterior - $this->cantidad;  
-                        $record->update(['stock_actual' => $stockNuevo]); 
-                    }
-                }
-            }
-      
-            DB::commit();
-            if($this->selected_id) session()->flash('message', 'Registro Actualizado');       
-            else{
-                if($this->agregar_quitar_producto == 0) $this->emit('registroAgregado', 'descontado');
-                else $this->emit('registroAgregado', 'agregado'); 
-            }  
+            }            
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -1087,6 +934,48 @@ class FacturaBarController extends Component
             $this->comanda_id = $estadoCom[0]->id;
             if($this->unir_comandas == 'no') $this->emit('comandaEnEspera'); 
         }
+    }
+    public function grabarComanda()
+    {
+        DB::beginTransaction();
+        try {
+            if($this->inicio_comanda) {
+                $comanda = Comanda::create([
+                    'factura_id'       => $this->factura_id,
+                    'estado'           => 'cargado',
+                    'sectorcomanda_id' => $this->sector_comanda,
+                    'comercio_id'      => $this->comercioId
+                ]);
+                $this->inicio_comanda = false;
+                $this->comanda_id = $comanda->id;
+            }  
+            $existe = Detcomanda::select('id') //buscamos si el producto ya está cargado
+                ->where('comanda_id', $this->comanda_id)
+                ->where('producto_id', $this->producto)
+                ->where('descripcion', $this->texto_comanda)
+                ->where('comercio_id', $this->comercioId)
+                ->get();
+            if ($existe->count()){
+                $edit_cantidad = Detcomanda::find($existe[0]->id); 
+                $nueva_cantidad = $edit_cantidad->cantidad + $this->cantidad; 
+                $edit_cantidad->update(['cantidad' => $nueva_cantidad]);
+            }else{
+                $add_item = Detcomanda::create([         //creamos un nuevo detalle
+                    'comanda_id'  => $this->comanda_id,
+                    'producto_id' => $this->producto,
+                    'cantidad'    => $this->cantidad,
+                    'descripcion' => $this->texto_comanda,
+                    'comercio_id' => $this->comercioId
+                ]);
+            } 
+            $this->tab = 'comanda'; 
+
+            DB::commit();
+            return true;
+        }catch (\Exception $e){
+            DB::rollback();
+            return false;
+        }    
     }
     public function unirComandas($si_no)
     {
@@ -1432,7 +1321,7 @@ class FacturaBarController extends Component
 
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
-                    'tabla'           => 'Entregas/Facturas',
+                    'tabla'           => 'Facturas',
                     'estado'          => '0',
                     'user_delete_id'  => auth()->user()->id,
                     'comentario'      => $comentario,
@@ -1445,15 +1334,16 @@ class FacturaBarController extends Component
                 //repone stock de los productos cargados en la factura
                 $detalle = Detfactura::where('factura_id', $id)
                     ->select('cantidad', 'producto_id')->get();
-               
-                foreach($detalle as $d){
-                    $idProducto = Producto::find($d->producto_id);
-                    
-                    if($idProducto->controlar_stock == 'si'){
-                        $record = Stock::where('producto_id', $d->producto_id)->first();    
-                        $stockAnterior = $record['stock_actual'];
-                        $stockNuevo = $stockAnterior + $d->cantidad;  
-                        $record->update(['stock_actual' => $stockNuevo]);   
+                if ($detalle->count() > 0) {
+                    foreach($detalle as $d){
+                        $idProducto = Producto::find($d->producto_id);
+                        
+                        if($idProducto->controlar_stock == 'si'){
+                            $record = Stock::where('producto_id', $d->producto_id)->first();    
+                            $stockAnterior = $record['stock_actual'];
+                            $stockNuevo = $stockAnterior + $d->cantidad;  
+                            $record->update(['stock_actual' => $stockNuevo]);   
+                        }
                     }
                 }
 

@@ -40,6 +40,7 @@ class FacturaController extends Component
     public $contador_filas, $imp_por_hoja, $imp_duplicado, $lista = '1';
     public $comercioId, $modComandas, $modConsignaciones, $modDelivery, $facturaPendiente, $comercioTipo;
     public $mostrar_sp = 0, $tiene_sp, $es_producto = 1, $controlar_stock = 'no';
+    public $costo;
 	
 	public function render()
 	{
@@ -336,6 +337,7 @@ class FacturaController extends Component
         $this->importeCompPago = null;
         $this->entrega          = 0;
         $this->saldo            = 0;
+        $this->costo            = null;
     }    
     public function resetInputTodos()
     {
@@ -551,11 +553,13 @@ class FacturaController extends Component
                     if($this->lista == '1'){              //verifico stock local
                         if($stock_local_nuevo >= $this->cantidad){
                             $this->precio = $producto->precio_venta_l1;
+                            $this->costo = $producto->precio_costo;
                             $this->StoreOrUpdate($id);
                         }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
                     }elseif($this->lista == '2'){         //verifico stock local 
                         if($stock_local_nuevo >= $this->cantidad){
                             $this->precio = $producto->precio_venta_l2;
+                            $this->costo = $producto->precio_costo;
                             $this->StoreOrUpdate($id);
                         }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
                     }else{                                //verifico stock consignatario
@@ -570,7 +574,8 @@ class FacturaController extends Component
 
                         if($stock_consignacion_nuevo == null) $stock_consignacion_nuevo = 0;
                         if($stock_consignacion_nuevo >= $this->cantidad){
-                            $this->precio = $producto->precio_venta_l2; 
+                            $this->precio = $producto->precio_venta_l2;
+                            $this->costo = $producto->precio_costo; 
                             $this->StoreOrUpdate($id);
                         }else{
                             $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
@@ -601,11 +606,13 @@ class FacturaController extends Component
                     if($this->lista == '1'){
                         if($stock_local >= $this->cantidad){
                             $this->precio = $producto->precio_venta_l1;
+                            $this->costo = $producto->precio_costo;
                             $this->StoreOrUpdate($id);
                         }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput(); 
                     }elseif($this->lista == '2'){ 
                         if($stock_local >= $this->cantidad){
                             $this->precio = $producto->precio_venta_l2;
+                            $this->costo = $producto->precio_costo;
                             $this->StoreOrUpdate($id);
                         }else $this->emit('stock_no_disponible', 'local', $stock_local); $this->resetInput();
                     }else{
@@ -622,7 +629,8 @@ class FacturaController extends Component
                                 ->get()->sum('cantidad');
                         }                    
                         if($stock_consignacion >= $this->cantidad){
-                            $this->precio = $producto->precio_venta_l2; 
+                            $this->precio = $producto->precio_venta_l2;
+                            $this->costo = $producto->precio_costo; 
                             $this->StoreOrUpdate($id);
                         }else{
                             $this->emit('stock_no_disponible', 'en consignación', $stock_consignacion);
@@ -634,6 +642,7 @@ class FacturaController extends Component
                 if($this->lista == '1') $this->precio = $producto->precio_venta_l1;
                 elseif($this->lista == '2') $this->precio = $producto->precio_venta_l2;
                 else $this->precio = $producto->precio_venta_l2;
+                $this->costo = $producto->precio_costo;
                 $this->StoreOrUpdate($id);
             }
         }
@@ -749,6 +758,7 @@ class FacturaController extends Component
                                 'producto_id' => $id,
                                 'cantidad'    => $this->cantidad,
                                 'precio'      => $this->precio,
+                                'costo'       => $this->costo,
                                 'comercio_id' => $this->comercioId
                             ]);    
                         }else{ 
@@ -757,6 +767,7 @@ class FacturaController extends Component
                                 'subproducto_id' => $id,
                                 'cantidad'    => $this->cantidad,
                                 'precio'      => $this->precio,
+                                'costo'       => $this->costo,
                                 'comercio_id' => $this->comercioId
                             ]);      
                         }                     

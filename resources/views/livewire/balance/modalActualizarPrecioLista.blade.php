@@ -10,27 +10,27 @@
                         <form>
                             <div class="row">                          
                                 <div class="form-group col-12">
-                                    <label >Producto</label>
+                                    <label for="producto">Producto</label>
                                     <input id="producto" class="form-control" disabled>                                                               
                                 </div>
                             </div>
                             <div class="row">                          
                                 <div class="form-group col-6">
-                                    <label >Pr. de Vta. Sug. Lista 1</label>                                  
+                                    <label for="precio_sugerido_l1">Pr. de Vta. Sug. Lista 1</label>                                  
                                     <input id="precio_sugerido_l1" class="form-control" disabled>                                                              
                                 </div>
                                 <div class="form-group col-6">
-                                    <label >Precio de Venta Lista 1</label>                                   
+                                    <label for="precio_venta_l1">Precio de Venta Lista 1</label>                                   
                                     <input id="precio_venta_l1" class="form-control" placeholder="Ingrese el Importe" autoconplete ="off">                                                               
                                 </div>
                             </div>
                             <div class="row">                          
                                 <div class="form-group col-6">
-                                    <label >Pr. de Vta. Sug. Lista 2</label>                                  
+                                    <label for="precio_sugerido_l2">Pr. de Vta. Sug. Lista 2</label>                                  
                                     <input id="precio_sugerido_l2" class="form-control" disabled>                                                              
                                 </div>
                                 <div class="form-group col-6">
-                                    <label >Precio de Venta Lista 2</label>                                   
+                                    <label for="precio_venta_l2">Precio de Venta Lista 2</label>                                   
                                     <input id="precio_venta_l2" class="form-control" placeholder="Ingrese el Importe" autoconplete ="off">                                                               
                                 </div>
                             </div>

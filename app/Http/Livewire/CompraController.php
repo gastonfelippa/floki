@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Traits\GenericTrait;
 use App\Models\Auditoria;
 use App\Models\Categoria;
 use App\Models\Comercio;
@@ -12,6 +13,7 @@ use App\Models\Detfactura;
 use App\Models\DetReceta;
 use App\Models\Factura;
 use App\Models\Historico;
+use App\Models\Peps;
 use App\Models\Producto;
 use App\Models\ProductoProveedor;
 use App\Models\Proveedor;
@@ -23,6 +25,8 @@ use DB;
 
 class CompraController extends Component
 {
+    use GenericTrait;
+
     public $cantidad = 1, $precio, $estado='abierta';
     public $nombreProveedor, $proveedor="Elegir", $producto="Elegir", $subproducto="Elegir", $barcode;
     public $proveedores, $productos, $subproductos;
@@ -58,13 +62,12 @@ class CompraController extends Component
             elseif($record->opcion_de_guardado_compra == '1') $this->cambiar_precios = 'solo_costos';
             else $this->cambiar_precios = 'cambiar_todo';
         }
-	
-
                 
-        $this->productos = Producto::select()
-            ->where('comercio_id', $this->comercioId)
-            ->where('tipo', '<>', 'Art. Venta')
-            ->orderBy('descripcion', 'asc')->get();
+        $this->productos = Producto::where('comercio_id', $this->comercioId)
+            ->where('tipo', '<>', 'Art. Venta c/receta')
+            ->where('tipo', '<>', 'Art. Elaborado')
+            ->where('estado', 'Disponible')
+            ->orderBy('descripcion')->get();
         if ($this->subproducto == 'Elegir'){
             $this->subproductos = Subproducto::where('producto_id', $this->producto)
                 ->where('comercio_id', $this->comercioId)->orderBy('descripcion')->get();
@@ -152,6 +155,7 @@ class CompraController extends Component
         if($this->barcode != null){
             $this->mostrar_sp = 0;
             $articulos = Producto::where('codigo', $this->barcode)
+                            ->where('estado', 'Disponible')
                             ->where('comercio_id', $this->comercioId)->get();
             if ($articulos->count()) $this->producto = $articulos[0]->id;
             else session()->flash('msg-error', 'El Código no existe...');
@@ -268,7 +272,7 @@ class CompraController extends Component
         DB::begintransaction();                         //iniciar transacción para grabar
         try{  
             if($this->selected_id > 0) {                //modifica
-                $record = Detcompra::find($this->selected_id);  //actualizamos cantidad y precio
+                $record = Detcompra::find($this->selected_id);  //actualizamos cantidad y/o precio
                 $cantidad_detalle = $record->cantidad;         
                 $record->update([
                     'cantidad' => $this->cantidad,
@@ -362,22 +366,10 @@ class CompraController extends Component
                             'precio'         => $this->precio,
                             'comercio_id'    => $this->comercioId
                         ]);      
-                    }    
+                    } 
                 }
-            }
+            } 
 
-            //ACTUALIZAR STOCK DEL PRODUCTO COMPRADO O MODIFICADO
-            if($this->es_producto == 1) $record = Stock::where('producto_id', $id)->first();  
-            else $record = Stock::where('subproducto_id', $id)->first(); 
-            if($this->selected_id > 0) {                //modifica un item de compra
-                $stockActual = $record['stock_actual'] - $cantidad_detalle;
-                $stockNuevo = $stockActual + $this->cantidad;  
-                $record->update(['stock_actual' => $stockNuevo]); 
-            }else{                                      //crea un item de compra
-                $stockAnterior = $record['stock_actual'];
-                $stockNuevo = $stockAnterior + $this->cantidad;  
-                $record->update(['stock_actual' => $stockNuevo]);
-            }
             //GRABAR AL PROVEEDOR DE ESTE PRODUCTO
             $record = ProductoProveedor::where('producto_id', $id)
                 ->where('proveedor_id', $this->proveedor)->first();
@@ -596,8 +588,8 @@ class CompraController extends Component
             try{
                 $factura = Compra::find($id);
                 $factura->update([ 'estado' => 'anulado']);
+                $factura->delete();
 
-                $factura = Compra::find($id)->delete();
                 $audit = Auditoria::create([
                     'item_deleted_id' => $id,
                     'tabla'           => 'Compras',
@@ -606,18 +598,9 @@ class CompraController extends Component
                     'comentario'      => $comentario,
                     'comercio_id'     => $this->comercioId
                 ]);
-                //actualizo stock
-                $record = Detcompra::where('factura_id', $id)->get();
-                foreach ($record as $i){
-                    if($i->producto_id != null) $record = Stock::where('producto_id', $i->producto_id)->first(); 
-                    else $record = Stock::where('subproducto_id', $i->subproducto_id)->first();  
-                    $stockAnterior = $record['stock_actual'];
-                    $stockNuevo = $stockAnterior - $i->cantidad;  
-                    $record->update(['stock_actual' => $stockNuevo]);   
-                }
                 session()->flash('msg-ok', 'Registro Anulado con éxito!!');
                 DB::commit();               
-            }catch (Exception $e){
+            }catch (\Exception $e){
                 DB::rollback();
                 session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se anuló...');
             }
@@ -634,23 +617,23 @@ class CompraController extends Component
         $this->f_de_pago = '1';        
         $this->doAction(2);
     }    
-    public function pagar_factura()
-    {
-        if($this->total != 0){
-            $record = Compra::find($this->factura_id);
-            $record->update([
-                'estado' => 'PAGADA',
-                'importe' => $this->total
-            ]);              
-            session()->flash('message', 'Compra Pagada'); 
-            $this->resetInputTodos();
-        }else{
-            session()->flash('msg-error', 'Compra vacía...'); 
-        }
-    }
+    // public function pagar_factura()
+    // {
+    //     if($this->total != 0){
+    //         $record = Compra::find($this->factura_id);
+    //         $record->update([
+    //             'estado' => 'PAGADA',
+    //             'importe' => $this->total
+    //         ]);              
+    //         session()->flash('message', 'Compra Pagada'); 
+    //         $this->resetInputTodos();
+    //     }else{
+    //         session()->flash('msg-error', 'Compra vacía...'); 
+    //     }
+    // }
     public function factura_contado()
     {
-        DB::begintransaction();                         //iniciar transacción para grabar
+        DB::begintransaction();                      
         try{
             $record = Compra::find($this->factura_id);
             $record->update([
@@ -658,12 +641,28 @@ class CompraController extends Component
                 'estado_pago'   => '1',
                 'importe'       => $this->total,
                 'forma_de_pago' => $this->f_de_pago,
-                'nro_comp_pago' => $this->nro_comp_pago,  //nro ticket tarjeta o nro transferencia
+                'nro_comp_pago' => $this->nro_comp_pago,  
                 'mercadopago'   => $this->mercadopago,
                 'comentario'    => $this->comentarioPago
             ]);
-            DB::commit();
-            $this->emit('facturaCobrada');
+            //ACTUALIZO TABLA PEPS
+            $det_compra = Detcompra::where('factura_id', $this->factura_id)
+                ->join('productos as p', 'p.id', 'det_compras.producto_id')
+                ->select('det_compras.*', 'p.controlar_stock')->get();
+            if ($det_compra->count() > 0) {
+                foreach ($det_compra as $i) {
+                    if ($i->controlar_stock == 'si') {
+                        //(accion,agregarVenta,inicioFactura,detalleCompraId,detalleVentaId,cantidad,productoId,costoHistorico,stockActual)
+                        $peps = $this->actualizarStockTrait(2, false, true, $i->id, null, $i->cantidad, $i->producto_id, $i->precio, null);
+                    }
+                }
+            }
+            if($peps) {
+                DB::commit();
+                $this->emit('facturaCobrada');
+            } else {
+                $this->emit('errorAlGrabarStock');
+            }             
         }catch (Exception $e){
             DB::rollback();
             session()->flash('msg-error', '¡¡¡ATENCIÓN!!! El registro no se grabó...');
@@ -679,7 +678,19 @@ class CompraController extends Component
             $record->update([
                 'estado' => 'CUENTACORRIENTE',
                 'importe' => $this->total
-            ]);              
+            ]);
+            //ACTUALIZO TABLA PEPS
+            $det_compra = Detcompra::where('factura_id', $this->factura_id)
+                ->join('productos as p', 'p.id', 'det_compras.producto_id')
+                ->select('det_compras.*', 'p.controlar_stock')->get();
+            if ($det_compra->count() > 0) {
+                foreach ($det_compra as $i) {
+                    if ($i->controlar_stock == 'si') {
+                        //(accion,agregarVenta,inicioFactura,detalleCompraId,detalleVentaId,cantidad,productoId,costoHistorico,stockActual)
+                        $this->actualizarStockTrait(2, false, true, $i->id, null, $i->cantidad, $i->producto_id, $i->precio, null);
+                    }
+                }
+            }              
             session()->flash('message', 'Compra enviada a Cuenta Corriente'); 
             $this->resetInputTodos();
         }

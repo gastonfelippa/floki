@@ -9866,7 +9866,7 @@ url(/fonts/vendor/bootstrap-icons/bootstrap-icons.woff?4753c5ba57962b4d7bf8248a6
 .bi-tencent-qq::before { content: "\f8cb"; }
 .bi-wikipedia::before { content: "\f8cc"; }
 
-@charset "UTF-8";
+/* @charset "UTF-8"; */
 /*!
  * Bootstrap v4.6.0 (https://getbootstrap.com/)
  * Copyright 2011-2021 The Bootstrap Authors
@@ -10131,9 +10131,9 @@ select {
 button,
 [type=button],
 [type=reset],
-[type=submit] {
+/* [type=submit] {
   -webkit-appearance: button;
-}
+} */
 
 button:not(:disabled),
 [type=button]:not(:disabled),
@@ -10191,7 +10191,7 @@ progress {
 
 [type=search] {
   outline-offset: -2px;
-  -webkit-appearance: none;
+  /* -webkit-appearance: none; */
 }
 
 [type=search]::-webkit-search-decoration {
@@ -13337,8 +13337,8 @@ input[type=button].btn-block {
   display: block;
   min-height: 1.44rem;
   padding-left: 1.5rem;
-  -webkit-print-color-adjust: exact;
-          color-adjust: exact;
+  /* -webkit-print-color-adjust: exact;
+          color-adjust: exact; */
 }
 
 .custom-control-inline {
