@@ -33,7 +33,7 @@ class CreatePepsTable extends Migration
             $table->decimal('costo_historico',10,2)->nullable();
 
             $table->unsignedBigInteger('prod_modif_id')->nullable();
-            $table->foreign('producto_id')->references('id')->on('productos');
+            $table->foreign('prod_modif_id')->references('id')->on('productos');
 
             $table->decimal('cant_prod_modif',10,3)->nullable();
 
