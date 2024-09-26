@@ -1,0 +1,317 @@
+:root {
+    /* --bgcolor-head: rgb(241, 184, 136);
+    --bgcolor-even: rgb(9, 80, 21);
+    --bgcolor-odd: rgb(119, 197, 132); */
+    --bgcolor-head: #fff;
+    --bgcolor-even: #fff;
+    --bgcolor-odd: #fff;
+    --c1: #4fae5a;
+    --c2: #6f6b7d;
+    --c3: #5d596c;
+    --c4: #48c256;
+    
+    --negro: rgba(0, 0, 0, 0.7);
+    --rojo: rgba(255, 0, 0, 0.7);
+    --amarillo: rgba(255, 204, 0, 0.7);
+
+    --gris: rgba(128, 128, 128, 0.9);
+    --anaranjado: rgba(255, 165, 0, 0.9);
+    --verde: rgba(0, 128, 0, 0.3);
+}
+
+body {
+    /* background-color: var(--verde); */
+}
+
+table tr:nth-child(even) {
+    background-color: var(--bgcolor-even);
+}
+
+table tbody tr:nth-child(odd) {
+    background-color: var(--bgcolor-odd);
+}
+
+.header-container {
+    background-color: #e1e3f0dc;
+    background-color: #6393AA;
+    /* background-color: var(--gris); */
+}
+
+.header-container span {
+    color: #dbdade;
+}
+
+.navbar {
+    padding-bottom: 10px;
+}
+
+.navbar .nav-logo a.navbar-brand .navbar-brand-name {
+    color: #dbdade;
+}
+
+.navbar .navbar-item .nav-item.user-profile-dropdown a.user .media .media-body h6 {
+    color: #dbdade;
+}
+
+.navbar .navbar-item .nav-item.dropdown.notification-dropdown .nav-link svg {
+    color: #dbdade;
+}
+
+.menu-categories {
+    background-color: #4895a1;
+    background-color: #4eb1a0;
+    background-color: #6ea379;
+    /* background-color: var(--anaranjado); */
+    border-radius: 5px;
+    box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.3);
+    -webkit-box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.3);
+    -moz-box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.3);
+}
+
+.widget-content-area {
+    border-radius: 5px;
+    box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.1);
+    -webkit-box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.1);
+    -moz-box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.1);
+}
+
+.footer-wrapper {
+    border-top: 1px solid #dbdade;
+}
+
+.footer-wrapper .footer-section p {
+    color: #bec3d7;
+}
+
+.footer-wrapper .footer-section p a {
+    color: #bec3d7;
+}
+
+.btn-success {
+    background-color: #6ea379; /*44bb5e */
+}
+.btn-success:hover{
+    background-color: #42b35a;
+}
+
+.btn-primary {
+    border-color: #4895a1 !important;
+    background-color: #4895a1 !important; /*6393aa 518096*/
+}
+
+.btn-dark {
+    background-color: #4F6672;
+}
+
+.btn-info {
+    border-color: #467a72; /*63aa9e*/
+    background-color: #467a72; /*63aa9e*/
+}
+
+.btn-warning {
+    background-color: #fb0;
+}
+
+.btn-danger {
+    background-color: #c12a2a; /*f9461c*/
+}
+
+.btn-outline-success {
+    border-color: green !important;
+    padding: 9px 12px;
+    min-width: 115px;
+}
+
+.btn-outline-success:hover {
+    background-color: green !important;
+}
+.text-danger {
+    color: #c12a2a; /*f9461c*/
+}
+
+.form-control:focus {
+    border: 1px solid #44bb5e;
+}
+
+input[type="checkbox"] {
+    accent-color: #95d3a2 !important;
+}
+input[type="radio"] {
+    accent-color: #95d3a2 !important;
+    background-color: #fff;
+}
+
+.input-group .input-group-prepend .input-group-text {
+    border: 1px solid #44bb5e;
+    background-color: #95d3a2;
+}
+
+.input-group .input-group-append .input-group-text {
+    border: 1px solid #44bb5e;
+    background-color: #95d3a2;
+}
+
+.input-group .input-group-prepend .input-group-text .bi {
+    color: #fff;
+}
+
+.input-group .input-group-append .input-group-text .bi {
+    color: #fff;
+}
+
+.input-group .input-group-prepend span i {
+    color: #fff;
+}
+
+.input-group .input-group-append span i {
+    color: #fff;
+}
+
+.bg-danger {
+    background-color: #c12a2a;
+}
+
+.bg-dark {
+    background-color: #6c7b83 !important;
+    border-radius: 5px;
+}
+.bg-dark label {
+    color: #fff;
+    padding-right: 5px;
+}
+
+.form-check:hover {
+    background-color: #78949e !important;
+    border-radius: 5px;
+}
+
+.form-check label:hover {
+    color: #fff;
+}
+
+.text-white {
+    color: #fff;
+}
+
+.scroll {
+    position: relative;
+    height: 270px;
+    margin-top: .5rem;
+    overflow: auto;
+}
+
+.scroll-small {
+    position: relative;
+    height: 150px;
+    margin-top: .5rem;
+    overflow: auto;
+}
+
+thead tr th {
+    /* fija la cabecera de la tabla */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bgcolor-head);
+    height: 40px;
+}
+
+.table thead tr th {
+    color: #888ea8;
+    padding: 10px !important;
+}
+
+.widget-one .panel-nav {
+    border-bottom: 1px solid #dbdade;
+    border-top: 1px solid #dbdade;
+    display: flex;
+    padding: 4px;
+}
+
+.widget-one .panel-nav ul {
+    display: flex;
+    list-style: none;
+    overflow: auto;
+    margin: 0px;
+    padding: 0px;
+}
+
+.widget-one .panel-nav ul li {
+    margin-right: 8px;
+}
+
+.widget-one .panel-nav ul li button {
+    display: flex;
+    background-color: #fff;
+    border: 1px solid rgb(182, 173, 173);
+    border-radius: 6px;
+    color: var(--c3);
+    font-size: 1em;
+    padding: 9px 20px;
+    text-decoration: none;
+    min-width: 130px;
+}
+
+.widget-one .panel-nav ul li button i {
+    margin-right: 4px;
+    margin-top: 3px;
+}
+
+.widget-one .panel-nav ul li button:hover {
+    color: var(--c1);
+}
+
+.widget-one .panel-nav ul li button.active {
+    background-color: var(--c3);
+    color: #fff;
+}
+
+.widget-one .panel-nav ul li button.active:hover {
+    background-color: var(--c2);
+}
+
+.widget-one .panel-nav ul li a {
+    display: flex;
+    background-color: #fff;
+    border-radius: 6px;
+    color: var(--c3);
+    font-size: 1em;
+    padding: 9px 20px;
+    text-decoration: none;
+    min-width: 130px;
+}
+
+.widget-one .panel-nav ul li a i {
+    margin-right: 4px;
+    margin-top: 3px;
+}
+
+.widget-one .panel-nav ul li a:hover {
+    color: var(--c1);
+}
+
+.widget-one .panel-nav ul li a.active {
+    background-color: var(--c3);
+    color: #fff;
+}
+
+.widget-one .panel-nav ul li a.active:hover {
+    background-color: var(--c2);
+}
+
+hr {
+    display: block; 
+    margin-top: 0.5em; 
+    margin-bottom: 0.5em; 
+    margin-left: auto; 
+    margin-right: auto; 
+    border-style: inset; 
+    border-width: 1px;
+    border: 1px solid #dbdade !important;
+}
+
+@media (max-width: 991px) {
+    .mbfloki {
+        margin-bottom: 5px;
+    }
+}
